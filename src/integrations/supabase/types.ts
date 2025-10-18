@@ -193,6 +193,83 @@ export type Database = {
           },
         ]
       }
+      job_resources: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          notes: string | null
+          reserved_from: string
+          reserved_until: string
+          resource_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          notes?: string | null
+          reserved_from: string
+          reserved_until: string
+          resource_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+          reserved_from?: string
+          reserved_until?: string
+          resource_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_resources_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_resources_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_team_members: {
+        Row: {
+          assigned_at: string
+          id: string
+          job_id: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          id?: string
+          job_id: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          id?: string
+          job_id?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_team_members_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           client_id: string | null
@@ -313,6 +390,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          delivered: boolean | null
+          id: string
+          payload: Json | null
+          read: boolean | null
+          recipient_id: string
+          sent_at: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          delivered?: boolean | null
+          id?: string
+          payload?: Json | null
+          read?: boolean | null
+          recipient_id: string
+          sent_at?: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          delivered?: boolean | null
+          id?: string
+          payload?: Json | null
+          read?: boolean | null
+          recipient_id?: string
+          sent_at?: string
+          type?: string
+        }
+        Relationships: []
       }
       payments: {
         Row: {
