@@ -14,10 +14,6 @@ interface AuditLog {
   previous_data: any;
   new_data: any;
   created_at: string;
-  profiles?: {
-    name: string;
-    email: string;
-  };
 }
 
 const actionColors = {
@@ -38,13 +34,7 @@ export function AuditLogViewer() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('audit_logs')
-        .select(`
-          *,
-          profiles:user_id (
-            name,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
 
@@ -86,7 +76,7 @@ export function AuditLogViewer() {
 
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                   <User className="h-3 w-3" />
-                  <span>{log.profiles?.name || log.profiles?.email || 'Sistema'}</span>
+                  <span>{log.user_id ? `Usuário: ${log.user_id.slice(0, 8)}...` : 'Sistema'}</span>
                 </div>
 
                 {log.action === 'UPDATE' && log.new_data && (
