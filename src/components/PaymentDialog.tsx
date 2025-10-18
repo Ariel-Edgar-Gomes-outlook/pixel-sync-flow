@@ -148,7 +148,6 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                   <SelectValue placeholder="Selecione o orçamento" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
                   {quotes?.map((quote) => (
                     <SelectItem key={quote.id} value={quote.id}>
                       Orçamento #{quote.id.slice(0, 8)} - Kz {Number(quote.total).toFixed(2)}
