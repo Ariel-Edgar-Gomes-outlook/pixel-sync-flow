@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { useCreateClient, useUpdateClient, Client } from "@/hooks/useClients";
 import { useToast } from "@/hooks/use-toast";
-import { Plus } from "lucide-react";
+import { Plus, User, Building, Mail, Phone, MapPin, FileText } from "lucide-react";
 
 interface ClientDialogProps {
   children?: React.ReactNode;
@@ -115,83 +116,165 @@ export function ClientDialog({ children, client, open: controlledOpen, onOpenCha
           <DialogTitle className="text-lg sm:text-xl">
             {client ? "Editar Cliente" : "Novo Cliente"}
           </DialogTitle>
+          <DialogDescription>
+            {client 
+              ? "Atualize as informações de contacto e detalhes do cliente" 
+              : "Adicione um novo cliente à sua carteira"}
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Nome *</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Nome do cliente"
-                required
-              />
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Informações Básicas */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-primary" />
+              <h3 className="font-semibold text-sm">Informações Básicas</h3>
             </div>
+            
+            <div className="grid gap-4 pl-6">
+              <div className="grid gap-2">
+                <Label htmlFor="name" className="text-sm font-medium">
+                  Nome Completo <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ex: João Silva ou Empresa Fotografia Lda"
+                  required
+                  className="text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Nome da pessoa ou empresa
+                </p>
+              </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="type">Tipo</Label>
-              <Select value={type} onValueChange={setType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="person">Pessoa</SelectItem>
-                  <SelectItem value="company">Empresa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="email@exemplo.com"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="phone">Telefone</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+244 912 345 678"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="address">Morada</Label>
-              <Input
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Rua, Cidade, Luanda"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="notes">Notas</Label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Informações adicionais sobre o cliente..."
-                rows={4}
-              />
+              <div className="grid gap-2">
+                <Label htmlFor="type" className="text-sm font-medium">Tipo de Cliente</Label>
+                <Select value={type} onValueChange={setType}>
+                  <SelectTrigger className="text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="person">👤 Pessoa Individual</SelectItem>
+                    <SelectItem value="company">🏢 Empresa/Organização</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Define se é cliente individual ou corporativo
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-end gap-3">
+          <Separator />
+
+          {/* Contactos */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-primary" />
+              <h3 className="font-semibold text-sm">Contactos</h3>
+            </div>
+            
+            <div className="grid gap-4 pl-6">
+              <div className="grid gap-2">
+                <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
+                  <Mail className="h-3 w-3" />
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="cliente@exemplo.com"
+                  className="text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Email principal para comunicação e envio de orçamentos
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="phone" className="text-sm font-medium flex items-center gap-2">
+                  <Phone className="h-3 w-3" />
+                  Telefone
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+244 912 345 678"
+                  className="text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Número de telefone ou WhatsApp para contacto direto
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="address" className="text-sm font-medium flex items-center gap-2">
+                  <MapPin className="h-3 w-3" />
+                  Morada
+                </Label>
+                <Input
+                  id="address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Rua, Bairro, Luanda"
+                  className="text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Endereço físico do cliente (opcional)
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Notas e Observações */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-primary" />
+              <h3 className="font-semibold text-sm">Notas e Preferências</h3>
+            </div>
+            
+            <div className="grid gap-4 pl-6">
+              <div className="grid gap-2">
+                <Label htmlFor="notes" className="text-sm font-medium">
+                  Observações
+                </Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Ex: Prefere sessões ao ar livre, casamento em Junho de 2025, cliente VIP..."
+                  rows={4}
+                  className="text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Preferências, histórico, datas importantes ou qualquer informação relevante
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" disabled={createClient.isPending || updateClient.isPending} className="w-full sm:w-auto">
-              {client ? (updateClient.isPending ? "Atualizando..." : "Atualizar") : (createClient.isPending ? "Criando..." : "Criar Cliente")}
+            <Button 
+              type="submit" 
+              disabled={createClient.isPending || updateClient.isPending} 
+              className="w-full sm:w-auto"
+            >
+              {createClient.isPending || updateClient.isPending
+                ? "Guardando..."
+                : client ? "Atualizar Cliente" : "Criar Cliente"}
             </Button>
           </div>
         </form>
