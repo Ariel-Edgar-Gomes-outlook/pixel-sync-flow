@@ -23,7 +23,7 @@ const navigation = [
   { name: "Jobs", href: "/jobs", icon: Briefcase },
   { name: "Agenda", href: "/calendar", icon: Calendar },
   { name: "Orçamentos", href: "/quotes", icon: FileText },
-  { name: "Financeiro", href: "/finance", icon: CreditCard },
+  { name: "Financeiro", href: "/payments", icon: CreditCard },
   { name: "Configurações", href: "/settings", icon: Settings },
 ];
 

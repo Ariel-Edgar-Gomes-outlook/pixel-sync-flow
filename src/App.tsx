@@ -10,6 +10,9 @@ import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import Jobs from "./pages/Jobs";
 import CalendarView from "./pages/CalendarView";
+import Quotes from "./pages/Quotes";
+import Payments from "./pages/Payments";
+import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +32,9 @@ const App = () => (
               <Route path="clients" element={<Clients />} />
               <Route path="jobs" element={<Jobs />} />
               <Route path="calendar" element={<CalendarView />} />
+              <Route path="quotes" element={<Quotes />} />
+              <Route path="payments" element={<Payments />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
