@@ -3,8 +3,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, DollarSign, Calendar, CreditCard } from "lucide-react";
-import { usePayments } from "@/hooks/usePayments";
+import { Plus, Search, DollarSign, Calendar, CreditCard, Edit } from "lucide-react";
+import { usePayments, type Payment } from "@/hooks/usePayments";
+import PaymentDialog from "@/components/PaymentDialog";
 
 const statusConfig = {
   pending: { label: "Pendente", variant: "warning" as const },
@@ -15,7 +16,24 @@ const statusConfig = {
 
 export default function Payments() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { data: payments, isLoading } = usePayments();
+
+  const handleEdit = (payment: Payment) => {
+    setSelectedPayment(payment);
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setSelectedPayment(null);
+  };
+
+  const handleNewPayment = () => {
+    setSelectedPayment(null);
+    setIsDialogOpen(true);
+  };
 
   const filteredPayments = payments?.filter(payment =>
     payment.clients?.name?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -37,7 +55,7 @@ export default function Payments() {
           <h1 className="text-3xl font-bold text-foreground">Financeiro</h1>
           <p className="text-muted-foreground mt-1">Gestão de pagamentos e faturação</p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={handleNewPayment}>
           <Plus className="h-4 w-4" />
           Novo Pagamento
         </Button>
@@ -143,8 +161,14 @@ export default function Payments() {
                     <div className="text-xs text-muted-foreground mt-1">
                       {payment.currency || 'AOA'}
                     </div>
-                    <Button variant="outline" size="sm" className="mt-3">
-                      Ver Detalhes
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-3 gap-2"
+                      onClick={() => handleEdit(payment)}
+                    >
+                      <Edit className="h-4 w-4" />
+                      Editar
                     </Button>
                   </div>
                 </div>
@@ -153,6 +177,12 @@ export default function Payments() {
           )}
         </div>
       </Card>
+
+      <PaymentDialog
+        payment={selectedPayment}
+        open={isDialogOpen}
+        onOpenChange={handleCloseDialog}
+      />
     </div>
   );
 }
