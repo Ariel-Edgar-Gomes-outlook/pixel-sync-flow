@@ -5,10 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Card } from "@/components/ui/card";
 import { useCreateQuote, useUpdateQuote, Quote } from "@/hooks/useQuotes";
 import { useClients } from "@/hooks/useClients";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
+import { Plus, X, FileText, Calculator, Percent, Tag } from "lucide-react";
 
 interface QuoteDialogProps {
   children?: React.ReactNode;
@@ -137,171 +139,294 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
     });
   };
 
+  const subtotal = formData.items.reduce((sum, item) => 
+    sum + (item.quantity * item.price), 0
+  );
+  const taxAmount = subtotal * (formData.tax / 100);
+  const finalTotal = calculateTotal();
+
   return (
     <Dialog open={actualOpen} onOpenChange={actualOnOpenChange}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
         <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl">{quote ? "Editar Orçamento" : "Novo Orçamento"}</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
+            <FileText className="h-6 w-6 text-primary" />
+            {quote ? "Editar Orçamento" : "Novo Orçamento"}
+          </DialogTitle>
         </DialogHeader>
+        
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="client">Cliente *</Label>
-              <Select
-                value={formData.client_id}
-                onValueChange={(value) => setFormData({ ...formData, client_id: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients?.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Informações Básicas */}
+          <Card className="p-4 bg-muted/50">
+            <h3 className="text-sm font-semibold mb-3 text-foreground">Informações Básicas</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="client" className="text-sm font-medium">
+                  Cliente <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={formData.client_id}
+                  onValueChange={(value) => setFormData({ ...formData, client_id: value })}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Selecione o cliente" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    {clients?.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Cliente que receberá o orçamento</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="validity_date" className="text-sm font-medium">
+                  Data de Validade
+                </Label>
+                <Input
+                  id="validity_date"
+                  type="date"
+                  className="bg-background"
+                  value={formData.validity_date}
+                  onChange={(e) => setFormData({ ...formData, validity_date: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">Até quando o orçamento é válido</p>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="validity_date">Data de Validade</Label>
-              <Input
-                id="validity_date"
-                type="date"
-                value={formData.validity_date}
-                onChange={(e) => setFormData({ ...formData, validity_date: e.target.value })}
-              />
-            </div>
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="status" className="text-sm font-medium">Estado do Orçamento</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) => setFormData({ ...formData, status: value as Quote['status'] })}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="draft">📝 Rascunho</SelectItem>
+                    <SelectItem value="sent">📤 Enviado</SelectItem>
+                    <SelectItem value="accepted">✅ Aceite</SelectItem>
+                    <SelectItem value="rejected">❌ Rejeitado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="status">Estado</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) => setFormData({ ...formData, status: value as Quote['status'] })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Rascunho</SelectItem>
-                  <SelectItem value="sent">Enviado</SelectItem>
-                  <SelectItem value="accepted">Aceite</SelectItem>
-                  <SelectItem value="rejected">Rejeitado</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label htmlFor="currency" className="text-sm font-medium">Moeda</Label>
+                <Select
+                  value={formData.currency}
+                  onValueChange={(value) => setFormData({ ...formData, currency: value })}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="AOA">🇦🇴 AOA - Kwanza</SelectItem>
+                    <SelectItem value="USD">🇺🇸 USD - Dólar</SelectItem>
+                    <SelectItem value="EUR">🇪🇺 EUR - Euro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+          </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="currency">Moeda</Label>
-              <Select
-                value={formData.currency}
-                onValueChange={(value) => setFormData({ ...formData, currency: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="AOA">AOA - Kwanza</SelectItem>
-                  <SelectItem value="USD">USD - Dólar</SelectItem>
-                  <SelectItem value="EUR">EUR - Euro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <Separator />
 
+          {/* Items do Orçamento */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label>Items *</Label>
-              <Button type="button" variant="outline" size="sm" onClick={addItem}>
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">
+                  Items do Orçamento <span className="text-destructive">*</span>
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">Adicione os serviços ou produtos</p>
+              </div>
+              <Button type="button" variant="default" size="sm" onClick={addItem}>
                 <Plus className="h-4 w-4 mr-1" />
                 Adicionar Item
               </Button>
             </div>
 
-            {formData.items.map((item, index) => (
-              <div key={index} className="flex gap-2 items-start p-3 border rounded-lg">
-                <div className="flex-1 space-y-2">
-                  <Input
-                    placeholder="Descrição"
-                    value={item.description}
-                    onChange={(e) => updateItem(index, "description", e.target.value)}
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      type="number"
-                      placeholder="Quantidade"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(index, "quantity", Number(e.target.value))}
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Preço"
-                      min="0"
-                      step="0.01"
-                      value={item.price}
-                      onChange={(e) => updateItem(index, "price", Number(e.target.value))}
-                    />
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Subtotal: {(item.quantity * item.price).toFixed(2)} {formData.currency}
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeItem(index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+            {formData.items.length === 0 ? (
+              <Card className="p-8 text-center border-dashed">
+                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhum item adicionado</p>
+                <p className="text-xs text-muted-foreground mt-1">Clique em "Adicionar Item" para começar</p>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {formData.items.map((item, index) => (
+                  <Card key={index} className="p-4 bg-card hover:shadow-md transition-shadow">
+                    <div className="flex gap-3">
+                      <div className="flex-1 space-y-3">
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-1">Descrição do Item</Label>
+                          <Input
+                            placeholder="Ex: Desenvolvimento de Website"
+                            className="bg-background"
+                            value={item.description}
+                            onChange={(e) => updateItem(index, "description", e.target.value)}
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs text-muted-foreground mb-1">Quantidade</Label>
+                            <Input
+                              type="number"
+                              placeholder="1"
+                              className="bg-background"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) => updateItem(index, "quantity", Number(e.target.value))}
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground mb-1">
+                              Preço Unitário ({formData.currency})
+                            </Label>
+                            <Input
+                              type="number"
+                              placeholder="0.00"
+                              className="bg-background"
+                              min="0"
+                              step="0.01"
+                              value={item.price}
+                              onChange={(e) => updateItem(index, "price", Number(e.target.value))}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <span className="text-xs text-muted-foreground">Subtotal do Item:</span>
+                          <span className="text-sm font-semibold text-foreground">
+                            {(item.quantity * item.price).toFixed(2)} {formData.currency}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={() => removeItem(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
               </div>
-            ))}
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <Separator />
+
+          {/* Ajustes Financeiros */}
+          <Card className="p-4 bg-muted/50">
+            <h3 className="text-sm font-semibold mb-3 text-foreground flex items-center gap-2">
+              <Calculator className="h-4 w-4" />
+              Ajustes Financeiros
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="tax" className="text-sm font-medium flex items-center gap-1">
+                  <Percent className="h-3 w-3" />
+                  Taxa / Imposto (%)
+                </Label>
+                <Input
+                  id="tax"
+                  type="number"
+                  className="bg-background"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={formData.tax}
+                  onChange={(e) => setFormData({ ...formData, tax: Number(e.target.value) })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ex: IVA, impostos aplicáveis
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="discount" className="text-sm font-medium flex items-center gap-1">
+                  <Tag className="h-3 w-3" />
+                  Desconto ({formData.currency})
+                </Label>
+                <Input
+                  id="discount"
+                  type="number"
+                  className="bg-background"
+                  min="0"
+                  step="0.01"
+                  value={formData.discount}
+                  onChange={(e) => setFormData({ ...formData, discount: Number(e.target.value) })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Desconto em valor fixo
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Resumo de Cálculo */}
+          <Card className="p-5 bg-primary/5 border-primary/20">
+            <h3 className="text-sm font-semibold mb-4 text-foreground">Resumo do Orçamento</h3>
             <div className="space-y-2">
-              <Label htmlFor="tax">Taxa (%)</Label>
-              <Input
-                id="tax"
-                type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                value={formData.tax}
-                onChange={(e) => setFormData({ ...formData, tax: Number(e.target.value) })}
-              />
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal dos Items:</span>
+                <span className="font-medium">{subtotal.toFixed(2)} {formData.currency}</span>
+              </div>
+              
+              {formData.tax > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Taxa ({formData.tax}%):</span>
+                  <span className="font-medium text-orange-600">+ {taxAmount.toFixed(2)} {formData.currency}</span>
+                </div>
+              )}
+              
+              {formData.discount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Desconto:</span>
+                  <span className="font-medium text-green-600">- {formData.discount.toFixed(2)} {formData.currency}</span>
+                </div>
+              )}
+              
+              <Separator className="my-2" />
+              
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-lg font-semibold text-foreground">Total Final:</span>
+                <span className="text-2xl font-bold text-primary">
+                  {finalTotal.toFixed(2)} {formData.currency}
+                </span>
+              </div>
             </div>
+          </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="discount">Desconto ({formData.currency})</Label>
-              <Input
-                id="discount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.discount}
-                onChange={(e) => setFormData({ ...formData, discount: Number(e.target.value) })}
-              />
-            </div>
-          </div>
-
-          <div className="p-4 bg-muted rounded-lg">
-            <div className="text-2xl font-bold text-foreground">
-              Total: {calculateTotal().toFixed(2)} {formData.currency}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => actualOnOpenChange(false)}>
+          {/* Botões de Ação */}
+          <div className="flex justify-end gap-3 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => actualOnOpenChange(false)}
+              disabled={createQuote.isPending || updateQuote.isPending}
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={createQuote.isPending || updateQuote.isPending}>
-              {quote ? "Atualizar" : "Criar"} Orçamento
+            <Button 
+              type="submit" 
+              disabled={createQuote.isPending || updateQuote.isPending}
+              className="min-w-32"
+            >
+              {createQuote.isPending || updateQuote.isPending ? "A guardar..." : quote ? "Atualizar Orçamento" : "Criar Orçamento"}
             </Button>
           </div>
         </form>
