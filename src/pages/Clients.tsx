@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Mail, Phone, MapPin, ExternalLink, Edit } from "lucide-react";
+import { Plus, Search, Mail, Phone, MapPin, ExternalLink, Edit, Users, UserPlus, Building } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
 import { ClientDialog } from "@/components/ClientDialog";
 
@@ -28,6 +28,8 @@ export default function Clients() {
     client.email?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
+  const showEmptyState = !isLoading && (!clients || clients.length === 0);
+
   if (isLoading) {
     return <div className="space-y-6">Carregando...</div>;
   }
@@ -35,32 +37,86 @@ export default function Clients() {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+        <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Clientes</h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">Gestão completa da sua carteira de clientes</p>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Gerencie sua carteira de clientes, contactos e histórico de trabalhos
+          </p>
         </div>
         <ClientDialog />
       </div>
 
-      <Card className="p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Pesquisar clientes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {filteredClients.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              {searchQuery ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}
+      {/* Estado vazio informativo */}
+      {showEmptyState ? (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <div className="rounded-full bg-primary/10 p-6 mb-6">
+              <Users className="h-12 w-12 text-primary" />
+            </div>
+            
+            <h3 className="text-xl font-semibold mb-2">Comece a gerir seus clientes</h3>
+            <p className="text-muted-foreground mb-6 max-w-md">
+              Adicione clientes individuais ou empresas. Guarde informações de contacto, 
+              preferências e histórico de projetos em um só lugar.
             </p>
-          ) : (
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 w-full max-w-2xl">
+              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50">
+                <UserPlus className="h-8 w-8 text-primary" />
+                <div className="text-sm font-medium">Pessoas & Empresas</div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Cadastre clientes individuais ou corporativos
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50">
+                <Phone className="h-8 w-8 text-primary" />
+                <div className="text-sm font-medium">Contactos</div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Email, telefone, endereço e links externos
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50">
+                <Building className="h-8 w-8 text-primary" />
+                <div className="text-sm font-medium">Organização</div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Tags, preferências e pasta de arquivos
+                </div>
+              </div>
+            </div>
+
+            <ClientDialog />
+
+            <div className="mt-8 p-4 bg-muted/30 rounded-lg max-w-2xl">
+              <p className="text-sm text-muted-foreground">
+                <strong>Dica:</strong> Use tags como "VIP", "Casamento", "Corporativo" para organizar melhor seus clientes
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisar por nome ou email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {filteredClients.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="font-medium mb-1">Nenhum cliente encontrado</p>
+                <p className="text-sm">Tente ajustar os termos de pesquisa</p>
+              </div>
+            ) : (
             filteredClients.map((client) => (
               <div
                 key={client.id}
@@ -122,11 +178,12 @@ export default function Clients() {
                 </div>
               </div>
             ))
-          )}
-        </div>
-      </Card>
+            )}
+          </div>
+        </Card>
+      )}
 
-      <ClientDialog 
+      <ClientDialog
         client={selectedClient} 
         open={isDialogOpen} 
         onOpenChange={handleCloseDialog}

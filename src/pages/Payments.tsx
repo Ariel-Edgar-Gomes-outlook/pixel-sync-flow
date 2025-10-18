@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, DollarSign, Calendar, CreditCard, Edit } from "lucide-react";
+import { Plus, Search, DollarSign, Calendar, CreditCard, Edit, TrendingUp, Wallet, Receipt } from "lucide-react";
 import { usePayments, type Payment } from "@/hooks/usePayments";
 import PaymentDialog from "@/components/PaymentDialog";
 
@@ -44,6 +44,8 @@ export default function Payments() {
   const pendingAmount = payments?.filter(p => p.status === 'pending')
     .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
+  const showEmptyState = !isLoading && (!payments || payments.length === 0);
+
   if (isLoading) {
     return <div className="space-y-6">Carregando...</div>;
   }
@@ -51,9 +53,11 @@ export default function Payments() {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+        <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Financeiro</h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">Gestão de pagamentos e faturação</p>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Controle completo de pagamentos, receitas e fluxo de caixa
+          </p>
         </div>
         <Button className="gap-2 w-full sm:w-auto" onClick={handleNewPayment}>
           <Plus className="h-4 w-4" />
@@ -61,7 +65,60 @@ export default function Payments() {
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      {showEmptyState ? (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <div className="rounded-full bg-primary/10 p-6 mb-6">
+              <Wallet className="h-12 w-12 text-primary" />
+            </div>
+            
+            <h3 className="text-xl font-semibold mb-2">Comece a controlar suas finanças</h3>
+            <p className="text-muted-foreground mb-6 max-w-md">
+              Registe pagamentos recebidos, pendentes e parciais. Acompanhe receitas, 
+              métodos de pagamento e gere recibos para seus clientes.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 w-full max-w-2xl">
+              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50">
+                <TrendingUp className="h-8 w-8 text-primary" />
+                <div className="text-sm font-medium">Receitas</div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Acompanhe entradas e pagamentos
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50">
+                <CreditCard className="h-8 w-8 text-primary" />
+                <div className="text-sm font-medium">Múltiplos Métodos</div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Dinheiro, transferência, cartão
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50">
+                <Receipt className="h-8 w-8 text-primary" />
+                <div className="text-sm font-medium">Recibos</div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Links para comprovantes
+                </div>
+              </div>
+            </div>
+
+            <Button size="lg" className="gap-2" onClick={handleNewPayment}>
+              <Plus className="h-5 w-5" />
+              Registar Primeiro Pagamento
+            </Button>
+
+            <div className="mt-8 p-4 bg-muted/30 rounded-lg max-w-2xl">
+              <p className="text-sm text-muted-foreground">
+                <strong>Tipos:</strong> Sinal, pagamento final, parcelas - vincule a orçamentos ou jobs existentes
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card className="p-6">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-success/10">
@@ -95,29 +152,31 @@ export default function Payments() {
               <p className="text-sm font-medium text-muted-foreground">Transações</p>
               <p className="text-2xl font-bold text-foreground">{payments?.length || 0}</p>
             </div>
-          </div>
-        </Card>
-      </div>
-
-      <Card className="p-6">
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Pesquisar pagamentos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+            </div>
+          </Card>
         </div>
 
-        <div className="space-y-4">
-          {filteredPayments.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              {searchQuery ? 'Nenhum pagamento encontrado' : 'Nenhum pagamento cadastrado'}
-            </p>
-          ) : (
+        <Card className="p-6">
+        <div className="mb-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisar por cliente..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {filteredPayments.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="font-medium mb-1">Nenhum pagamento encontrado</p>
+                <p className="text-sm">Tente ajustar os termos de pesquisa</p>
+              </div>
+            ) : (
             filteredPayments.map((payment) => (
               <div
                 key={payment.id}
@@ -174,9 +233,11 @@ export default function Payments() {
                 </div>
               </div>
             ))
-          )}
-        </div>
-      </Card>
+            )}
+          </div>
+        </Card>
+        </>
+      )}
 
       <PaymentDialog
         payment={selectedPayment}

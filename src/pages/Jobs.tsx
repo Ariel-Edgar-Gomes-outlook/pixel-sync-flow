@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Calendar, MapPin, Pencil } from "lucide-react";
+import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobs } from "@/hooks/useJobs";
 import { JobDialog } from "@/components/JobDialog";
@@ -29,6 +29,8 @@ export default function Jobs() {
     return matchesSearch && matchesTab;
   }) || [];
 
+  const showEmptyState = !isLoading && (!jobs || jobs.length === 0);
+
   if (isLoading) {
     return <div className="space-y-6">Carregando...</div>;
   }
@@ -36,9 +38,11 @@ export default function Jobs() {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+        <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Jobs & Projetos</h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">Gestão de eventos, sessões e produções</p>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Gerencie eventos, sessões fotográficas e produções do início ao fim
+          </p>
         </div>
         <JobDialog>
           <Button className="gap-2 w-full sm:w-auto">
@@ -48,34 +52,92 @@ export default function Jobs() {
         </JobDialog>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      {showEmptyState ? (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <div className="rounded-full bg-primary/10 p-6 mb-6">
+              <Briefcase className="h-12 w-12 text-primary" />
+            </div>
+            
+            <h3 className="text-xl font-semibold mb-2">Comece a organizar seus trabalhos</h3>
+            <p className="text-muted-foreground mb-6 max-w-md">
+              Crie jobs para casamentos, eventos, sessões fotográficas e outros projetos. 
+              Controle datas, locais, equipamentos e equipe em um só lugar.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 w-full max-w-2xl">
+              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50">
+                <Camera className="h-8 w-8 text-primary" />
+                <div className="text-sm font-medium">Tipos de Trabalho</div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Casamentos, eventos, retratos, produtos
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50">
+                <Calendar className="h-8 w-8 text-primary" />
+                <div className="text-sm font-medium">Agendamento</div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Datas, horários e sincronização
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50">
+                <UsersIcon className="h-8 w-8 text-primary" />
+                <div className="text-sm font-medium">Equipe & Recursos</div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Atribua fotógrafos e equipamentos
+                </div>
+              </div>
+            </div>
+
+            <JobDialog>
+              <Button size="lg" className="gap-2">
+                <Plus className="h-5 w-5" />
+                Criar Primeiro Job
+              </Button>
+            </JobDialog>
+
+            <div className="mt-8 p-4 bg-muted/30 rounded-lg max-w-2xl">
+              <p className="text-sm text-muted-foreground">
+                <strong>Fluxo completo:</strong> Lead → Orçamento → Job → Produção → Entrega → Pagamento
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:flex">
           <TabsTrigger value="all" className="text-xs sm:text-sm">Todos</TabsTrigger>
           <TabsTrigger value="confirmed" className="text-xs sm:text-sm">Confirmados</TabsTrigger>
           <TabsTrigger value="in_production" className="text-xs sm:text-sm hidden sm:inline-flex">Em Produção</TabsTrigger>
-          <TabsTrigger value="scheduled" className="text-xs sm:text-sm hidden sm:inline-flex">Agendados</TabsTrigger>
-        </TabsList>
+              <TabsTrigger value="scheduled" className="text-xs sm:text-sm hidden sm:inline-flex">Agendados</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value={activeTab} className="mt-6">
-          <Card className="p-6">
-            <div className="mb-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Pesquisar jobs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
+            <TabsContent value={activeTab} className="mt-6">
+              <Card className="p-6">
+                <div className="mb-6">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Pesquisar por título ou cliente..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-4">
-              {filteredJobs.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  {searchQuery ? 'Nenhum job encontrado' : 'Nenhum job cadastrado'}
-                </p>
-              ) : (
+                <div className="space-y-4">
+                  {filteredJobs.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p className="font-medium mb-1">Nenhum job encontrado</p>
+                      <p className="text-sm">
+                        {searchQuery ? 'Tente ajustar os termos de pesquisa' : `Nenhum job com status "${activeTab}"`}
+                      </p>
+                    </div>
+                  ) : (
                 filteredJobs.map((job) => (
                   <div
                     key={job.id}
@@ -128,11 +190,12 @@ export default function Jobs() {
                     </div>
                   </div>
                 ))
-              )}
-            </div>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                )}
+              </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 }
