@@ -10,18 +10,36 @@ import { useClients } from "@/hooks/useClients";
 import { toast } from "sonner";
 
 interface JobDialogProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   job?: Job;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  initialDate?: Date | null;
 }
 
-export function JobDialog({ children, job }: JobDialogProps) {
-  const [open, setOpen] = useState(false);
+export function JobDialog({ children, job, open: controlledOpen, onOpenChange: controlledOnOpenChange, initialDate }: JobDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Use controlled or internal state
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange || setInternalOpen;
+  
+  const getInitialStartDate = () => {
+    if (job?.start_datetime) return new Date(job.start_datetime).toISOString().slice(0, 16);
+    if (initialDate) {
+      const date = new Date(initialDate);
+      date.setHours(10, 0, 0, 0); // Set default time to 10:00
+      return date.toISOString().slice(0, 16);
+    }
+    return "";
+  };
+  
   const [formData, setFormData] = useState({
     title: job?.title || "",
     client_id: job?.client_id || "",
     type: job?.type || "",
     description: job?.description || "",
-    start_datetime: job?.start_datetime ? new Date(job.start_datetime).toISOString().slice(0, 16) : "",
+    start_datetime: getInitialStartDate(),
     end_datetime: job?.end_datetime ? new Date(job.end_datetime).toISOString().slice(0, 16) : "",
     location: job?.location || "",
     status: job?.status || "scheduled",
@@ -81,7 +99,7 @@ export function JobDialog({ children, job }: JobDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{job ? "Editar Job" : "Novo Job"}</DialogTitle>
@@ -141,7 +159,6 @@ export function JobDialog({ children, job }: JobDialogProps) {
                   <SelectItem value="scheduled">Agendado</SelectItem>
                   <SelectItem value="confirmed">Confirmado</SelectItem>
                   <SelectItem value="in_production">Em Produção</SelectItem>
-                  <SelectItem value="delivery_pending">Entrega Pendente</SelectItem>
                   <SelectItem value="completed">Concluído</SelectItem>
                   <SelectItem value="cancelled">Cancelado</SelectItem>
                 </SelectContent>
