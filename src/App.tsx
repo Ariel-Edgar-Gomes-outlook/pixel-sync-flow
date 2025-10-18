@@ -15,6 +15,7 @@ import Payments from "./pages/Payments";
 import Settings from "./pages/Settings";
 import Leads from "./pages/Leads";
 import Resources from "./pages/Resources";
+import Contracts from "./pages/Contracts";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="quotes" element={<Quotes />} />
               <Route path="payments" element={<Payments />} />
               <Route path="resources" element={<Resources />} />
+              <Route path="contracts" element={<Contracts />} />
               <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
