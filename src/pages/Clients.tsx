@@ -3,13 +3,25 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Mail, Phone, MapPin, ExternalLink } from "lucide-react";
+import { Plus, Search, Mail, Phone, MapPin, ExternalLink, Edit } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
 import { ClientDialog } from "@/components/ClientDialog";
 
 export default function Clients() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { data: clients, isLoading } = useClients();
+
+  const handleEdit = (client: any) => {
+    setSelectedClient(client);
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setSelectedClient(null);
+  };
 
   const filteredClients = clients?.filter(client =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -90,7 +102,7 @@ export default function Clients() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 sm:gap-6 justify-end sm:justify-center">
+                <div className="flex items-center gap-2 sm:gap-3 justify-end sm:justify-center">
                   {client.external_folder_link && (
                     <Button variant="ghost" size="sm" asChild>
                       <a href={client.external_folder_link} target="_blank" rel="noopener noreferrer">
@@ -98,12 +110,27 @@ export default function Clients() {
                       </a>
                     </Button>
                   )}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleEdit(client)}
+                    className="gap-2"
+                  >
+                    <Edit className="h-3 w-3" />
+                    <span className="hidden sm:inline">Editar</span>
+                  </Button>
                 </div>
               </div>
             ))
           )}
         </div>
       </Card>
+
+      <ClientDialog 
+        client={selectedClient} 
+        open={isDialogOpen} 
+        onOpenChange={handleCloseDialog}
+      />
     </div>
   );
 }

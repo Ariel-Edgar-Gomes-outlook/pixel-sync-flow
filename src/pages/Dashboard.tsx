@@ -40,7 +40,7 @@ export default function Dashboard() {
   const stats = [
     {
       name: "Receita Total",
-      value: `€${totalRevenue.toFixed(0)}`,
+      value: `Kz${totalRevenue.toFixed(0)}`,
       change: "+12.5%",
       trend: "up",
       icon: DollarSign,

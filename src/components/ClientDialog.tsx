@@ -1,16 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useCreateClient } from "@/hooks/useClients";
+import { useCreateClient, useUpdateClient, Client } from "@/hooks/useClients";
 import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 
-export function ClientDialog() {
-  const [open, setOpen] = useState(false);
+interface ClientDialogProps {
+  children?: React.ReactNode;
+  client?: Client;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function ClientDialog({ children, client, open: controlledOpen, onOpenChange: controlledOnOpenChange }: ClientDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange || setInternalOpen;
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -19,7 +30,19 @@ export function ClientDialog() {
   const [notes, setNotes] = useState("");
 
   const createClient = useCreateClient();
+  const updateClient = useUpdateClient();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (client) {
+      setName(client.name || "");
+      setEmail(client.email || "");
+      setPhone(client.phone || "");
+      setAddress(client.address || "");
+      setType(client.type || "person");
+      setNotes(client.notes || "");
+    }
+  }, [client]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,21 +57,30 @@ export function ClientDialog() {
     }
 
     try {
-      await createClient.mutateAsync({
+      const clientData = {
         name,
         email: email || null,
         phone: phone || null,
         address: address || null,
         type,
         notes: notes || null,
-        tags: [],
-        preferences: {},
-      });
+        tags: client?.tags || [],
+        preferences: client?.preferences || {},
+      };
 
-      toast({
-        title: "Sucesso",
-        description: "Cliente criado com sucesso",
-      });
+      if (client) {
+        await updateClient.mutateAsync({ id: client.id, ...clientData });
+        toast({
+          title: "Sucesso",
+          description: "Cliente atualizado com sucesso",
+        });
+      } else {
+        await createClient.mutateAsync(clientData);
+        toast({
+          title: "Sucesso",
+          description: "Cliente criado com sucesso",
+        });
+      }
 
       // Reset form
       setName("");
@@ -61,7 +93,7 @@ export function ClientDialog() {
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Falha ao criar cliente. Tente novamente.",
+        description: `Falha ao ${client ? 'atualizar' : 'criar'} cliente. Tente novamente.`,
         variant: "destructive",
       });
     }
@@ -69,15 +101,20 @@ export function ClientDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Novo Cliente
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
+      {!children && !client && (
+        <DialogTrigger asChild>
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Novo Cliente
+          </Button>
+        </DialogTrigger>
+      )}
+      <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Novo Cliente</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">
+            {client ? "Editar Cliente" : "Novo Cliente"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4">
@@ -123,7 +160,7 @@ export function ClientDialog() {
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+351 912 345 678"
+                placeholder="+244 912 345 678"
               />
             </div>
 
@@ -133,7 +170,7 @@ export function ClientDialog() {
                 id="address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="Rua, Cidade, Código Postal"
+                placeholder="Rua, Cidade, Luanda"
               />
             </div>
 
@@ -149,12 +186,12 @@ export function ClientDialog() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex flex-col sm:flex-row justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" disabled={createClient.isPending}>
-              {createClient.isPending ? "Criando..." : "Criar Cliente"}
+            <Button type="submit" disabled={createClient.isPending || updateClient.isPending} className="w-full sm:w-auto">
+              {client ? (updateClient.isPending ? "Atualizando..." : "Atualizar") : (createClient.isPending ? "Criando..." : "Criar Cliente")}
             </Button>
           </div>
         </form>

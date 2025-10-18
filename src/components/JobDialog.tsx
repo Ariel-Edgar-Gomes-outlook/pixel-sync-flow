@@ -207,7 +207,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
             </div>
 
             <div>
-              <Label htmlFor="estimated_cost">Custo Estimado (€)</Label>
+              <Label htmlFor="estimated_cost">Custo Estimado (Kz)</Label>
               <Input
                 id="estimated_cost"
                 type="number"
@@ -218,7 +218,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
             </div>
 
             <div>
-              <Label htmlFor="estimated_revenue">Receita Estimada (€)</Label>
+              <Label htmlFor="estimated_revenue">Receita Estimada (Kz)</Label>
               <Input
                 id="estimated_revenue"
                 type="number"

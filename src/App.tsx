@@ -13,6 +13,8 @@ import CalendarView from "./pages/CalendarView";
 import Quotes from "./pages/Quotes";
 import Payments from "./pages/Payments";
 import Settings from "./pages/Settings";
+import Leads from "./pages/Leads";
+import Resources from "./pages/Resources";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -32,8 +34,10 @@ const App = () => (
               <Route path="clients" element={<Clients />} />
               <Route path="jobs" element={<Jobs />} />
               <Route path="calendar" element={<CalendarView />} />
+              <Route path="leads" element={<Leads />} />
               <Route path="quotes" element={<Quotes />} />
               <Route path="payments" element={<Payments />} />
+              <Route path="resources" element={<Resources />} />
               <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />

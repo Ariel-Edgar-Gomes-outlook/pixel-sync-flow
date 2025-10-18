@@ -5,25 +5,31 @@ import {
   Users, 
   Briefcase, 
   Calendar,
+  UserPlus,
   FileText,
   CreditCard,
+  Wrench,
   Settings,
   Menu,
   X,
   Camera,
-  LogOut
+  LogOut,
+  Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Clientes", href: "/clients", icon: Users },
   { name: "Jobs", href: "/jobs", icon: Briefcase },
   { name: "Agenda", href: "/calendar", icon: Calendar },
+  { name: "Leads", href: "/leads", icon: UserPlus },
   { name: "Orçamentos", href: "/quotes", icon: FileText },
   { name: "Financeiro", href: "/payments", icon: CreditCard },
+  { name: "Recursos", href: "/resources", icon: Wrench },
   { name: "Configurações", href: "/settings", icon: Settings },
 ];
 
@@ -146,6 +152,7 @@ export default function Layout() {
             <Menu className="h-6 w-6" />
           </button>
           <div className="flex-1" />
+          <NotificationBell />
         </header>
         <main className="p-4 sm:p-6">
           <Outlet />
