@@ -3,9 +3,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Calendar, MapPin, Users } from "lucide-react";
+import { Plus, Search, Calendar, MapPin, Pencil } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobs } from "@/hooks/useJobs";
+import { JobDialog } from "@/components/JobDialog";
 
 const statusConfig = {
   confirmed: { label: "Confirmado", variant: "success" as const },
@@ -39,10 +40,12 @@ export default function Jobs() {
           <h1 className="text-3xl font-bold text-foreground">Jobs & Projetos</h1>
           <p className="text-muted-foreground mt-1">Gestão de eventos, sessões e produções</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Novo Job
-        </Button>
+        <JobDialog>
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Novo Job
+          </Button>
+        </JobDialog>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -115,9 +118,12 @@ export default function Jobs() {
                         {job.estimated_revenue && (
                           <div className="text-2xl font-bold text-foreground">€{Number(job.estimated_revenue).toFixed(0)}</div>
                         )}
-                        <Button variant="outline" size="sm" className="mt-3">
-                          Ver Detalhes
-                        </Button>
+                        <JobDialog job={job}>
+                          <Button variant="outline" size="sm" className="mt-3 gap-2">
+                            <Pencil className="h-4 w-4" />
+                            Editar
+                          </Button>
+                        </JobDialog>
                       </div>
                     </div>
                   </div>
