@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Users, 
@@ -10,9 +10,12 @@ import {
   Settings,
   Menu,
   X,
-  Camera
+  Camera,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -24,9 +27,10 @@ const navigation = [
   { name: "Configurações", href: "/settings", icon: Settings },
 ];
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const { signOut, user } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -69,6 +73,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
+          <div className="mt-auto p-3 border-t border-sidebar-border">
+            <div className="px-3 py-2 text-xs text-sidebar-foreground/70 truncate">
+              {user?.email}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50"
+              onClick={signOut}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sair
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -102,6 +120,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+        <div className="mt-auto p-3 border-t border-sidebar-border">
+          <div className="px-3 py-2 text-xs text-sidebar-foreground/70 truncate">
+            {user?.email}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50"
+            onClick={signOut}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sair
+          </Button>
+        </div>
       </div>
 
       {/* Main content */}
@@ -116,7 +148,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex-1" />
         </header>
         <main className="p-6">
-          {children}
+          <Outlet />
         </main>
       </div>
     </div>
