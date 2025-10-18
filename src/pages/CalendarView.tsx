@@ -2,27 +2,57 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
-
-const currentMonth = "Outubro 2025";
-
-const calendarDays = [
-  { date: 20, jobs: [] },
-  { date: 21, jobs: [] },
-  { date: 22, jobs: [] },
-  { date: 23, jobs: [] },
-  { date: 24, jobs: [] },
-  { date: 25, jobs: [{ title: "Casamento Silva", time: "14:00", type: "confirmed" }] },
-  { date: 26, jobs: [{ title: "Sessão Família", time: "10:00", type: "confirmed" }] },
-  { date: 27, jobs: [] },
-  { date: 28, jobs: [{ title: "Evento TechStart", time: "18:00", type: "pending" }] },
-  { date: 29, jobs: [] },
-  { date: 30, jobs: [] },
-  { date: 31, jobs: [] },
-  { date: 1, jobs: [], nextMonth: true },
-  { date: 2, jobs: [{ title: "Produto Fashion", time: "09:00", type: "scheduled" }], nextMonth: true },
-];
+import { useJobs } from "@/hooks/useJobs";
+import { useState } from "react";
 
 export default function CalendarView() {
+  const { data: jobs, isLoading } = useJobs();
+  const [currentDate, setCurrentDate] = useState(new Date());
+  
+  const currentMonth = currentDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
+
+  // Generate calendar days for current month
+  const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startDay = firstDay.getDay();
+  
+  const calendarDays = [];
+  
+  // Add empty days for alignment
+  for (let i = 0; i < startDay; i++) {
+    const prevMonthDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), -i);
+    calendarDays.unshift({ 
+      date: prevMonthDay.getDate(), 
+      jobs: [], 
+      nextMonth: false,
+      prevMonth: true 
+    });
+  }
+  
+  // Add days of current month
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    const dayJobs = jobs?.filter(job => {
+      const jobDate = new Date(job.start_datetime);
+      return jobDate.toDateString() === dayDate.toDateString();
+    }).map(job => ({
+      title: job.title,
+      time: new Date(job.start_datetime).toLocaleTimeString("pt-PT", { hour: '2-digit', minute: '2-digit' }),
+      type: job.status
+    })) || [];
+    
+    calendarDays.push({ date: day, jobs: dayJobs, nextMonth: false, prevMonth: false });
+  }
+  
+  const confirmedCount = jobs?.filter(j => j.status === 'confirmed').length || 0;
+  const pendingCount = jobs?.filter(j => j.status === 'in_production').length || 0;
+  const scheduledCount = jobs?.filter(j => j.status === 'scheduled').length || 0;
+
+  if (isLoading) {
+    return <div className="space-y-6">Carregando...</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -40,13 +70,25 @@ export default function CalendarView() {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-foreground">{currentMonth}</h2>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
+            >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setCurrentDate(new Date())}
+            >
               Hoje
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
+            >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -63,13 +105,13 @@ export default function CalendarView() {
             <div
               key={index}
               className={`min-h-32 p-2 rounded-lg border ${
-                day.nextMonth 
+                day.nextMonth || day.prevMonth
                   ? "border-border/50 bg-muted/20" 
                   : "border-border bg-card"
               } hover:border-primary/50 transition-colors`}
             >
               <div className={`text-sm font-medium mb-2 ${
-                day.nextMonth ? "text-muted-foreground" : "text-foreground"
+                day.nextMonth || day.prevMonth ? "text-muted-foreground" : "text-foreground"
               }`}>
                 {day.date}
               </div>
@@ -80,9 +122,11 @@ export default function CalendarView() {
                     className={`text-xs p-2 rounded ${
                       job.type === "confirmed" 
                         ? "bg-success/10 text-success" 
-                        : job.type === "pending"
+                        : job.type === "in_production"
                         ? "bg-warning/10 text-warning"
-                        : "bg-primary/10 text-primary"
+                        : job.type === "scheduled"
+                        ? "bg-primary/10 text-primary"
+                        : "bg-secondary/10 text-secondary"
                     }`}
                   >
                     <div className="font-medium truncate">{job.title}</div>
@@ -101,7 +145,7 @@ export default function CalendarView() {
             <div className="h-3 w-3 rounded-full bg-success" />
             <div>
               <div className="text-sm font-medium text-foreground">Confirmados</div>
-              <div className="text-2xl font-bold text-foreground mt-1">12</div>
+              <div className="text-2xl font-bold text-foreground mt-1">{confirmedCount}</div>
             </div>
           </div>
         </Card>
@@ -109,8 +153,8 @@ export default function CalendarView() {
           <div className="flex items-center gap-3">
             <div className="h-3 w-3 rounded-full bg-warning" />
             <div>
-              <div className="text-sm font-medium text-foreground">Pendentes</div>
-              <div className="text-2xl font-bold text-foreground mt-1">5</div>
+              <div className="text-sm font-medium text-foreground">Em Produção</div>
+              <div className="text-2xl font-bold text-foreground mt-1">{pendingCount}</div>
             </div>
           </div>
         </Card>
@@ -119,7 +163,7 @@ export default function CalendarView() {
             <div className="h-3 w-3 rounded-full bg-primary" />
             <div>
               <div className="text-sm font-medium text-foreground">Agendados</div>
-              <div className="text-2xl font-bold text-foreground mt-1">8</div>
+              <div className="text-2xl font-bold text-foreground mt-1">{scheduledCount}</div>
             </div>
           </div>
         </Card>
