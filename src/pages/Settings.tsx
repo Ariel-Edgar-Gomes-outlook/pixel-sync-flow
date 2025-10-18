@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { Settings as SettingsIcon, User, Bell, Shield, Activity } from "lucide-react";
 import { AuditLogViewer } from "@/components/AuditLogViewer";
+import { GoogleCalendarIntegration } from "@/components/GoogleCalendarIntegration";
 import { toast } from "sonner";
 
 export default function Settings() {
@@ -70,11 +71,12 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
           <TabsTrigger value="notifications">Notificações</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
           <TabsTrigger value="preferences">Preferências</TabsTrigger>
+          <TabsTrigger value="integrations">Integrações</TabsTrigger>
           <TabsTrigger value="audit">Auditoria</TabsTrigger>
         </TabsList>
 
@@ -254,6 +256,10 @@ export default function Settings() {
           </div>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="integrations" className="mt-6">
+          {user && <GoogleCalendarIntegration userId={user.id} />}
         </TabsContent>
 
         <TabsContent value="audit" className="mt-6">
