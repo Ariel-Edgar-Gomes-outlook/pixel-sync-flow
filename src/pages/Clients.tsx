@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Mail, Phone, MapPin, ExternalLink } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
+import { ClientDialog } from "@/components/ClientDialog";
 
 export default function Clients() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,10 +27,7 @@ export default function Clients() {
           <h1 className="text-3xl font-bold text-foreground">Clientes</h1>
           <p className="text-muted-foreground mt-1">Gestão completa da sua carteira de clientes</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Novo Cliente
-        </Button>
+        <ClientDialog />
       </div>
 
       <Card className="p-6">
