@@ -51,7 +51,7 @@ export default function Payments() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Receita Total</p>
-              <p className="text-2xl font-bold text-foreground">€{totalRevenue.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-foreground">Kz {totalRevenue.toFixed(2)}</p>
             </div>
           </div>
         </Card>
@@ -63,7 +63,7 @@ export default function Payments() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Pendente</p>
-              <p className="text-2xl font-bold text-foreground">€{pendingAmount.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-foreground">Kz {pendingAmount.toFixed(2)}</p>
             </div>
           </div>
         </Card>
@@ -138,10 +138,10 @@ export default function Payments() {
                   
                   <div className="text-right ml-6">
                     <div className="text-2xl font-bold text-foreground">
-                      €{Number(payment.amount).toFixed(2)}
+                      Kz {Number(payment.amount).toFixed(2)}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {payment.currency || 'EUR'}
+                      {payment.currency || 'AOA'}
                     </div>
                     <Button variant="outline" size="sm" className="mt-3">
                       Ver Detalhes
