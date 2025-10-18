@@ -136,7 +136,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
+      <DialogContent className="w-[95vw] sm:w-full max-w-3xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
             <Wallet className="h-6 w-6 text-primary" />
@@ -146,7 +146,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
         
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Valor do Pagamento - Destaque */}
-          <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+          <Card className="p-4 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <div className="flex items-center gap-3 mb-2">
               <DollarSign className="h-5 w-5 text-primary" />
               <Label htmlFor="amount" className="text-base font-semibold">
@@ -158,13 +158,13 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                 id="amount"
                 type="number"
                 step="0.01"
-                className="text-2xl font-bold h-14 bg-background pr-20"
+                className="text-xl sm:text-2xl font-bold h-12 sm:h-14 bg-background pr-16 sm:pr-20"
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 placeholder="0.00"
                 required
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl font-semibold text-muted-foreground">
+              <span className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-lg sm:text-xl font-semibold text-muted-foreground">
                 {formData.currency}
               </span>
             </div>
@@ -176,7 +176,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
           <Separator />
 
           {/* Cliente e Orçamento */}
-          <Card className="p-4 bg-muted/50">
+          <Card className="p-3 sm:p-4 bg-muted/50">
             <h3 className="text-sm font-semibold mb-3 text-foreground flex items-center gap-2">
               <User className="h-4 w-4" />
               Informações do Cliente
@@ -230,7 +230,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
           </Card>
 
           {/* Tipo e Estado */}
-          <Card className="p-4 bg-muted/50">
+          <Card className="p-3 sm:p-4 bg-muted/50">
             <h3 className="text-sm font-semibold mb-3 text-foreground flex items-center gap-2">
               <FileText className="h-4 w-4" />
               Classificação do Pagamento
@@ -280,7 +280,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
           </Card>
 
           {/* Método de Pagamento */}
-          <Card className="p-4 bg-muted/50">
+          <Card className="p-3 sm:p-4 bg-muted/50">
             <h3 className="text-sm font-semibold mb-3 text-foreground flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
               Método de Pagamento
@@ -326,7 +326,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
 
           {/* Resumo Visual */}
           {formData.amount && (
-            <Card className="p-4 bg-primary/5 border-primary/20">
+            <Card className="p-3 sm:p-4 bg-primary/5 border-primary/20">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Resumo do Pagamento</p>
@@ -336,7 +336,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Valor Total</p>
-                  <p className="text-2xl font-bold text-primary">
+                  <p className="text-xl sm:text-2xl font-bold text-primary">
                     {Number(formData.amount).toFixed(2)} {formData.currency}
                   </p>
                 </div>
@@ -345,7 +345,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
           )}
 
           {/* Botões de Ação */}
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
             <Button
               type="button"
               variant="outline"
@@ -354,13 +354,14 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                 onOpenChange?.(false);
               }}
               disabled={createPayment.isPending || updatePayment.isPending}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
             <Button 
               type="submit" 
               disabled={createPayment.isPending || updatePayment.isPending}
-              className="min-w-32"
+              className="w-full sm:w-auto sm:min-w-32"
             >
               {createPayment.isPending || updatePayment.isPending ? "A guardar..." : payment ? "Atualizar Pagamento" : "Criar Pagamento"}
             </Button>

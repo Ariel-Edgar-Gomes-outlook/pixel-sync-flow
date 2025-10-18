@@ -148,7 +148,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
   return (
     <Dialog open={actualOpen} onOpenChange={actualOnOpenChange}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
+      <DialogContent className="w-[95vw] sm:w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
             <FileText className="h-6 w-6 text-primary" />
@@ -158,7 +158,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
         
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Informações Básicas */}
-          <Card className="p-4 bg-muted/50">
+          <Card className="p-3 sm:p-4 bg-muted/50">
             <h3 className="text-sm font-semibold mb-3 text-foreground">Informações Básicas</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -247,9 +247,10 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">Adicione os serviços ou produtos</p>
               </div>
-              <Button type="button" variant="default" size="sm" onClick={addItem}>
+              <Button type="button" variant="default" size="sm" onClick={addItem} className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-1" />
-                Adicionar Item
+                <span className="hidden sm:inline">Adicionar Item</span>
+                <span className="sm:hidden">Adicionar</span>
               </Button>
             </div>
 
@@ -262,8 +263,8 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
             ) : (
               <div className="space-y-3">
                 {formData.items.map((item, index) => (
-                  <Card key={index} className="p-4 bg-card hover:shadow-md transition-shadow">
-                    <div className="flex gap-3">
+                <Card key={index} className="p-3 sm:p-4 bg-card hover:shadow-md transition-shadow">
+                  <div className="flex flex-col sm:flex-row gap-3">
                       <div className="flex-1 space-y-3">
                         <div>
                           <Label className="text-xs text-muted-foreground mb-1">Descrição do Item</Label>
@@ -314,11 +315,12 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
                       <Button
                         type="button"
                         variant="ghost"
-                        size="icon"
-                        className="shrink-0"
+                        size="sm"
+                        className="shrink-0 w-full sm:w-auto sm:size-auto"
                         onClick={() => removeItem(index)}
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-4 w-4 sm:mr-0" />
+                        <span className="sm:hidden ml-2">Remover</span>
                       </Button>
                     </div>
                   </Card>
@@ -330,7 +332,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
           <Separator />
 
           {/* Ajustes Financeiros */}
-          <Card className="p-4 bg-muted/50">
+          <Card className="p-3 sm:p-4 bg-muted/50">
             <h3 className="text-sm font-semibold mb-3 text-foreground flex items-center gap-2">
               <Calculator className="h-4 w-4" />
               Ajustes Financeiros
@@ -378,7 +380,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
           </Card>
 
           {/* Resumo de Cálculo */}
-          <Card className="p-5 bg-primary/5 border-primary/20">
+          <Card className="p-3 sm:p-5 bg-primary/5 border-primary/20">
             <h3 className="text-sm font-semibold mb-4 text-foreground">Resumo do Orçamento</h3>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
@@ -412,19 +414,20 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
           </Card>
 
           {/* Botões de Ação */}
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => actualOnOpenChange(false)}
               disabled={createQuote.isPending || updateQuote.isPending}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
             <Button 
               type="submit" 
               disabled={createQuote.isPending || updateQuote.isPending}
-              className="min-w-32"
+              className="w-full sm:w-auto sm:min-w-32"
             >
               {createQuote.isPending || updateQuote.isPending ? "A guardar..." : quote ? "Atualizar Orçamento" : "Criar Orçamento"}
             </Button>

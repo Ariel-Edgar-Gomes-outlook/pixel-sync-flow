@@ -99,7 +99,7 @@ export function ContractDialog({ children, contract, open, onOpenChange }: Contr
   return (
     <Dialog open={actualOpen} onOpenChange={actualOnOpenChange}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
+      <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
             <FileSignature className="h-5 w-5" />
@@ -246,11 +246,11 @@ export function ContractDialog({ children, contract, open, onOpenChange }: Contr
             </div>
           </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => actualOnOpenChange(false)}>
+          <div className="flex flex-col sm:flex-row justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => actualOnOpenChange(false)} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" disabled={createContract.isPending || updateContract.isPending}>
+            <Button type="submit" disabled={createContract.isPending || updateContract.isPending} className="w-full sm:w-auto">
               {contract ? "Atualizar" : "Criar"} Contrato
             </Button>
           </div>

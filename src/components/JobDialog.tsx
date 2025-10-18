@@ -104,7 +104,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
+      <DialogContent className="w-[95vw] sm:w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
             <Briefcase className="h-6 w-6 text-primary" />
@@ -179,7 +179,7 @@ interface JobFormProps {
 const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob, updateJob }: JobFormProps) => (
   <>
     {/* Seção: Informações Básicas */}
-    <Card className="p-4 bg-muted/50">
+    <Card className="p-3 sm:p-4 bg-muted/50">
       <div className="flex items-center gap-2 mb-4">
         <Briefcase className="h-4 w-4 text-primary" />
         <h3 className="text-sm font-semibold text-foreground">Informações Básicas</h3>
@@ -280,7 +280,7 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
     <Separator />
 
     {/* Seção: Agendamento */}
-    <Card className="p-4 bg-muted/50">
+    <Card className="p-3 sm:p-4 bg-muted/50">
       <div className="flex items-center gap-2 mb-4">
         <Calendar className="h-4 w-4 text-primary" />
         <h3 className="text-sm font-semibold text-foreground">Agendamento</h3>
@@ -340,7 +340,7 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
     <Separator />
 
     {/* Seção: Valores Financeiros */}
-    <Card className="p-4 bg-muted/50">
+    <Card className="p-3 sm:p-4 bg-muted/50">
       <div className="flex items-center gap-2 mb-4">
         <DollarSign className="h-4 w-4 text-primary" />
         <h3 className="text-sm font-semibold text-foreground">Valores Financeiros</h3>
