@@ -48,12 +48,12 @@ export default function Jobs() {
         </JobDialog>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="all">Todos</TabsTrigger>
-          <TabsTrigger value="confirmed">Confirmados</TabsTrigger>
-          <TabsTrigger value="in_production">Em Produção</TabsTrigger>
-          <TabsTrigger value="scheduled">Agendados</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:flex">
+          <TabsTrigger value="all" className="text-xs sm:text-sm">Todos</TabsTrigger>
+          <TabsTrigger value="confirmed" className="text-xs sm:text-sm">Confirmados</TabsTrigger>
+          <TabsTrigger value="in_production" className="text-xs sm:text-sm hidden sm:inline-flex">Em Produção</TabsTrigger>
+          <TabsTrigger value="scheduled" className="text-xs sm:text-sm hidden sm:inline-flex">Agendados</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-6">
@@ -79,33 +79,33 @@ export default function Jobs() {
                 filteredJobs.map((job) => (
                   <div
                     key={job.id}
-                    className="p-5 rounded-lg border border-border bg-card hover:shadow-md transition-all"
+                    className="p-4 sm:p-5 rounded-lg border border-border bg-card hover:shadow-md transition-all"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-foreground">{job.title}</h3>
-                          <Badge variant={statusConfig[job.status as keyof typeof statusConfig]?.variant || 'secondary'}>
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <h3 className="text-base sm:text-lg font-semibold text-foreground">{job.title}</h3>
+                          <Badge variant={statusConfig[job.status as keyof typeof statusConfig]?.variant || 'secondary'} className="text-xs">
                             {statusConfig[job.status as keyof typeof statusConfig]?.label || job.status}
                           </Badge>
-                          <Badge variant="outline">{job.type}</Badge>
+                          <Badge variant="outline" className="text-xs">{job.type}</Badge>
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-4 mt-4">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mt-3 sm:mt-4">
+                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                            <Calendar className="h-4 w-4 shrink-0" />
                             <span>
                               {new Date(job.start_datetime).toLocaleDateString("pt-PT")} às{" "}
                               {new Date(job.start_datetime).toLocaleTimeString("pt-PT", { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
                           {job.location && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MapPin className="h-4 w-4" />
-                              <span>{job.location}</span>
+                            <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4 shrink-0" />
+                              <span className="truncate">{job.location}</span>
                             </div>
                           )}
-                          <div className="text-sm">
+                          <div className="text-xs sm:text-sm">
                             <span className="text-muted-foreground">Cliente: </span>
                             <span className="font-medium text-foreground">
                               {job.clients?.name || 'Não especificado'}
@@ -114,13 +114,13 @@ export default function Jobs() {
                         </div>
                       </div>
                       
-                      <div className="text-right ml-6">
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-2 sm:ml-6">
                         {job.estimated_revenue && (
-                          <div className="text-2xl font-bold text-foreground">€{Number(job.estimated_revenue).toFixed(0)}</div>
+                          <div className="text-xl sm:text-2xl font-bold text-foreground">Kz {Number(job.estimated_revenue).toFixed(0)}</div>
                         )}
                         <JobDialog job={job}>
-                          <Button variant="outline" size="sm" className="mt-3 gap-2">
-                            <Pencil className="h-4 w-4" />
+                          <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm">
+                            <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
                             Editar
                           </Button>
                         </JobDialog>
