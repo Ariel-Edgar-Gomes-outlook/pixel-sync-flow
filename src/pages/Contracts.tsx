@@ -16,7 +16,7 @@ const statusConfig = {
 
 export default function Contracts() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedContract, setSelectedContract] = useState<any>(null);
+  const [selectedContract, setSelectedContract] = useState<any>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { data: contracts, isLoading } = useContracts();
 
@@ -25,14 +25,11 @@ export default function Contracts() {
     setDialogOpen(true);
   };
 
-  const handleNewContract = () => {
-    setSelectedContract(null);
-    setDialogOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-    setTimeout(() => setSelectedContract(null), 200);
+  const handleOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setSelectedContract(undefined);
+    }
   };
 
   const filteredContracts = contracts?.filter((contract) => {
@@ -58,10 +55,12 @@ export default function Contracts() {
             Gerencie contratos de serviço e proteja seu trabalho legalmente
           </p>
         </div>
-        <Button className="gap-2 w-full sm:w-auto" onClick={handleNewContract}>
-          <Plus className="h-4 w-4" />
-          Novo Contrato
-        </Button>
+        <ContractDialog contract={selectedContract} open={dialogOpen} onOpenChange={handleOpenChange}>
+          <Button className="gap-2 w-full sm:w-auto">
+            <Plus className="h-4 w-4" />
+            Novo Contrato
+          </Button>
+        </ContractDialog>
       </div>
 
       {showEmptyState ? (
@@ -103,10 +102,12 @@ export default function Contracts() {
               </div>
             </div>
 
-            <Button size="lg" className="gap-2" onClick={handleNewContract}>
-              <Plus className="h-5 w-5" />
-              Criar Primeiro Contrato
-            </Button>
+            <ContractDialog contract={selectedContract} open={dialogOpen} onOpenChange={handleOpenChange}>
+              <Button size="lg" className="gap-2">
+                <Plus className="h-5 w-5" />
+                Criar Primeiro Contrato
+              </Button>
+            </ContractDialog>
 
             <div className="mt-8 p-4 bg-muted/30 rounded-lg max-w-2xl">
               <p className="text-sm text-muted-foreground">
@@ -196,12 +197,6 @@ export default function Contracts() {
       )}
         </>
       )}
-
-      <ContractDialog 
-        contract={selectedContract} 
-        open={dialogOpen} 
-        onOpenChange={handleCloseDialog}
-      />
     </div>
   );
 }
