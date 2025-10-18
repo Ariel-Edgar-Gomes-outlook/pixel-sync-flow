@@ -14,16 +14,548 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          new_data: Json | null
+          previous_data: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          new_data?: Json | null
+          previous_data?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          new_data?: Json | null
+          previous_data?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      checklists: {
+        Row: {
+          created_at: string
+          estimated_time: number | null
+          id: string
+          items: Json
+          job_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_time?: number | null
+          id?: string
+          items?: Json
+          job_id: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estimated_time?: number | null
+          id?: string
+          items?: Json
+          job_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklists_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          address: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          external_folder_link: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          preferences: Json | null
+          tags: string[] | null
+          type: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          external_folder_link?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          preferences?: Json | null
+          tags?: string[] | null
+          type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          external_folder_link?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          preferences?: Json | null
+          tags?: string[] | null
+          type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contracts: {
+        Row: {
+          attachments_links: Json | null
+          cancellation_fee: number | null
+          clauses: Json | null
+          client_id: string
+          created_at: string
+          id: string
+          issued_at: string | null
+          job_id: string | null
+          signed_at: string | null
+          status: Database["public"]["Enums"]["contract_status"]
+          terms_text: string | null
+          updated_at: string
+        }
+        Insert: {
+          attachments_links?: Json | null
+          cancellation_fee?: number | null
+          clauses?: Json | null
+          client_id: string
+          created_at?: string
+          id?: string
+          issued_at?: string | null
+          job_id?: string | null
+          signed_at?: string | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          terms_text?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attachments_links?: Json | null
+          cancellation_fee?: number | null
+          clauses?: Json | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          issued_at?: string | null
+          job_id?: string | null
+          signed_at?: string | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          terms_text?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_datetime: string | null
+          estimated_cost: number | null
+          estimated_hours: number | null
+          estimated_revenue: number | null
+          external_assets_links: Json | null
+          external_gallery_link: string | null
+          id: string
+          location: string | null
+          location_map_embed: string | null
+          start_datetime: string
+          status: Database["public"]["Enums"]["job_status"]
+          tags: string[] | null
+          time_spent: number | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_datetime?: string | null
+          estimated_cost?: number | null
+          estimated_hours?: number | null
+          estimated_revenue?: number | null
+          external_assets_links?: Json | null
+          external_gallery_link?: string | null
+          id?: string
+          location?: string | null
+          location_map_embed?: string | null
+          start_datetime: string
+          status?: Database["public"]["Enums"]["job_status"]
+          tags?: string[] | null
+          time_spent?: number | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_datetime?: string | null
+          estimated_cost?: number | null
+          estimated_hours?: number | null
+          estimated_revenue?: number | null
+          external_assets_links?: Json | null
+          external_gallery_link?: string | null
+          id?: string
+          location?: string | null
+          location_map_embed?: string | null
+          start_datetime?: string
+          status?: Database["public"]["Enums"]["job_status"]
+          tags?: string[] | null
+          time_spent?: number | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          probability: number | null
+          responsible_id: string | null
+          source: string | null
+          status: Database["public"]["Enums"]["lead_status"]
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          probability?: number | null
+          responsible_id?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          probability?: number | null
+          responsible_id?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string
+          currency: string | null
+          id: string
+          method: string | null
+          notes: string | null
+          paid_at: string | null
+          quote_id: string | null
+          receipt_link: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          method?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          quote_id?: string | null
+          receipt_link?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          method?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          quote_id?: string | null
+          receipt_link?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      quotes: {
+        Row: {
+          accepted_at: string | null
+          client_id: string
+          created_at: string
+          currency: string | null
+          discount: number | null
+          id: string
+          items: Json
+          job_id: string | null
+          pdf_link: string | null
+          status: Database["public"]["Enums"]["quote_status"]
+          tax: number | null
+          total: number
+          updated_at: string
+          validity_date: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          client_id: string
+          created_at?: string
+          currency?: string | null
+          discount?: number | null
+          id?: string
+          items?: Json
+          job_id?: string | null
+          pdf_link?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          tax?: number | null
+          total: number
+          updated_at?: string
+          validity_date?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          client_id?: string
+          created_at?: string
+          currency?: string | null
+          discount?: number | null
+          id?: string
+          items?: Json
+          job_id?: string | null
+          pdf_link?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          tax?: number | null
+          total?: number
+          updated_at?: string
+          validity_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resources: {
+        Row: {
+          created_at: string
+          id: string
+          location: string | null
+          manual_link: string | null
+          name: string
+          next_maintenance_date: string | null
+          status: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          manual_link?: string | null
+          name: string
+          next_maintenance_date?: string | null
+          status?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          manual_link?: string | null
+          name?: string
+          next_maintenance_date?: string | null
+          status?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "owner" | "admin" | "photographer" | "editor" | "assistant"
+      contract_status: "draft" | "sent" | "signed" | "cancelled"
+      job_status:
+        | "scheduled"
+        | "confirmed"
+        | "in_production"
+        | "delivery_pending"
+        | "completed"
+        | "cancelled"
+      lead_status: "new" | "contacted" | "proposal_sent" | "won" | "lost"
+      payment_status: "pending" | "partial" | "paid" | "refunded"
+      quote_status: "draft" | "sent" | "accepted" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +682,20 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["owner", "admin", "photographer", "editor", "assistant"],
+      contract_status: ["draft", "sent", "signed", "cancelled"],
+      job_status: [
+        "scheduled",
+        "confirmed",
+        "in_production",
+        "delivery_pending",
+        "completed",
+        "cancelled",
+      ],
+      lead_status: ["new", "contacted", "proposal_sent", "won", "lost"],
+      payment_status: ["pending", "partial", "paid", "refunded"],
+      quote_status: ["draft", "sent", "accepted", "rejected"],
+    },
   },
 } as const
