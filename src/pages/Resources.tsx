@@ -3,9 +3,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Plus, Edit, Trash2, Wrench } from "lucide-react";
 import { useResources, Resource } from "@/hooks/useResources";
 import { ResourceDialog } from "@/components/ResourceDialog";
+import { ResourceCalendar } from "@/components/ResourceCalendar";
+import { MaintenanceTracker } from "@/components/MaintenanceTracker";
 
 const statusConfig = {
   available: { label: "Disponível", variant: "success" as const },
@@ -60,73 +63,91 @@ export default function Resources() {
         </ResourceDialog>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Procurar recursos..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
-        />
-      </div>
+      <Tabs defaultValue="list" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="list">Lista</TabsTrigger>
+          <TabsTrigger value="calendar">Calendário</TabsTrigger>
+          <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
+        </TabsList>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredResources?.map((resource) => (
-          <Card key={resource.id} className="p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Wrench className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-foreground">{resource.name}</h3>
-              </div>
-              <Badge variant={statusConfig[resource.status as keyof typeof statusConfig]?.variant || 'default'}>
-                {statusConfig[resource.status as keyof typeof statusConfig]?.label || resource.status}
-              </Badge>
-            </div>
-
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Tipo:</span>
-                <span className="font-medium">{resource.type}</span>
-              </div>
-              {resource.location && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Localização:</span>
-                  <span className="font-medium">{resource.location}</span>
-                </div>
-              )}
-              {resource.next_maintenance_date && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Próx. Manutenção:</span>
-                  <span className="font-medium">
-                    {new Date(resource.next_maintenance_date).toLocaleDateString('pt-PT')}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-2 mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleEdit(resource)}
-                className="flex-1"
-              >
-                <Edit className="h-3 w-3 mr-1" />
-                Editar
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {filteredResources?.length === 0 && (
-        <Card className="p-12">
-          <div className="text-center text-muted-foreground">
-            <Wrench className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Nenhum recurso encontrado</p>
+        <TabsContent value="list" className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Procurar recursos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
           </div>
-        </Card>
-      )}
+
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredResources?.map((resource) => (
+              <Card key={resource.id} className="p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Wrench className="h-5 w-5 text-primary" />
+                    <h3 className="font-semibold text-foreground">{resource.name}</h3>
+                  </div>
+                  <Badge variant={statusConfig[resource.status as keyof typeof statusConfig]?.variant || 'default'}>
+                    {statusConfig[resource.status as keyof typeof statusConfig]?.label || resource.status}
+                  </Badge>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Tipo:</span>
+                    <span className="font-medium">{resource.type}</span>
+                  </div>
+                  {resource.location && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Localização:</span>
+                      <span className="font-medium">{resource.location}</span>
+                    </div>
+                  )}
+                  {resource.next_maintenance_date && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Próx. Manutenção:</span>
+                      <span className="font-medium">
+                        {new Date(resource.next_maintenance_date).toLocaleDateString('pt-PT')}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(resource)}
+                    className="flex-1"
+                  >
+                    <Edit className="h-3 w-3 mr-1" />
+                    Editar
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {filteredResources?.length === 0 && (
+            <Card className="p-12">
+              <div className="text-center text-muted-foreground">
+                <Wrench className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhum recurso encontrado</p>
+              </div>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="calendar">
+          <ResourceCalendar />
+        </TabsContent>
+
+        <TabsContent value="maintenance">
+          <MaintenanceTracker />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
