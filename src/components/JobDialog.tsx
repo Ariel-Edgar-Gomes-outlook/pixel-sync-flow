@@ -105,7 +105,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
           <DialogTitle>{job ? "Editar Job" : "Novo Job"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="col-span-2">
               <Label htmlFor="title">Título *</Label>
               <Input

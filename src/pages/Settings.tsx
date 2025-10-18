@@ -61,10 +61,10 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
-        <p className="text-muted-foreground mt-1">Gerir preferências e conta</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Configurações</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1">Gerir preferências e conta</p>
       </div>
 
       <div className="grid gap-6">

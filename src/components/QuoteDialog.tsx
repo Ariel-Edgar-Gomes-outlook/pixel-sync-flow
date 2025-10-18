@@ -140,12 +140,12 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
   return (
     <Dialog open={actualOpen} onOpenChange={actualOnOpenChange}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
         <DialogHeader>
-          <DialogTitle>{quote ? "Editar Orçamento" : "Novo Orçamento"}</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">{quote ? "Editar Orçamento" : "Novo Orçamento"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="client">Cliente *</Label>
               <Select

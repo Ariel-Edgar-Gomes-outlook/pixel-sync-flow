@@ -34,14 +34,14 @@ export default function Jobs() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Jobs & Projetos</h1>
-          <p className="text-muted-foreground mt-1">Gestão de eventos, sessões e produções</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Jobs & Projetos</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">Gestão de eventos, sessões e produções</p>
         </div>
         <JobDialog>
-          <Button className="gap-2">
+          <Button className="gap-2 w-full sm:w-auto">
             <Plus className="h-4 w-4" />
             Novo Job
           </Button>

@@ -138,7 +138,7 @@ export default function Layout() {
 
       {/* Main content */}
       <div className="lg:pl-72">
-        <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border bg-card px-6">
+        <header className="sticky top-0 z-40 flex h-14 sm:h-16 items-center gap-4 border-b border-border bg-card px-4 sm:px-6">
           <button
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden text-foreground"
@@ -147,7 +147,7 @@ export default function Layout() {
           </button>
           <div className="flex-1" />
         </header>
-        <main className="p-6">
+        <main className="p-4 sm:p-6">
           <Outlet />
         </main>
       </div>
