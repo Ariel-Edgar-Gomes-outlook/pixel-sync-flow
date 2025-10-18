@@ -1,16 +1,19 @@
 import { useState, memo } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { useCreateJob, useUpdateJob, Job } from "@/hooks/useJobs";
 import { useClients } from "@/hooks/useClients";
 import { ChecklistManager } from "@/components/ChecklistManager";
 import { TeamManagement } from "@/components/TeamManagement";
 import { toast } from "sonner";
+import { Briefcase, User, Calendar, MapPin, DollarSign, Clock, FileText, Tag } from "lucide-react";
 
 interface JobDialogProps {
   children?: React.ReactNode;
@@ -101,9 +104,18 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
         <DialogHeader>
-          <DialogTitle>{job ? "Editar Job" : "Novo Job"}</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
+            <Briefcase className="h-6 w-6 text-primary" />
+            {job ? "Editar Job" : "Novo Job"}
+          </DialogTitle>
+          <DialogDescription>
+            {job 
+              ? "Atualize as informações do job de produção"
+              : "Crie um novo job e organize todo o trabalho de produção"
+            }
+          </DialogDescription>
         </DialogHeader>
         
         {job ? (
@@ -166,146 +178,262 @@ interface JobFormProps {
 
 const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob, updateJob }: JobFormProps) => (
   <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div className="col-span-2">
-        <Label htmlFor="title">Título *</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          required
-        />
+    {/* Seção: Informações Básicas */}
+    <Card className="p-4 bg-muted/50">
+      <div className="flex items-center gap-2 mb-4">
+        <Briefcase className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">Informações Básicas</h3>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="col-span-2 space-y-2">
+          <Label htmlFor="title" className="text-sm font-medium flex items-center gap-2">
+            <FileText className="h-3.5 w-3.5" />
+            Título do Job <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="title"
+            placeholder="Ex: Casamento Maria & João"
+            className="bg-background"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            required
+          />
+          <p className="text-xs text-muted-foreground">Nome descritivo para identificar o trabalho</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="client_id" className="text-sm font-medium flex items-center gap-2">
+            <User className="h-3.5 w-3.5" />
+            Cliente
+          </Label>
+          <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Selecionar cliente" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              {clients?.map((client: any) => (
+                <SelectItem key={client.id} value={client.id}>
+                  {client.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">Cliente associado ao job</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="type" className="text-sm font-medium flex items-center gap-2">
+            <Tag className="h-3.5 w-3.5" />
+            Tipo de Job <span className="text-destructive">*</span>
+          </Label>
+          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })} required>
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Selecionar tipo" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="Casamento">💒 Casamento</SelectItem>
+              <SelectItem value="Corporativo">🏢 Corporativo</SelectItem>
+              <SelectItem value="Evento">🎉 Evento</SelectItem>
+              <SelectItem value="Sessão Fotográfica">📸 Sessão Fotográfica</SelectItem>
+              <SelectItem value="Produto">📦 Produto</SelectItem>
+              <SelectItem value="Outro">➕ Outro</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">Categoria do trabalho</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="status" className="text-sm font-medium">Estado do Job <span className="text-destructive">*</span></Label>
+          <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as Job['status'] })} required>
+            <SelectTrigger className="bg-background">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="scheduled">📅 Agendado</SelectItem>
+              <SelectItem value="confirmed">✅ Confirmado</SelectItem>
+              <SelectItem value="in_production">🎬 Em Produção</SelectItem>
+              <SelectItem value="completed">🏆 Concluído</SelectItem>
+              <SelectItem value="cancelled">❌ Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">Estado atual do projeto</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="location" className="text-sm font-medium flex items-center gap-2">
+            <MapPin className="h-3.5 w-3.5" />
+            Localização
+          </Label>
+          <Input
+            id="location"
+            placeholder="Ex: Hotel Five Stars, Luanda"
+            className="bg-background"
+            value={formData.location}
+            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+          />
+          <p className="text-xs text-muted-foreground">Local onde ocorrerá o trabalho</p>
+        </div>
+      </div>
+    </Card>
+
+    <Separator />
+
+    {/* Seção: Agendamento */}
+    <Card className="p-4 bg-muted/50">
+      <div className="flex items-center gap-2 mb-4">
+        <Calendar className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">Agendamento</h3>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="start_datetime" className="text-sm font-medium flex items-center gap-2">
+            <Calendar className="h-3.5 w-3.5" />
+            Data/Hora Início <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="start_datetime"
+            type="datetime-local"
+            className="bg-background"
+            value={formData.start_datetime}
+            onChange={(e) => setFormData({ ...formData, start_datetime: e.target.value })}
+            required
+          />
+          <p className="text-xs text-muted-foreground">Quando o trabalho começa</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="end_datetime" className="text-sm font-medium flex items-center gap-2">
+            <Calendar className="h-3.5 w-3.5" />
+            Data/Hora Fim
+          </Label>
+          <Input
+            id="end_datetime"
+            type="datetime-local"
+            className="bg-background"
+            value={formData.end_datetime}
+            onChange={(e) => setFormData({ ...formData, end_datetime: e.target.value })}
+          />
+          <p className="text-xs text-muted-foreground">Quando o trabalho termina (opcional)</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="estimated_hours" className="text-sm font-medium flex items-center gap-2">
+            <Clock className="h-3.5 w-3.5" />
+            Horas Estimadas
+          </Label>
+          <Input
+            id="estimated_hours"
+            type="number"
+            step="0.5"
+            placeholder="0.0"
+            className="bg-background"
+            value={formData.estimated_hours}
+            onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
+          />
+          <p className="text-xs text-muted-foreground">Tempo previsto de trabalho</p>
+        </div>
+      </div>
+    </Card>
+
+    <Separator />
+
+    {/* Seção: Valores Financeiros */}
+    <Card className="p-4 bg-muted/50">
+      <div className="flex items-center gap-2 mb-4">
+        <DollarSign className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">Valores Financeiros</h3>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="estimated_cost" className="text-sm font-medium flex items-center gap-2">
+            <DollarSign className="h-3.5 w-3.5" />
+            Custo Estimado (Kz)
+          </Label>
+          <Input
+            id="estimated_cost"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+            className="bg-background"
+            value={formData.estimated_cost}
+            onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
+          />
+          <p className="text-xs text-muted-foreground">Custo total previsto do projeto</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="estimated_revenue" className="text-sm font-medium flex items-center gap-2">
+            <DollarSign className="h-3.5 w-3.5" />
+            Receita Estimada (Kz)
+          </Label>
+          <Input
+            id="estimated_revenue"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+            className="bg-background"
+            value={formData.estimated_revenue}
+            onChange={(e) => setFormData({ ...formData, estimated_revenue: e.target.value })}
+          />
+          <p className="text-xs text-muted-foreground">Valor que será cobrado ao cliente</p>
+        </div>
       </div>
 
-      <div>
-        <Label htmlFor="client_id">Cliente</Label>
-        <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecionar cliente" />
-          </SelectTrigger>
-          <SelectContent>
-            {clients?.map((client: any) => (
-              <SelectItem key={client.id} value={client.id}>
-                {client.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {formData.estimated_cost && formData.estimated_revenue && (
+        <div className="mt-4 p-3 bg-primary/10 rounded-lg">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium text-foreground">Margem de Lucro:</span>
+            <span className={`text-lg font-bold ${
+              Number(formData.estimated_revenue) - Number(formData.estimated_cost) > 0 
+                ? 'text-green-600' 
+                : 'text-red-600'
+            }`}>
+              {(Number(formData.estimated_revenue) - Number(formData.estimated_cost)).toFixed(2)} Kz
+            </span>
+          </div>
+        </div>
+      )}
+    </Card>
 
-      <div>
-        <Label htmlFor="type">Tipo *</Label>
-        <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })} required>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecionar tipo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Casamento">Casamento</SelectItem>
-            <SelectItem value="Corporativo">Corporativo</SelectItem>
-            <SelectItem value="Evento">Evento</SelectItem>
-            <SelectItem value="Sessão Fotográfica">Sessão Fotográfica</SelectItem>
-            <SelectItem value="Produto">Produto</SelectItem>
-            <SelectItem value="Outro">Outro</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+    <Separator />
 
-      <div>
-        <Label htmlFor="status">Estado *</Label>
-        <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as Job['status'] })} required>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="scheduled">Agendado</SelectItem>
-            <SelectItem value="confirmed">Confirmado</SelectItem>
-            <SelectItem value="in_production">Em Produção</SelectItem>
-            <SelectItem value="completed">Concluído</SelectItem>
-            <SelectItem value="cancelled">Cancelado</SelectItem>
-          </SelectContent>
-        </Select>
+    {/* Seção: Descrição */}
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <FileText className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">Descrição e Notas</h3>
       </div>
-
-      <div>
-        <Label htmlFor="location">Localização</Label>
-        <Input
-          id="location"
-          value={formData.location}
-          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="start_datetime">Data/Hora Início *</Label>
-        <Input
-          id="start_datetime"
-          type="datetime-local"
-          value={formData.start_datetime}
-          onChange={(e) => setFormData({ ...formData, start_datetime: e.target.value })}
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="end_datetime">Data/Hora Fim</Label>
-        <Input
-          id="end_datetime"
-          type="datetime-local"
-          value={formData.end_datetime}
-          onChange={(e) => setFormData({ ...formData, end_datetime: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="estimated_hours">Horas Estimadas</Label>
-        <Input
-          id="estimated_hours"
-          type="number"
-          step="0.5"
-          value={formData.estimated_hours}
-          onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="estimated_cost">Custo Estimado (Kz)</Label>
-        <Input
-          id="estimated_cost"
-          type="number"
-          step="0.01"
-          value={formData.estimated_cost}
-          onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="estimated_revenue">Receita Estimada (Kz)</Label>
-        <Input
-          id="estimated_revenue"
-          type="number"
-          step="0.01"
-          value={formData.estimated_revenue}
-          onChange={(e) => setFormData({ ...formData, estimated_revenue: e.target.value })}
-        />
-      </div>
-
-      <div className="col-span-2">
-        <Label htmlFor="description">Descrição</Label>
+      <div className="space-y-2">
+        <Label htmlFor="description" className="text-sm font-medium">
+          Descrição do Job
+        </Label>
         <Textarea
           id="description"
+          placeholder="Adicione detalhes importantes sobre o trabalho, requisitos especiais, observações..."
+          className="bg-background"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          rows={3}
+          rows={4}
         />
+        <p className="text-xs text-muted-foreground">
+          Informações adicionais, requisitos do cliente ou observações importantes
+        </p>
       </div>
     </div>
 
-    <div className="flex justify-end gap-2">
-      <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+    <Separator />
+
+    <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+      <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
         Cancelar
       </Button>
-      <Button type="submit" disabled={createJob.isPending || updateJob.isPending}>
-        {job ? "Atualizar" : "Criar"}
+      <Button type="submit" disabled={createJob.isPending || updateJob.isPending} className="w-full sm:w-auto">
+        {createJob.isPending || updateJob.isPending
+          ? "Guardando..."
+          : job ? "Atualizar Job" : "Criar Job"}
       </Button>
     </div>
   </>
