@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useJobs } from "@/hooks/useJobs";
 import { useLeads } from "@/hooks/useLeads";
 import { useClients } from "@/hooks/useClients";
+import { usePayments } from "@/hooks/usePayments";
 
 const statusColors = {
   confirmed: "success",
@@ -24,51 +25,108 @@ export default function Dashboard() {
   const { data: jobs, isLoading: jobsLoading } = useJobs();
   const { data: leads, isLoading: leadsLoading } = useLeads();
   const { data: clients, isLoading: clientsLoading } = useClients();
+  const { data: payments, isLoading: paymentsLoading } = usePayments();
 
   const upcomingJobs = jobs?.filter(j => j.status === 'confirmed' || j.status === 'scheduled').slice(0, 3) || [];
   const recentLeads = leads?.slice(0, 3) || [];
   
+  // Active jobs count
   const activeJobs = jobs?.filter(j => j.status !== 'completed' && j.status !== 'cancelled').length || 0;
-  const totalRevenue = jobs?.reduce((sum, j) => sum + (Number(j.estimated_revenue) || 0), 0) || 0;
+  const previousActiveJobs = jobs?.filter(j => {
+    const createdDate = new Date(j.created_at);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return createdDate >= sixtyDaysAgo && createdDate < thirtyDaysAgo && j.status !== 'completed' && j.status !== 'cancelled';
+  }).length || 0;
+  const jobsChange = previousActiveJobs > 0 ? ((activeJobs - previousActiveJobs) / previousActiveJobs * 100).toFixed(1) : '0';
+  
+  // Total revenue from paid payments
+  const totalRevenue = payments?.filter(p => p.status === 'paid').reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+  const previousRevenue = payments?.filter(p => {
+    const paidDate = new Date(p.paid_at || p.created_at);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return paidDate >= sixtyDaysAgo && paidDate < thirtyDaysAgo && p.status === 'paid';
+  }).reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+  const revenueChange = previousRevenue > 0 ? ((totalRevenue - previousRevenue) / previousRevenue * 100).toFixed(1) : '0';
+  
+  // New clients last 30 days
   const newClients = clients?.filter(c => {
     const createdDate = new Date(c.created_at);
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     return createdDate >= thirtyDaysAgo;
   }).length || 0;
+  const previousNewClients = clients?.filter(c => {
+    const createdDate = new Date(c.created_at);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return createdDate >= sixtyDaysAgo && createdDate < thirtyDaysAgo;
+  }).length || 0;
+  const clientsChange = previousNewClients > 0 ? ((newClients - previousNewClients) / previousNewClients * 100).toFixed(1) : '0';
+  
+  // Real conversion rate (won leads / total leads)
+  const wonLeads = leads?.filter(l => l.status === 'won').length || 0;
+  const totalLeads = leads?.length || 1;
+  const conversionRate = ((wonLeads / totalLeads) * 100).toFixed(0);
+  
+  const previousWonLeads = leads?.filter(l => {
+    const createdDate = new Date(l.created_at);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return createdDate < thirtyDaysAgo && l.status === 'won';
+  }).length || 0;
+  const previousTotalLeads = leads?.filter(l => {
+    const createdDate = new Date(l.created_at);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return createdDate < thirtyDaysAgo;
+  }).length || 1;
+  const previousConversionRate = (previousWonLeads / previousTotalLeads) * 100;
+  const conversionChange = previousConversionRate > 0 ? (((wonLeads / totalLeads) * 100 - previousConversionRate)).toFixed(1) : '0';
 
   const stats = [
     {
       name: "Receita Total",
-      value: `Kz${totalRevenue.toFixed(0)}`,
-      change: "+12.5%",
-      trend: "up",
+      value: `Kz ${totalRevenue.toFixed(0)}`,
+      change: `${Number(revenueChange) >= 0 ? '+' : ''}${revenueChange}%`,
+      trend: Number(revenueChange) >= 0 ? "up" : "down",
       icon: DollarSign,
     },
     {
       name: "Jobs Ativos",
       value: activeJobs.toString(),
-      change: "+4",
-      trend: "up",
+      change: `${Number(jobsChange) >= 0 ? '+' : ''}${jobsChange}%`,
+      trend: Number(jobsChange) >= 0 ? "up" : "down",
       icon: Briefcase,
     },
     {
       name: "Novos Clientes",
       value: newClients.toString(),
-      change: "+2",
-      trend: "up",
+      change: `${Number(clientsChange) >= 0 ? '+' : ''}${clientsChange}%`,
+      trend: Number(clientsChange) >= 0 ? "up" : "down",
       icon: Users,
     },
     {
       name: "Taxa Conversão",
-      value: "68%",
-      change: "+5%",
-      trend: "up",
+      value: `${conversionRate}%`,
+      change: `${Number(conversionChange) >= 0 ? '+' : ''}${conversionChange}%`,
+      trend: Number(conversionChange) >= 0 ? "up" : "down",
       icon: TrendingUp,
     },
   ];
 
-  if (jobsLoading || leadsLoading || clientsLoading) {
+  if (jobsLoading || leadsLoading || clientsLoading || paymentsLoading) {
     return <div className="space-y-6">Carregando...</div>;
   }
 
@@ -87,7 +145,9 @@ export default function Dashboard() {
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                 <stat.icon className="h-6 w-6 text-primary" />
               </div>
-              <span className="text-sm font-medium text-success">{stat.change}</span>
+              <span className={`text-sm font-medium ${stat.trend === 'up' ? 'text-success' : 'text-destructive'}`}>
+                {stat.change}
+              </span>
             </div>
             <div className="mt-4">
               <p className="text-sm font-medium text-muted-foreground">{stat.name}</p>

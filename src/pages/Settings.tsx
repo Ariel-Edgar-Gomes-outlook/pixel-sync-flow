@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
-import { Settings as SettingsIcon, User, Bell, Shield } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, Activity } from "lucide-react";
+import { AuditLogViewer } from "@/components/AuditLogViewer";
 import { toast } from "sonner";
 
 export default function Settings() {
@@ -67,9 +69,19 @@ export default function Settings() {
         <p className="text-sm sm:text-base text-muted-foreground mt-1">Gerir preferências e conta</p>
       </div>
 
-      <div className="grid gap-6">
-        {/* Perfil */}
-        <Card className="p-6">
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
+          <TabsTrigger value="profile">Perfil</TabsTrigger>
+          <TabsTrigger value="notifications">Notificações</TabsTrigger>
+          <TabsTrigger value="security">Segurança</TabsTrigger>
+          <TabsTrigger value="preferences">Preferências</TabsTrigger>
+          <TabsTrigger value="audit">Auditoria</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profile" className="mt-6">
+          <div className="grid gap-6">
+            {/* Perfil */}
+            <Card className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <User className="h-5 w-5 text-primary" />
             <h2 className="text-xl font-semibold text-foreground">Perfil</h2>
@@ -113,10 +125,14 @@ export default function Settings() {
               Guardar Alterações
             </Button>
           </div>
-        </Card>
+            </Card>
+          </div>
+        </TabsContent>
 
-        {/* Notificações */}
-        <Card className="p-6">
+        <TabsContent value="notifications" className="mt-6">
+          <div className="grid gap-6">
+            {/* Notificações */}
+            <Card className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <Bell className="h-5 w-5 text-primary" />
             <h2 className="text-xl font-semibold text-foreground">Notificações</h2>
@@ -166,10 +182,14 @@ export default function Settings() {
               />
             </div>
           </div>
-        </Card>
+            </Card>
+          </div>
+        </TabsContent>
 
-        {/* Segurança */}
-        <Card className="p-6">
+        <TabsContent value="security" className="mt-6">
+          <div className="grid gap-6">
+            {/* Segurança */}
+            <Card className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <Shield className="h-5 w-5 text-primary" />
             <h2 className="text-xl font-semibold text-foreground">Segurança</h2>
@@ -194,10 +214,14 @@ export default function Settings() {
               <Button variant="outline" disabled>Configurar</Button>
             </div>
           </div>
-        </Card>
+            </Card>
+          </div>
+        </TabsContent>
 
-        {/* Preferências */}
-        <Card className="p-6">
+        <TabsContent value="preferences" className="mt-6">
+          <div className="grid gap-6">
+            {/* Preferências */}
+            <Card className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <SettingsIcon className="h-5 w-5 text-primary" />
             <h2 className="text-xl font-semibold text-foreground">Preferências</h2>
@@ -228,8 +252,14 @@ export default function Settings() {
               <p className="text-xs text-muted-foreground">Hora de Luanda, Angola</p>
             </div>
           </div>
-        </Card>
-      </div>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="audit" className="mt-6">
+          <AuditLogViewer />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
