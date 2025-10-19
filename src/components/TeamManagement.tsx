@@ -18,7 +18,8 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
   const [selectedRole, setSelectedRole] = useState("");
   const queryClient = useQueryClient();
 
-  // Fetch all users (profiles)
+  // Fetch all team members/staff (profiles = fotógrafos, assistentes, equipe)
+  // NOT clients (clients are in the 'clients' table)
   const { data: allUsers } = useQuery({
     queryKey: ['profiles'],
     queryFn: async () => {
@@ -113,24 +114,35 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold flex items-center gap-2">
-        <Users className="h-5 w-5" />
-        Equipa do Projeto
-      </h3>
+      <div>
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Users className="h-5 w-5" />
+          Equipa do Projeto
+        </h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Adicione fotógrafos, assistentes e outros membros da sua equipe (não clientes)
+        </p>
+      </div>
 
       {/* Add Member Form */}
       <Card className="p-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Select value={selectedUserId} onValueChange={setSelectedUserId}>
             <SelectTrigger>
-              <SelectValue placeholder="Selecionar membro" />
+              <SelectValue placeholder="Selecionar fotógrafo/equipe" />
             </SelectTrigger>
             <SelectContent>
-              {availableUsers?.map((user) => (
-                <SelectItem key={user.user_id} value={user.user_id}>
-                  {user.name}
-                </SelectItem>
-              ))}
+              {availableUsers && availableUsers.length > 0 ? (
+                availableUsers.map((user) => (
+                  <SelectItem key={user.user_id} value={user.user_id}>
+                    {user.name} ({user.email})
+                  </SelectItem>
+                ))
+              ) : (
+                <div className="p-2 text-sm text-muted-foreground">
+                  Nenhum usuário disponível. Certifique-se que há perfis cadastrados no sistema.
+                </div>
+              )}
             </SelectContent>
           </Select>
 

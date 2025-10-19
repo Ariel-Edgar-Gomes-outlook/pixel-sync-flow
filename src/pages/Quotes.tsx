@@ -135,29 +135,31 @@ export default function Quotes() {
             filteredQuotes.map((quote) => (
               <div
                 key={quote.id}
-                className="p-5 rounded-lg border border-border bg-card hover:shadow-md transition-all"
+                className="p-4 sm:p-5 rounded-lg border border-border bg-card hover:shadow-md transition-all"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <FileText className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-semibold text-foreground">
-                        {quote.clients?.name || 'Cliente não especificado'}
-                      </h3>
+                <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-primary flex-shrink-0" />
+                        <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">
+                          {quote.clients?.name || 'Cliente não especificado'}
+                        </h3>
+                      </div>
                       <Badge variant={statusConfig[quote.status as keyof typeof statusConfig]?.variant || 'secondary'}>
                         {statusConfig[quote.status as keyof typeof statusConfig]?.label || quote.status}
                       </Badge>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>Criado: {new Date(quote.created_at).toLocaleDateString("pt-PT")}</span>
+                        <Calendar className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">Criado: {new Date(quote.created_at).toLocaleDateString("pt-PT")}</span>
                       </div>
                       {quote.validity_date && (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          <span>Validade: {new Date(quote.validity_date).toLocaleDateString("pt-PT")}</span>
+                          <Calendar className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">Validade: {new Date(quote.validity_date).toLocaleDateString("pt-PT")}</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2 text-sm">
@@ -167,18 +169,23 @@ export default function Quotes() {
                     </div>
                   </div>
                   
-                  <div className="text-right ml-6">
-                    <div className="text-2xl font-bold text-foreground">
-                      {Number(quote.total).toFixed(2)} {quote.currency || 'AOA'}
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-2 sm:ml-4 pt-2 sm:pt-0 border-t sm:border-t-0 sm:border-l sm:pl-4">
+                    <div className="sm:text-right">
+                      <div className="text-xl sm:text-2xl font-bold text-foreground whitespace-nowrap">
+                        {Number(quote.total).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {quote.currency || 'AOA'}
+                      </div>
                     </div>
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="mt-3 gap-2"
+                      className="gap-2 w-full sm:w-auto"
                       onClick={() => handleEdit(quote)}
                     >
                       <Pencil className="h-4 w-4" />
-                      Editar
+                      <span className="sm:inline">Editar</span>
                     </Button>
                   </div>
                 </div>
