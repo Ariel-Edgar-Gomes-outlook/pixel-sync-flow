@@ -12,6 +12,8 @@ import { useCreateJob, useUpdateJob, Job } from "@/hooks/useJobs";
 import { useClients } from "@/hooks/useClients";
 import { ChecklistManager } from "@/components/ChecklistManager";
 import { TeamManagement } from "@/components/TeamManagement";
+import { JobDeliverables } from "@/components/JobDeliverables";
+import { JobResources } from "@/components/JobResources";
 import { toast } from "sonner";
 import { Briefcase, User, Calendar, MapPin, DollarSign, Clock, FileText, Tag } from "lucide-react";
 
@@ -120,8 +122,10 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
         
         {job ? (
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="details">Detalhes</TabsTrigger>
+              <TabsTrigger value="deliverables">Entregáveis</TabsTrigger>
+              <TabsTrigger value="equipment">Equipamentos</TabsTrigger>
               <TabsTrigger value="checklists">Checklists</TabsTrigger>
               <TabsTrigger value="team">Equipa</TabsTrigger>
             </TabsList>
@@ -138,6 +142,22 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
                   updateJob={updateJob}
                 />
               </form>
+            </TabsContent>
+
+            <TabsContent value="deliverables" className="space-y-4 py-4">
+              <JobDeliverables 
+                jobId={job.id}
+                externalAssetsLinks={job.external_assets_links as string[] || []}
+                externalGalleryLink={job.external_gallery_link}
+              />
+            </TabsContent>
+
+            <TabsContent value="equipment" className="space-y-4 py-4">
+              <JobResources
+                jobId={job.id}
+                startDatetime={job.start_datetime}
+                endDatetime={job.end_datetime}
+              />
             </TabsContent>
 
             <TabsContent value="checklists" className="space-y-4 py-4">
