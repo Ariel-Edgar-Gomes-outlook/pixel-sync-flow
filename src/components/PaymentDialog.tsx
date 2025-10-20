@@ -209,14 +209,14 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                   Orçamento Relacionado (Opcional)
                 </Label>
                 <Select
-                  value={formData.quote_id}
-                  onValueChange={(value) => setFormData({ ...formData, quote_id: value })}
+                  value={formData.quote_id || "none"}
+                  onValueChange={(value) => setFormData({ ...formData, quote_id: value === "none" ? "" : value })}
                 >
                   <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Sem orçamento" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover z-50">
-                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="none">Nenhum</SelectItem>
                     {quotes?.map((quote) => (
                       <SelectItem key={quote.id} value={quote.id}>
                         #{quote.id.slice(0, 8)} - {Number(quote.total).toFixed(2)} {quote.currency}
