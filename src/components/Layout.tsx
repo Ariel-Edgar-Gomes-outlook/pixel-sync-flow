@@ -14,12 +14,14 @@ import {
   X,
   Camera,
   LogOut,
-  Bell
+  Bell,
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/NotificationBell";
+import { useNotificationAutomation } from "@/hooks/useNotificationAutomation";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -30,6 +32,7 @@ const navigation = [
   { name: "Orçamentos", href: "/quotes", icon: FileText },
   { name: "Contratos", href: "/contracts", icon: FileText },
   { name: "Financeiro", href: "/payments", icon: CreditCard },
+  { name: "Relatórios", href: "/reports", icon: BarChart3 },
   { name: "Recursos", href: "/resources", icon: Wrench },
   { name: "Configurações", href: "/settings", icon: Settings },
 ];
@@ -38,6 +41,9 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const { signOut, user } = useAuth();
+  
+  // Enable notification automation
+  useNotificationAutomation();
 
   return (
     <div className="min-h-screen bg-background">

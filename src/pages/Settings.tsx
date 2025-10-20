@@ -11,6 +11,7 @@ import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { Settings as SettingsIcon, User, Bell, Shield, Activity } from "lucide-react";
 import { AuditLogViewer } from "@/components/AuditLogViewer";
 import { GoogleCalendarIntegration } from "@/components/GoogleCalendarIntegration";
+import { NotificationSettings } from "@/components/NotificationSettings";
 import { toast } from "sonner";
 
 export default function Settings() {
@@ -21,12 +22,6 @@ export default function Settings() {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
-  });
-
-  const [notifications, setNotifications] = useState({
-    emailNotifications: false,
-    jobReminders: false,
-    newLeads: false,
   });
 
   // Update form when profile loads
@@ -132,60 +127,7 @@ export default function Settings() {
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-6">
-          <div className="grid gap-6">
-            {/* Notificações */}
-            <Card className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Bell className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Notificações</h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-foreground">Notificações por Email</p>
-                <p className="text-sm text-muted-foreground">Receber alertas importantes por email</p>
-              </div>
-              <Switch
-                checked={notifications.emailNotifications}
-                onCheckedChange={(checked) => 
-                  setNotifications({ ...notifications, emailNotifications: checked })
-                }
-              />
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-foreground">Lembretes de Jobs</p>
-                <p className="text-sm text-muted-foreground">Alertas antes dos trabalhos agendados</p>
-              </div>
-              <Switch
-                checked={notifications.jobReminders}
-                onCheckedChange={(checked) => 
-                  setNotifications({ ...notifications, jobReminders: checked })
-                }
-              />
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-foreground">Novos Leads</p>
-                <p className="text-sm text-muted-foreground">Notificação quando receber novos leads</p>
-              </div>
-              <Switch
-                checked={notifications.newLeads}
-                onCheckedChange={(checked) => 
-                  setNotifications({ ...notifications, newLeads: checked })
-                }
-              />
-            </div>
-          </div>
-            </Card>
-          </div>
+          <NotificationSettings />
         </TabsContent>
 
         <TabsContent value="security" className="mt-6">

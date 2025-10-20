@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { SmartNotificationPanel } from "@/components/SmartNotificationPanel";
 import { useJobs } from "@/hooks/useJobs";
 import { useLeads } from "@/hooks/useLeads";
 import { useClients } from "@/hooks/useClients";
@@ -141,6 +142,9 @@ export default function Dashboard() {
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
         <p className="text-sm sm:text-base text-muted-foreground mt-1">Visão geral do seu negócio fotográfico</p>
       </div>
+
+      {/* Smart Notifications */}
+      <SmartNotificationPanel />
 
       {/* Stats Grid */}
       <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
