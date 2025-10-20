@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobs } from "@/hooks/useJobs";
@@ -20,14 +21,33 @@ const statusConfig = {
 export default function Jobs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [sortBy, setSortBy] = useState<"date" | "value">("date");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const { data: jobs, isLoading } = useJobs();
 
-  const filteredJobs = jobs?.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         job.clients?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTab = activeTab === "all" || job.status === activeTab;
-    return matchesSearch && matchesTab;
-  }) || [];
+  const jobTypes = useMemo(() => {
+    const uniqueTypes = new Set(jobs?.map(j => j.type).filter(Boolean));
+    return Array.from(uniqueTypes);
+  }, [jobs]);
+
+  const filteredJobs = useMemo(() => {
+    let filtered = jobs?.filter(job => {
+      const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           job.clients?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesTab = activeTab === "all" || job.status === activeTab;
+      const matchesType = typeFilter === "all" || job.type === typeFilter;
+      return matchesSearch && matchesTab && matchesType;
+    }) || [];
+
+    // Ordenação
+    if (sortBy === "date") {
+      filtered.sort((a, b) => new Date(b.start_datetime).getTime() - new Date(a.start_datetime).getTime());
+    } else if (sortBy === "value") {
+      filtered.sort((a, b) => (Number(b.estimated_revenue) || 0) - (Number(a.estimated_revenue) || 0));
+    }
+
+    return filtered;
+  }, [jobs, searchQuery, activeTab, typeFilter, sortBy]);
 
   const showEmptyState = !isLoading && (!jobs || jobs.length === 0);
 
@@ -116,15 +136,37 @@ export default function Jobs() {
 
             <TabsContent value={activeTab} className="mt-6">
               <Card className="p-6">
-                <div className="mb-6">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      placeholder="Pesquisar por título ou cliente..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9"
-                    />
+                <div className="mb-6 space-y-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        placeholder="Pesquisar por título ou cliente..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os tipos</SelectItem>
+                        {jobTypes.map(type => (
+                          <SelectItem key={type} value={type!}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                      <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Ordenar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="date">Mais recentes</SelectItem>
+                        <SelectItem value="value">Maior valor</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 

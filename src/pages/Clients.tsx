@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Mail, Phone, MapPin, ExternalLink, Edit, Users, UserPlus, Building } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
 import { ClientDialog } from "@/components/ClientDialog";
@@ -11,6 +12,8 @@ export default function Clients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"name" | "recent">("name");
   const { data: clients, isLoading } = useClients();
 
   const handleEdit = (client: any) => {
@@ -23,10 +26,23 @@ export default function Clients() {
     setSelectedClient(null);
   };
 
-  const filteredClients = clients?.filter(client =>
-    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const filteredClients = useMemo(() => {
+    let filtered = clients?.filter(client => {
+      const matchesSearch = client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        client.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = typeFilter === "all" || client.type === typeFilter;
+      return matchesSearch && matchesType;
+    }) || [];
+
+    // Ordenação
+    if (sortBy === "name") {
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === "recent") {
+      filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
+    return filtered;
+  }, [clients, searchQuery, typeFilter, sortBy]);
 
   const showEmptyState = !isLoading && (!clients || clients.length === 0);
 
@@ -97,15 +113,36 @@ export default function Clients() {
         </Card>
       ) : (
         <Card className="p-6">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Pesquisar por nome ou email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+          <div className="mb-6">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Pesquisar por nome ou email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
+                  <SelectItem value="individual">Individual</SelectItem>
+                  <SelectItem value="company">Empresa</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Ordenar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Nome A-Z</SelectItem>
+                  <SelectItem value="recent">Mais recentes</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

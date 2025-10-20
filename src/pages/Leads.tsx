@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Edit, TrendingUp, Users, Target, Award } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Plus, Edit, TrendingUp, Users, Target, Award, ArrowUpDown } from "lucide-react";
 import { useLeads } from "@/hooks/useLeads";
 import { LeadDialog } from "@/components/LeadDialog";
 import { Lead } from "@/hooks/useLeads";
@@ -20,6 +21,8 @@ export default function Leads() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<"date" | "probability">("date");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
   const { data: leads, isLoading } = useLeads();
 
   const handleEdit = (lead: any) => {
@@ -34,14 +37,30 @@ export default function Leads() {
     }
   };
 
-  const filteredLeads = leads?.filter((lead) => {
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      lead.clients?.name?.toLowerCase().includes(searchLower) ||
-      lead.source?.toLowerCase().includes(searchLower) ||
-      lead.notes?.toLowerCase().includes(searchLower)
-    );
-  });
+  const sources = useMemo(() => {
+    const uniqueSources = new Set(leads?.map(l => l.source).filter(Boolean));
+    return Array.from(uniqueSources);
+  }, [leads]);
+
+  const filteredLeads = useMemo(() => {
+    let filtered = leads?.filter((lead) => {
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch = lead.clients?.name?.toLowerCase().includes(searchLower) ||
+        lead.source?.toLowerCase().includes(searchLower) ||
+        lead.notes?.toLowerCase().includes(searchLower);
+      const matchesSource = sourceFilter === "all" || lead.source === sourceFilter;
+      return matchesSearch && matchesSource;
+    }) || [];
+
+    // Ordenação
+    if (sortBy === "date") {
+      filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } else if (sortBy === "probability") {
+      filtered.sort((a, b) => (b.probability || 0) - (a.probability || 0));
+    }
+
+    return filtered;
+  }, [leads, searchQuery, sourceFilter, sortBy]);
 
   const leadsByStatus = {
     new: filteredLeads?.filter(l => l.status === 'new') || [],
@@ -130,14 +149,36 @@ export default function Leads() {
         </Card>
       ) : (
         <>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Pesquisar por cliente, fonte ou notas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisar por cliente, fonte ou notas..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={sourceFilter} onValueChange={setSourceFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Fonte" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as fontes</SelectItem>
+                {sources.map(source => (
+                  <SelectItem key={source} value={source!}>{source}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Ordenar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">Mais recentes</SelectItem>
+                <SelectItem value="probability">Maior probabilidade</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-5">

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle } from "lucide-react";
 import { useQuotes } from "@/hooks/useQuotes";
 import { QuoteDialog } from "@/components/QuoteDialog";
@@ -18,6 +19,8 @@ export default function Quotes() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedQuote, setSelectedQuote] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"date" | "value">("date");
   const { data: quotes, isLoading } = useQuotes();
 
   const handleEdit = (quote: any) => {
@@ -30,9 +33,22 @@ export default function Quotes() {
     setSelectedQuote(null);
   };
 
-  const filteredQuotes = quotes?.filter(quote =>
-    quote.clients?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const filteredQuotes = useMemo(() => {
+    let filtered = quotes?.filter(quote => {
+      const matchesSearch = quote.clients?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === "all" || quote.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    }) || [];
+
+    // Ordenação
+    if (sortBy === "date") {
+      filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } else if (sortBy === "value") {
+      filtered.sort((a, b) => Number(b.total) - Number(a.total));
+    }
+
+    return filtered;
+  }, [quotes, searchQuery, statusFilter, sortBy]);
 
   const showEmptyState = !isLoading && (!quotes || quotes.length === 0);
 
@@ -113,14 +129,37 @@ export default function Quotes() {
       ) : (
         <Card className="p-6">
           <div className="mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Pesquisar por cliente..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Pesquisar por cliente..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os status</SelectItem>
+                  <SelectItem value="draft">Rascunho</SelectItem>
+                  <SelectItem value="sent">Enviado</SelectItem>
+                  <SelectItem value="accepted">Aceite</SelectItem>
+                  <SelectItem value="rejected">Rejeitado</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Ordenar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date">Mais recentes</SelectItem>
+                  <SelectItem value="value">Maior valor</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
