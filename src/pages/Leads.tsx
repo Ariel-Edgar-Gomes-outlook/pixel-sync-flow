@@ -27,9 +27,11 @@ export default function Leads() {
     setDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-    setSelectedLead(undefined);
+  const handleOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setSelectedLead(undefined);
+    }
   };
 
   const filteredLeads = leads?.filter((lead) => {
@@ -64,7 +66,7 @@ export default function Leads() {
             Gerencie oportunidades e acompanhe leads desde o primeiro contacto até conversão
           </p>
         </div>
-        <LeadDialog lead={selectedLead} open={dialogOpen} onOpenChange={handleCloseDialog}>
+        <LeadDialog lead={selectedLead} open={dialogOpen} onOpenChange={handleOpenChange}>
           <Button className="gap-2 w-full sm:w-auto">
             <Plus className="h-4 w-4" />
             Novo Lead
@@ -111,7 +113,7 @@ export default function Leads() {
               </div>
             </div>
 
-            <LeadDialog lead={selectedLead} open={dialogOpen} onOpenChange={handleCloseDialog}>
+            <LeadDialog lead={selectedLead} open={dialogOpen} onOpenChange={handleOpenChange}>
               <Button size="lg" className="gap-2">
                 <Plus className="h-5 w-5" />
                 Adicionar Primeiro Lead
