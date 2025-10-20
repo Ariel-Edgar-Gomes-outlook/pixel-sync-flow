@@ -25,9 +25,11 @@ export default function Payments() {
     setIsDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setSelectedPayment(null);
+  const handleOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setSelectedPayment(null);
+    }
   };
 
   const handleNewPayment = () => {
@@ -242,7 +244,7 @@ export default function Payments() {
       <PaymentDialog
         payment={selectedPayment}
         open={isDialogOpen}
-        onOpenChange={handleCloseDialog}
+        onOpenChange={handleOpenChange}
       />
     </div>
   );
