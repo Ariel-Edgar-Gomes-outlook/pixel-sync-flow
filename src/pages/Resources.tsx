@@ -29,9 +29,11 @@ export default function Resources() {
     setDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-    setSelectedResource(undefined);
+  const handleOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setSelectedResource(undefined);
+    }
   };
 
   const filteredResources = resources?.filter((resource) => {
@@ -60,7 +62,7 @@ export default function Resources() {
               Gerencie seu inventário de equipamentos fotográficos, controle disponibilidade e agende manutenções
             </p>
           </div>
-          <ResourceDialog resource={selectedResource} open={dialogOpen} onOpenChange={handleCloseDialog}>
+          <ResourceDialog resource={selectedResource} open={dialogOpen} onOpenChange={handleOpenChange}>
             <Button className="gap-2 w-full sm:w-auto">
               <Plus className="h-4 w-4" />
               Adicionar Equipamento
@@ -241,7 +243,7 @@ export default function Resources() {
                   </div>
                 </div>
 
-                <ResourceDialog resource={undefined} open={dialogOpen} onOpenChange={handleCloseDialog}>
+                <ResourceDialog resource={undefined} open={dialogOpen} onOpenChange={handleOpenChange}>
                   <Button size="lg" className="gap-2">
                     <Plus className="h-5 w-5" />
                     Adicionar Primeiro Equipamento

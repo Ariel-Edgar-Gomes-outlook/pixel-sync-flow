@@ -102,15 +102,20 @@ export function ResourceDialog({ children, resource, open: controlledOpen, onOpe
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Informações Básicas */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Camera className="h-4 w-4 text-primary" />
-              <h3 className="font-semibold text-sm">Informações Básicas</h3>
+          <div className="space-y-3 p-4 rounded-lg border bg-card">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 rounded-full bg-primary/10">
+                <Camera className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm">Informações Básicas</h3>
+                <p className="text-xs text-muted-foreground">Dados principais do equipamento</p>
+              </div>
             </div>
             
-            <div className="grid gap-4 pl-6">
+            <div className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="name" className="text-sm font-medium">
                   Nome do Equipamento <span className="text-destructive">*</span>
@@ -119,12 +124,12 @@ export function ResourceDialog({ children, resource, open: controlledOpen, onOpe
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Ex: Canon EOS R5, Sony A7IV"
+                  placeholder="Ex: Canon EOS R5, Sony A7IV, Lente 24-70mm"
                   required
                   className="text-sm"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Identificação clara do equipamento
+                  💡 Identificação clara e específica do equipamento
                 </p>
               </div>
 
@@ -147,6 +152,7 @@ export function ResourceDialog({ children, resource, open: controlledOpen, onOpe
                       <SelectItem value="other">📦 Outro</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">Categoria do equipamento</p>
                 </div>
 
                 <div className="grid gap-2">
@@ -162,41 +168,43 @@ export function ResourceDialog({ children, resource, open: controlledOpen, onOpe
                       <SelectItem value="unavailable">❌ Indisponível</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">Estado operacional</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <Separator />
-
           {/* Localização e Documentação */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-primary" />
-              <h3 className="font-semibold text-sm">Localização e Documentação</h3>
+          <div className="space-y-3 p-4 rounded-lg border bg-card">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 rounded-full bg-primary/10">
+                <MapPin className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm">Localização e Documentação</h3>
+                <p className="text-xs text-muted-foreground">Onde está e como usar</p>
+              </div>
             </div>
             
-            <div className="grid gap-4 pl-6">
+            <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="location" className="text-sm font-medium flex items-center gap-2">
-                  <MapPin className="h-3 w-3" />
+                <Label htmlFor="location" className="text-sm font-medium">
                   Localização
                 </Label>
                 <Input
                   id="location"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  placeholder="Ex: Estúdio Principal, Armazém, Casa"
+                  placeholder="Ex: Estúdio Principal, Armazém A, Casa"
                   className="text-sm"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Onde o equipamento está guardado
+                  📍 Local onde o equipamento está armazenado
                 </p>
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="manual_link" className="text-sm font-medium flex items-center gap-2">
-                  <FileText className="h-3 w-3" />
+                <Label htmlFor="manual_link" className="text-sm font-medium">
                   Link do Manual
                 </Label>
                 <Input
@@ -208,25 +216,27 @@ export function ResourceDialog({ children, resource, open: controlledOpen, onOpe
                   className="text-sm"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Link para o manual ou documentação técnica
+                  📄 Link para manual de instruções ou documentação técnica
                 </p>
               </div>
             </div>
           </div>
 
-          <Separator />
-
           {/* Manutenção */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Wrench className="h-4 w-4 text-primary" />
-              <h3 className="font-semibold text-sm">Manutenção</h3>
+          <div className="space-y-3 p-4 rounded-lg border bg-card">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 rounded-full bg-primary/10">
+                <Wrench className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm">Manutenção</h3>
+                <p className="text-xs text-muted-foreground">Agende revisões periódicas</p>
+              </div>
             </div>
             
-            <div className="grid gap-4 pl-6">
+            <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="next_maintenance_date" className="text-sm font-medium flex items-center gap-2">
-                  <Calendar className="h-3 w-3" />
+                <Label htmlFor="next_maintenance_date" className="text-sm font-medium">
                   Próxima Manutenção
                 </Label>
                 <Input
@@ -237,7 +247,7 @@ export function ResourceDialog({ children, resource, open: controlledOpen, onOpe
                   className="text-sm"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Data prevista para a próxima manutenção ou revisão
+                  🗓️ Data prevista para a próxima revisão ou manutenção preventiva
                 </p>
               </div>
             </div>
