@@ -1,15 +1,27 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useJobs } from "@/hooks/useJobs";
 import { usePayments } from "@/hooks/usePayments";
 import { useLeads } from "@/hooks/useLeads";
 import { useClients } from "@/hooks/useClients";
+import { useQuotes } from "@/hooks/useQuotes";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
-import { TrendingUp, DollarSign, Briefcase, Users, Target, Calendar } from "lucide-react";
+import { TrendingUp, DollarSign, Briefcase, Users, Target, Calendar, Download } from "lucide-react";
 import { useState } from "react";
 import { startOfMonth, endOfMonth, eachMonthOfInterval, format, subMonths, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
+import { 
+  exportToExcel, 
+  exportMultipleSheets,
+  formatClientsForExport,
+  formatJobsForExport,
+  formatPaymentsForExport,
+  formatLeadsForExport,
+  formatQuotesForExport
+} from "@/lib/exportUtils";
+import { toast } from "sonner";
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c', '#d0ed57'];
 
@@ -19,6 +31,43 @@ export default function Reports() {
   const { data: payments } = usePayments();
   const { data: leads } = useLeads();
   const { data: clients } = useClients();
+  const { data: quotes } = useQuotes();
+
+  const handleExportAll = () => {
+    if (!clients || !jobs || !payments || !leads || !quotes) {
+      toast.error('Dados não carregados ainda');
+      return;
+    }
+
+    const sheets = [
+      { name: 'Clientes', data: formatClientsForExport(clients) },
+      { name: 'Jobs', data: formatJobsForExport(jobs) },
+      { name: 'Pagamentos', data: formatPaymentsForExport(payments) },
+      { name: 'Leads', data: formatLeadsForExport(leads) },
+      { name: 'Orçamentos', data: formatQuotesForExport(quotes) },
+    ];
+
+    exportMultipleSheets(sheets, `Relatorio_Completo_${format(new Date(), 'yyyy-MM-dd')}`);
+    toast.success('Relatório exportado com sucesso!');
+  };
+
+  const handleExportClients = () => {
+    if (!clients) return;
+    exportToExcel(formatClientsForExport(clients), `Clientes_${format(new Date(), 'yyyy-MM-dd')}`, 'Clientes');
+    toast.success('Clientes exportados!');
+  };
+
+  const handleExportJobs = () => {
+    if (!jobs) return;
+    exportToExcel(formatJobsForExport(jobs), `Jobs_${format(new Date(), 'yyyy-MM-dd')}`, 'Jobs');
+    toast.success('Jobs exportados!');
+  };
+
+  const handleExportPayments = () => {
+    if (!payments) return;
+    exportToExcel(formatPaymentsForExport(payments), `Pagamentos_${format(new Date(), 'yyyy-MM-dd')}`, 'Pagamentos');
+    toast.success('Pagamentos exportados!');
+  };
 
   // Calculate date range
   const endDate = new Date();
@@ -103,16 +152,22 @@ export default function Reports() {
           <p className="text-sm sm:text-base text-muted-foreground mt-1">Análise completa do desempenho do negócio</p>
         </div>
 
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="3">Últimos 3 meses</SelectItem>
-            <SelectItem value="6">Últimos 6 meses</SelectItem>
-            <SelectItem value="12">Último ano</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="3">Últimos 3 meses</SelectItem>
+              <SelectItem value="6">Últimos 6 meses</SelectItem>
+              <SelectItem value="12">Último ano</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={handleExportAll} variant="outline" size="sm" className="gap-2">
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Exportar Tudo</span>
+          </Button>
+        </div>
       </div>
 
       {/* Key Metrics */}

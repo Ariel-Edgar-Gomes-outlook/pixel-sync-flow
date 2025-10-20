@@ -57,6 +57,36 @@ export function ClientHistory({ clientId }: ClientHistoryProps) {
     },
   });
 
+  // Fetch leads
+  const { data: leads } = useQuery({
+    queryKey: ['client_leads', clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch contracts
+  const { data: contracts } = useQuery({
+    queryKey: ['client_contracts', clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('contracts')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Calculate statistics
   const completedJobs = jobs?.filter(j => j.status === 'completed').length || 0;
   const totalJobs = jobs?.length || 0;
@@ -266,6 +296,59 @@ export function ClientHistory({ clientId }: ClientHistoryProps) {
           </div>
         </div>
       </Card>
+
+      {/* Leads & Contracts Summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card className="p-4 bg-muted/50">
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold">Leads</h3>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-primary">{leads?.length || 0}</p>
+              <p className="text-xs text-muted-foreground">Total</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-600">
+                {leads?.filter(l => l.status === 'won').length || 0}
+              </p>
+              <p className="text-xs text-muted-foreground">Convertidos</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-orange-600">
+                {leads?.filter(l => l.status === 'new' || l.status === 'contacted').length || 0}
+              </p>
+              <p className="text-xs text-muted-foreground">Ativos</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4 bg-muted/50">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold">Contratos</h3>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-primary">{contracts?.length || 0}</p>
+              <p className="text-xs text-muted-foreground">Total</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-600">
+                {contracts?.filter(c => c.status === 'signed').length || 0}
+              </p>
+              <p className="text-xs text-muted-foreground">Assinados</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-orange-600">
+                {contracts?.filter(c => c.status === 'sent').length || 0}
+              </p>
+              <p className="text-xs text-muted-foreground">Enviados</p>
+            </div>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

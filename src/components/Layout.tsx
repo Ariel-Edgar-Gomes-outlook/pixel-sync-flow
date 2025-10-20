@@ -22,7 +22,9 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/NotificationBell";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { useNotificationAutomation } from "@/hooks/useNotificationAutomation";
+import { usePaymentReminders } from "@/hooks/usePaymentReminders";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -44,8 +46,9 @@ export default function Layout() {
   const location = useLocation();
   const { signOut, user } = useAuth();
   
-  // Enable notification automation
+  // Enable notification automation and payment reminders
   useNotificationAutomation();
+  usePaymentReminders();
 
   return (
     <div className="min-h-screen bg-background">
@@ -161,6 +164,7 @@ export default function Layout() {
             <Menu className="h-6 w-6" />
           </button>
           <div className="flex-1" />
+          <GlobalSearch />
           <NotificationBell />
         </header>
         <main className="p-4 sm:p-6">
