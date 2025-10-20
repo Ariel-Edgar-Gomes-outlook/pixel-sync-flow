@@ -47,6 +47,39 @@ export type Database = {
         }
         Relationships: []
       }
+      checklist_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          estimated_time: number | null
+          id: string
+          items: Json
+          job_type: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          estimated_time?: number | null
+          id?: string
+          items?: Json
+          job_type: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          estimated_time?: number | null
+          id?: string
+          items?: Json
+          job_type?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       checklists: {
         Row: {
           created_at: string
@@ -133,6 +166,39 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_templates: {
+        Row: {
+          cancellation_fee: number | null
+          clauses: Json | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          name: string
+          terms_text: string
+          updated_at: string | null
+        }
+        Insert: {
+          cancellation_fee?: number | null
+          clauses?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name: string
+          terms_text: string
+          updated_at?: string | null
+        }
+        Update: {
+          cancellation_fee?: number | null
+          clauses?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name?: string
+          terms_text?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       contracts: {
         Row: {
           attachments_links: Json | null
@@ -186,6 +252,53 @@ export type Database = {
           },
           {
             foreignKeyName: "contracts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deliverables: {
+        Row: {
+          created_by: string | null
+          downloaded_at: string | null
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          job_id: string
+          sent_to_client_at: string | null
+          type: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          created_by?: string | null
+          downloaded_at?: string | null
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          job_id: string
+          sent_to_client_at?: string | null
+          type: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          created_by?: string | null
+          downloaded_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          job_id?: string
+          sent_to_client_at?: string | null
+          type?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliverables_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
@@ -424,6 +537,41 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_reminders: {
+        Row: {
+          email_sent: boolean | null
+          id: string
+          notification_sent: boolean | null
+          payment_id: string
+          sent_at: string | null
+          type: string
+        }
+        Insert: {
+          email_sent?: boolean | null
+          id?: string
+          notification_sent?: boolean | null
+          payment_id: string
+          sent_at?: string | null
+          type: string
+        }
+        Update: {
+          email_sent?: boolean | null
+          id?: string
+          notification_sent?: boolean | null
+          payment_id?: string
+          sent_at?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reminders_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -517,6 +665,48 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      quote_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          discount: number | null
+          id: string
+          items: Json
+          job_type: string
+          name: string
+          notes: string | null
+          tax: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          discount?: number | null
+          id?: string
+          items?: Json
+          job_type: string
+          name: string
+          notes?: string | null
+          tax?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          discount?: number | null
+          id?: string
+          items?: Json
+          job_type?: string
+          name?: string
+          notes?: string | null
+          tax?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -621,6 +811,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      time_entries: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          entry_date: string
+          hours: number
+          id: string
+          job_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          entry_date: string
+          hours: number
+          id?: string
+          job_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          entry_date?: string
+          hours?: number
+          id?: string
+          job_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

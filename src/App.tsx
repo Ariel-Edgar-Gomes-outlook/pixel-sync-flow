@@ -17,6 +17,7 @@ import Leads from "./pages/Leads";
 import Resources from "./pages/Resources";
 import Contracts from "./pages/Contracts";
 import Reports from "./pages/Reports";
+import Templates from "./pages/Templates";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="resources" element={<Resources />} />
               <Route path="contracts" element={<Contracts />} />
               <Route path="reports" element={<Reports />} />
+              <Route path="templates" element={<Templates />} />
               <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />

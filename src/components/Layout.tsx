@@ -15,7 +15,8 @@ import {
   Camera,
   LogOut,
   Bell,
-  BarChart3
+  BarChart3,
+  Layers
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ const navigation = [
   { name: "Contratos", href: "/contracts", icon: FileText },
   { name: "Financeiro", href: "/payments", icon: CreditCard },
   { name: "Relatórios", href: "/reports", icon: BarChart3 },
+  { name: "Templates", href: "/templates", icon: Layers },
   { name: "Recursos", href: "/resources", icon: Wrench },
   { name: "Configurações", href: "/settings", icon: Settings },
 ];

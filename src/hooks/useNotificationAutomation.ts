@@ -5,7 +5,7 @@ import { useJobs } from './useJobs';
 import { useLeads } from './useLeads';
 import { usePayments } from './usePayments';
 import { useResources } from './useResources';
-import { differenceInDays, differenceInHours, parseISO, addDays } from 'date-fns';
+import { differenceInDays, differenceInHours, parseISO } from 'date-fns';
 
 export function useNotificationAutomation() {
   const queryClient = useQueryClient();
@@ -44,95 +44,139 @@ export function useNotificationAutomation() {
       const now = new Date();
 
       // 1. Job starting in 24 hours
-      jobs.forEach((job) => {
+      for (const job of jobs) {
         const startDate = parseISO(job.start_datetime);
         const hoursUntil = differenceInHours(startDate, now);
 
         if (hoursUntil > 0 && hoursUntil <= 24) {
-          createNotification.mutate({
-            recipient_id: userId,
-            type: 'job_reminder',
-            payload: {
-              title: '🎬 Job começando em breve',
-              message: `O job "${job.title}" começa em ${hoursUntil} horas`,
-              job_id: job.id,
-              priority: 'high',
-            },
-          });
-        }
-      });
+          // Check if notification already exists
+          const { data: existing } = await supabase
+            .from('notifications')
+            .select('id')
+            .eq('recipient_id', userId)
+            .eq('type', 'job_reminder')
+            .contains('payload', { job_id: job.id })
+            .eq('read', false);
 
-      // 2. Lead without follow-up for 3+ days
-      leads.forEach((lead) => {
-        if (lead.status === 'new' || lead.status === 'contacted') {
-          const createdDate = parseISO(lead.created_at);
-          const daysSince = differenceInDays(now, createdDate);
-
-          if (daysSince >= 3) {
+          if (!existing || existing.length === 0) {
             createNotification.mutate({
               recipient_id: userId,
-              type: 'lead_follow_up',
+              type: 'job_reminder',
               payload: {
-                title: '⚠️ Lead sem follow-up',
-                message: `Lead de ${lead.clients?.name || 'Cliente'} há ${daysSince} dias sem contacto`,
-                lead_id: lead.id,
-                priority: 'medium',
-              },
-            });
-          }
-        }
-      });
-
-      // 3. Overdue payments
-      payments.forEach((payment) => {
-        if (payment.status === 'pending' && payment.created_at) {
-          const createdDate = parseISO(payment.created_at);
-          const daysSince = differenceInDays(now, createdDate);
-
-          if (daysSince >= 7) {
-            createNotification.mutate({
-              recipient_id: userId,
-              type: 'payment_overdue',
-              payload: {
-                title: '💰 Pagamento atrasado',
-                message: `Pagamento de ${payment.clients?.name} vencido há ${daysSince} dias`,
-                payment_id: payment.id,
-                amount: payment.amount,
+                title: '🎬 Job começando em breve',
+                message: `O job "${job.title}" começa em ${hoursUntil} horas`,
+                job_id: job.id,
                 priority: 'high',
               },
             });
           }
         }
-      });
+      }
+
+      // 2. Lead without follow-up for 3+ days
+      for (const lead of leads) {
+        if (lead.status === 'new' || lead.status === 'contacted') {
+          const createdDate = parseISO(lead.created_at);
+          const daysSince = differenceInDays(now, createdDate);
+
+          if (daysSince >= 3) {
+            // Check if notification already exists
+            const { data: existing } = await supabase
+              .from('notifications')
+              .select('id')
+              .eq('recipient_id', userId)
+              .eq('type', 'lead_follow_up')
+              .contains('payload', { lead_id: lead.id })
+              .eq('read', false);
+
+            if (!existing || existing.length === 0) {
+              createNotification.mutate({
+                recipient_id: userId,
+                type: 'lead_follow_up',
+                payload: {
+                  title: '⚠️ Lead sem follow-up',
+                  message: `Lead de ${lead.clients?.name || 'Cliente'} há ${daysSince} dias sem contacto`,
+                  lead_id: lead.id,
+                  priority: 'medium',
+                },
+              });
+            }
+          }
+        }
+      }
+
+      // 3. Overdue payments
+      for (const payment of payments) {
+        if (payment.status === 'pending' && payment.created_at) {
+          const createdDate = parseISO(payment.created_at);
+          const daysSince = differenceInDays(now, createdDate);
+
+          if (daysSince >= 7) {
+            // Check if notification already exists
+            const { data: existing } = await supabase
+              .from('notifications')
+              .select('id')
+              .eq('recipient_id', userId)
+              .eq('type', 'payment_overdue')
+              .contains('payload', { payment_id: payment.id })
+              .eq('read', false);
+
+            if (!existing || existing.length === 0) {
+              createNotification.mutate({
+                recipient_id: userId,
+                type: 'payment_overdue',
+                payload: {
+                  title: '💰 Pagamento atrasado',
+                  message: `Pagamento de ${payment.clients?.name} vencido há ${daysSince} dias`,
+                  payment_id: payment.id,
+                  amount: payment.amount,
+                  priority: 'high',
+                },
+              });
+            }
+          }
+        }
+      }
 
       // 4. Equipment maintenance due
-      resources.forEach((resource) => {
+      for (const resource of resources) {
         if (resource.next_maintenance_date) {
           const maintenanceDate = parseISO(resource.next_maintenance_date);
           const daysUntil = differenceInDays(maintenanceDate, now);
 
           if (daysUntil >= 0 && daysUntil <= 7) {
-            createNotification.mutate({
-              recipient_id: userId,
-              type: 'maintenance_reminder',
-              payload: {
-                title: '🔧 Manutenção de equipamento',
-                message: `Manutenção de "${resource.name}" em ${daysUntil} dias`,
-                resource_id: resource.id,
-                priority: daysUntil <= 2 ? 'high' : 'medium',
-              },
-            });
+            // Check if notification already exists
+            const { data: existing } = await supabase
+              .from('notifications')
+              .select('id')
+              .eq('recipient_id', userId)
+              .eq('type', 'maintenance_reminder')
+              .contains('payload', { resource_id: resource.id })
+              .eq('read', false);
+
+            if (!existing || existing.length === 0) {
+              createNotification.mutate({
+                recipient_id: userId,
+                type: 'maintenance_reminder',
+                payload: {
+                  title: '🔧 Manutenção de equipamento',
+                  message: `Manutenção de "${resource.name}" em ${daysUntil} dias`,
+                  resource_id: resource.id,
+                  priority: daysUntil <= 2 ? 'high' : 'medium',
+                },
+              });
+            }
           }
         }
-      });
+      }
     };
 
-    // Check notifications on mount and every hour
+    // Check notifications on mount and every 6 hours (reduced frequency)
     checkNotifications();
-    const interval = setInterval(checkNotifications, 60 * 60 * 1000); // Every hour
+    const interval = setInterval(checkNotifications, 6 * 60 * 60 * 1000); // Every 6 hours
 
     return () => clearInterval(interval);
-  }, [jobs, leads, payments, resources, createNotification]);
+  }, [jobs, leads, payments, resources]);
 
   return { createNotification };
 }
