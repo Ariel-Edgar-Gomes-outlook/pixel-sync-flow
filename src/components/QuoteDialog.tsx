@@ -9,8 +9,9 @@ import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
 import { useCreateQuote, useUpdateQuote, Quote } from "@/hooks/useQuotes";
 import { useClients } from "@/hooks/useClients";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Plus, X, FileText, Calculator, Percent, Tag } from "lucide-react";
+import { Plus, X, FileText, Calculator, Percent, Tag, Briefcase } from "lucide-react";
 
 interface QuoteDialogProps {
   children?: React.ReactNode;
@@ -42,6 +43,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
   const { data: clients } = useClients();
+  const navigate = useNavigate();
 
   const actualOpen = open !== undefined ? open : isOpen;
   const actualOnOpenChange = onOpenChange || setIsOpen;
@@ -412,6 +414,33 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
               </div>
             </div>
           </Card>
+
+          {/* Ação Rápida */}
+          {quote && formData.status === "accepted" && (
+            <Card className="p-4 bg-primary/10 border-primary/30">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Orçamento Aceite! 🎉</p>
+                    <p className="text-xs text-muted-foreground">Converta em Job para começar a produção</p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={() => {
+                    actualOnOpenChange(false);
+                    navigate('/jobs');
+                    toast.success('Crie um job baseado neste orçamento');
+                  }}
+                >
+                  Converter em Job
+                </Button>
+              </div>
+            </Card>
+          )}
 
           {/* Botões de Ação */}
           <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">

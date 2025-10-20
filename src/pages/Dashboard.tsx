@@ -5,9 +5,11 @@ import {
   Briefcase, 
   DollarSign,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Info
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useJobs } from "@/hooks/useJobs";
 import { useLeads } from "@/hooks/useLeads";
 import { useClients } from "@/hooks/useClients";
@@ -28,7 +30,7 @@ export default function Dashboard() {
   const { data: payments, isLoading: paymentsLoading } = usePayments();
 
   const upcomingJobs = jobs?.filter(j => j.status === 'confirmed' || j.status === 'scheduled').slice(0, 3) || [];
-  const recentLeads = leads?.slice(0, 3) || [];
+  const displayedLeads = leads?.slice(0, 3) || [];
   
   // Active jobs count
   const activeJobs = jobs?.filter(j => j.status !== 'completed' && j.status !== 'cancelled').length || 0;
@@ -71,27 +73,30 @@ export default function Dashboard() {
   }).length || 0;
   const clientsChange = previousNewClients > 0 ? ((newClients - previousNewClients) / previousNewClients * 100).toFixed(1) : '0';
   
-  // Real conversion rate (won leads / total leads)
-  const wonLeads = leads?.filter(l => l.status === 'won').length || 0;
-  const totalLeads = leads?.length || 1;
+  // Conversion rate (last 30 days only)
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  const recentLeads = leads?.filter(l => {
+    const createdDate = new Date(l.created_at);
+    return createdDate >= thirtyDaysAgo;
+  }) || [];
+  
+  const wonLeads = recentLeads.filter(l => l.status === 'won').length;
+  const totalLeads = recentLeads.length || 1;
   const conversionRate = ((wonLeads / totalLeads) * 100).toFixed(0);
   
-  const previousWonLeads = leads?.filter(l => {
+  // Previous period (30-60 days ago)
+  const sixtyDaysAgo = new Date();
+  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+  
+  const previousLeads = leads?.filter(l => {
     const createdDate = new Date(l.created_at);
-    const sixtyDaysAgo = new Date();
-    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return createdDate < thirtyDaysAgo && l.status === 'won';
-  }).length || 0;
-  const previousTotalLeads = leads?.filter(l => {
-    const createdDate = new Date(l.created_at);
-    const sixtyDaysAgo = new Date();
-    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return createdDate < thirtyDaysAgo;
-  }).length || 1;
+    return createdDate >= sixtyDaysAgo && createdDate < thirtyDaysAgo;
+  }) || [];
+  
+  const previousWonLeads = previousLeads.filter(l => l.status === 'won').length;
+  const previousTotalLeads = previousLeads.length || 1;
   const previousConversionRate = (previousWonLeads / previousTotalLeads) * 100;
   const conversionChange = previousConversionRate > 0 ? (((wonLeads / totalLeads) * 100 - previousConversionRate)).toFixed(1) : '0';
 
@@ -139,22 +144,38 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.name} className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <stat.icon className="h-6 w-6 text-primary" />
+        <TooltipProvider>
+          {stats.map((stat) => (
+            <Card key={stat.name} className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <stat.icon className="h-6 w-6 text-primary" />
+                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1">
+                      <span className={`text-sm font-medium ${stat.trend === 'up' ? 'text-success' : 'text-destructive'}`}>
+                        {stat.change}
+                      </span>
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">
+                      {stat.name === "Taxa Conversão" 
+                        ? "Últimos 30 dias vs período anterior (30-60 dias)"
+                        : "Últimos 30 dias vs período anterior"}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              <span className={`text-sm font-medium ${stat.trend === 'up' ? 'text-success' : 'text-destructive'}`}>
-                {stat.change}
-              </span>
-            </div>
-            <div className="mt-4">
-              <p className="text-sm font-medium text-muted-foreground">{stat.name}</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
-            </div>
-          </Card>
-        ))}
+              <div className="mt-4">
+                <p className="text-sm font-medium text-muted-foreground">{stat.name}</p>
+                <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
+              </div>
+            </Card>
+          ))}
+        </TooltipProvider>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -201,11 +222,11 @@ export default function Dashboard() {
             <AlertCircle className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold text-foreground">Leads Recentes</h2>
           </div>
-          <div className="space-y-4">
-            {recentLeads.length === 0 ? (
+           <div className="space-y-4">
+            {displayedLeads.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">Nenhum lead recente</p>
             ) : (
-              recentLeads.map((lead) => (
+              displayedLeads.map((lead) => (
                 <div key={lead.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                   <div className="flex-1">
                     <div className="flex items-center gap-3">

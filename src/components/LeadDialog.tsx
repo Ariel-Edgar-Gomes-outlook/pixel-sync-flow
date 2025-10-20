@@ -9,8 +9,9 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCreateLead, useUpdateLead, Lead } from "@/hooks/useLeads";
 import { useClients } from "@/hooks/useClients";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { TrendingUp, User, Target, FileText, Lightbulb } from "lucide-react";
+import { TrendingUp, User, Target, FileText, Lightbulb, FileCheck } from "lucide-react";
 
 interface LeadDialogProps {
   children?: React.ReactNode;
@@ -36,6 +37,7 @@ export function LeadDialog({ children, lead, open: controlledOpen, onOpenChange:
   const createLead = useCreateLead();
   const updateLead = useUpdateLead();
   const { data: clients } = useClients();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (lead) {
@@ -227,6 +229,33 @@ export function LeadDialog({ children, lead, open: controlledOpen, onOpenChange:
                     {formData.probability}%
                   </p>
                 </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Ação Rápida */}
+          {lead && formData.status === "proposal_sent" && (
+            <Card className="p-4 bg-primary/10 border-primary/30">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <FileCheck className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Próximo Passo</p>
+                    <p className="text-xs text-muted-foreground">Crie um orçamento para este lead</p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={() => {
+                    setOpen(false);
+                    navigate('/quotes');
+                    toast.info('Crie um orçamento para este lead');
+                  }}
+                >
+                  Criar Orçamento
+                </Button>
               </div>
             </Card>
           )}
