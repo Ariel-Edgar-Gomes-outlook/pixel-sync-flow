@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Calendar, Plus, AlertTriangle, Users, Package } from "lucide-react";
 import { useJobs, useUpdateJob } from "@/hooks/useJobs";
 import { useState, useMemo } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { JobDialog } from "@/components/JobDialog";
 import { toast } from "sonner";
 import FullCalendar from '@fullcalendar/react';
@@ -18,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 export default function CalendarView() {
   const { data: jobs, isLoading } = useJobs();
   const updateJob = useUpdateJob();
+  const isMobile = useIsMobile();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isJobDialogOpen, setIsJobDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null);
@@ -187,20 +189,25 @@ export default function CalendarView() {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Agenda</h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-1">Calendário de jobs e disponibilidade</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button 
             onClick={() => {
               setSelectedDate(new Date());
               setIsJobDialogOpen(true);
             }}
-            className="gap-2"
+            className="gap-2 flex-1 sm:flex-none"
+            size={isMobile ? "sm" : "default"}
           >
             <Plus className="h-4 w-4" />
-            Novo Job
+            {!isMobile && "Novo Job"}
           </Button>
-          <Button variant="outline" className="gap-2">
+          <Button 
+            variant="outline" 
+            className="gap-2 flex-1 sm:flex-none"
+            size={isMobile ? "sm" : "default"}
+          >
             <Calendar className="h-4 w-4" />
-            Sincronizar Google
+            {!isMobile && "Sincronizar Google"}
           </Button>
         </div>
       </div>
@@ -240,19 +247,24 @@ export default function CalendarView() {
       </Card>
 
       {/* Calendar */}
-      <Card className="p-6">
+      <Card className="p-2 sm:p-6 overflow-hidden">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          headerToolbar={{
+          initialView={isMobile ? "timeGridDay" : "dayGridMonth"}
+          headerToolbar={isMobile ? {
+            left: 'prev,next',
+            center: 'title',
+            right: 'today'
+          } : {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
           }}
+          titleFormat={isMobile ? { month: 'short', day: 'numeric' } : { month: 'long', year: 'numeric' }}
           locale="pt"
           events={events}
-          editable={true}
-          droppable={true}
+          editable={!isMobile}
+          droppable={!isMobile}
           selectable={true}
           selectMirror={true}
           dayMaxEvents={true}
@@ -261,12 +273,14 @@ export default function CalendarView() {
           eventClick={handleEventClick}
           select={handleDateSelect}
           height="auto"
+          contentHeight={isMobile ? 500 : "auto"}
+          aspectRatio={isMobile ? 1 : 1.35}
           eventContent={(arg) => (
             <div className="p-1 text-xs overflow-hidden">
               {arg.event.extendedProps.hasConflict && (
                 <AlertTriangle className="h-3 w-3 inline mr-1" />
               )}
-              <span className="font-medium">{arg.event.title}</span>
+              <span className="font-medium truncate">{arg.event.title}</span>
             </div>
           )}
         />
