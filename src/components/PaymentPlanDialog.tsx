@@ -7,6 +7,7 @@ import { useCreatePaymentPlan, type PaymentInstallment } from "@/hooks/usePaymen
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PaymentPlanDialogProps {
   jobId?: string;
@@ -84,16 +85,46 @@ export function PaymentPlanDialog({
         status: "pending",
       }));
 
-      await createPaymentPlan.mutateAsync({
+      // Criar o plano de pagamento
+      const planData = await createPaymentPlan.mutateAsync({
         job_id: jobId || null,
         quote_id: quoteId || null,
         total_amount: totalAmount,
         installments: completeInstallments as any,
       });
 
+      // Criar automaticamente as parcelas na tabela payments
+      const { data: clientData } = await supabase
+        .from(jobId ? 'jobs' : 'quotes')
+        .select('client_id')
+        .eq('id', jobId || quoteId!)
+        .single();
+
+      if (clientData?.client_id) {
+        const paymentsToInsert = completeInstallments.map(inst => ({
+          client_id: clientData.client_id,
+          quote_id: quoteId || null,
+          payment_plan_id: planData.id,
+          amount: inst.amount,
+          type: 'installment',
+          status: 'pending' as const,
+          due_date: inst.due_date,
+          notes: inst.description,
+          currency: 'AOA',
+        }));
+
+        const { error: paymentsError } = await supabase
+          .from('payments')
+          .insert(paymentsToInsert);
+
+        if (paymentsError) {
+          console.error('Error creating payment installments:', paymentsError);
+        }
+      }
+
       toast({
         title: "Sucesso",
-        description: "Plano de pagamento criado com sucesso",
+        description: `Plano criado com ${completeInstallments.length} parcelas geradas automaticamente`,
       });
 
       onOpenChange(false);

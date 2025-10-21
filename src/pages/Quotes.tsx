@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle, Download, CreditCard } from "lucide-react";
-import { useQuotes } from "@/hooks/useQuotes";
+import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle, Download, CreditCard, Briefcase } from "lucide-react";
+import { useQuotes, useUpdateQuote } from "@/hooks/useQuotes";
+import { useCreateJob } from "@/hooks/useJobs";
 import { QuoteDialog } from "@/components/QuoteDialog";
 import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
 import { exportToExcel, formatQuotesForExport } from "@/lib/exportUtils";
@@ -27,6 +28,8 @@ export default function Quotes() {
   const [paymentPlanQuote, setPaymentPlanQuote] = useState<any>(null);
   const [paymentPlanDialogOpen, setPaymentPlanDialogOpen] = useState(false);
   const { data: quotes, isLoading } = useQuotes();
+  const createJob = useCreateJob();
+  const updateQuote = useUpdateQuote();
 
   const handleEdit = (quote: any) => {
     setSelectedQuote(quote);
@@ -43,6 +46,37 @@ export default function Quotes() {
       const formatted = formatQuotesForExport(quotes);
       exportToExcel(formatted, "orcamentos.xlsx", "Orçamentos");
       toast.success("Orçamentos exportados com sucesso!");
+    }
+  };
+
+  const handleConvertToJob = async (quote: any) => {
+    try {
+      // Criar job com dados do orçamento
+      const jobData = {
+        client_id: quote.client_id,
+        title: `Job - ${quote.clients?.name || 'Cliente'}`,
+        type: 'Serviço',
+        status: 'confirmed' as const,
+        start_datetime: new Date().toISOString(),
+        estimated_revenue: quote.total,
+        description: `Convertido do orçamento #${quote.id.substring(0, 8)}`,
+      };
+
+      const newJob = await createJob.mutateAsync(jobData);
+
+      // Atualizar orçamento linkando ao job
+      await updateQuote.mutateAsync({
+        id: quote.id,
+        job_id: newJob.id,
+      });
+
+      toast.success("Job criado com sucesso!", {
+        description: "O orçamento foi convertido em um job.",
+      });
+    } catch (error: any) {
+      toast.error("Erro ao converter", {
+        description: error.message,
+      });
     }
   };
 
@@ -246,6 +280,18 @@ export default function Quotes() {
                         <Pencil className="h-4 w-4" />
                         <span>Editar</span>
                       </Button>
+                      {quote.status === 'accepted' && !quote.job_id && (
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          className="gap-2"
+                          onClick={() => handleConvertToJob(quote)}
+                          disabled={createJob.isPending}
+                        >
+                          <Briefcase className="h-4 w-4" />
+                          <span>Converter em Job</span>
+                        </Button>
+                      )}
                       <Button 
                         variant="outline" 
                         size="sm" 

@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Heart, Eye, Lock } from "lucide-react";
+import { Download, Heart, Eye, Lock, Package } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import JSZip from "jszip";
 
 interface GalleryData {
   id: string;
@@ -158,6 +159,67 @@ export default function ClientGallery() {
     }
   };
 
+  const downloadSelectedPhotos = async () => {
+    const selectedPhotos = photos.filter(p => p.client_selected);
+    
+    if (selectedPhotos.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Nenhuma foto selecionada",
+        description: "Selecione pelo menos uma foto para baixar",
+      });
+      return;
+    }
+
+    toast({
+      title: "Preparando download...",
+      description: `Baixando ${selectedPhotos.length} fotos`,
+    });
+
+    try {
+      const zip = new JSZip();
+      
+      // Baixar todas as fotos e adicionar ao ZIP
+      for (const photo of selectedPhotos) {
+        const response = await fetch(photo.file_url);
+        const blob = await response.blob();
+        zip.file(photo.file_name, blob);
+      }
+
+      // Gerar e baixar o ZIP
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = window.URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${gallery?.name || 'galeria'}-selecionadas.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      // Atualizar timestamps de download
+      await Promise.all(
+        selectedPhotos.map(photo =>
+          supabase
+            .from('gallery_photos')
+            .update({ client_downloaded_at: new Date().toISOString() })
+            .eq('id', photo.id)
+        )
+      );
+
+      toast({
+        title: "Download Concluído!",
+        description: `${selectedPhotos.length} fotos baixadas com sucesso`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro no Download",
+        description: "Não foi possível baixar as fotos selecionadas",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -209,15 +271,25 @@ export default function ClientGallery() {
     <div className="min-h-screen bg-background">
       <header className="border-b sticky top-0 bg-background z-10">
         <div className="container mx-auto px-4 py-4">
-          <h1 className="text-3xl font-bold">{gallery.name}</h1>
-          <p className="text-muted-foreground">
-            {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
-            {gallery.allow_selection && (
-              <span className="ml-4">
-                {photos.filter(p => p.client_selected).length} selecionadas
-              </span>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">{gallery.name}</h1>
+              <p className="text-muted-foreground">
+                {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
+                {gallery.allow_selection && (
+                  <span className="ml-4">
+                    {photos.filter(p => p.client_selected).length} selecionadas
+                  </span>
+                )}
+              </p>
+            </div>
+            {gallery.allow_selection && photos.filter(p => p.client_selected).length > 0 && (
+              <Button onClick={downloadSelectedPhotos} className="gap-2">
+                <Package className="h-4 w-4" />
+                Baixar Selecionadas ({photos.filter(p => p.client_selected).length})
+              </Button>
             )}
-          </p>
+          </div>
         </div>
       </header>
 

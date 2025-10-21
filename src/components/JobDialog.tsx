@@ -18,6 +18,7 @@ import { TimeTracker } from "@/components/TimeTracker";
 import { MapEmbedInput } from "@/components/MapEmbedInput";
 import { TagsInput } from "@/components/TagsInput";
 import { JobGalleryTab } from "@/components/JobGalleryTab";
+import { PaymentPlanViewer } from "@/components/PaymentPlanViewer";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, User, Calendar, MapPin, DollarSign, Clock, FileText, Tag } from "lucide-react";
@@ -133,7 +134,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
         
         {job ? (
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="details">Detalhes</TabsTrigger>
               <TabsTrigger value="time">Tempo</TabsTrigger>
               <TabsTrigger value="deliverables">Entregáveis</TabsTrigger>
@@ -141,6 +142,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
               <TabsTrigger value="equipment">Equipamentos</TabsTrigger>
               <TabsTrigger value="checklists">Checklists</TabsTrigger>
               <TabsTrigger value="team">Equipa</TabsTrigger>
+              <TabsTrigger value="payment">Pagamento</TabsTrigger>
             </TabsList>
 
             <TabsContent value="details">
@@ -202,6 +204,10 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
 
             <TabsContent value="team" className="space-y-4 py-4">
               <TeamManagement jobId={job.id} />
+            </TabsContent>
+
+            <TabsContent value="payment" className="space-y-4 py-4">
+              <PaymentPlanViewer jobId={job.id} />
             </TabsContent>
           </Tabs>
         ) : (

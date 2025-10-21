@@ -82,6 +82,7 @@ export default function ContractSign() {
     try {
       const signatureData = signatureRef.current.toDataURL();
       
+      // Atualizar status do contrato
       const { error } = await supabase
         .from('contracts')
         .update({
@@ -93,10 +94,13 @@ export default function ContractSign() {
 
       if (error) throw error;
 
+      // TODO: Gerar PDF com assinatura e enviar email
+      // Isso requer edge function para gerar PDF e enviar email via Resend
+      
       setSigned(true);
       toast({
         title: "Contrato Assinado!",
-        description: "Você receberá uma cópia por email",
+        description: "O contrato foi assinado digitalmente com sucesso",
       });
     } catch (error: any) {
       toast({
