@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useGalleries, useGalleryPhotos, useUploadGalleryPhoto, useDeleteGalleryPhoto } from "@/hooks/useGalleries";
 import { GalleryDialog } from "./GalleryDialog";
-import { Plus, ExternalLink, Image, Trash2, Upload, Copy } from "lucide-react";
+import { Plus, ExternalLink, Image, Trash2, Upload, Copy, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -123,7 +123,14 @@ export function JobGalleryTab({ jobId }: JobGalleryTabProps) {
       {selectedGallery && (
         <Card className="p-6 mt-6">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold">{selectedGallery.name}</h4>
+            <div>
+              <h4 className="text-lg font-semibold">{selectedGallery.name}</h4>
+              {selectedGallery.allow_selection && photos && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {photos.filter(p => p.client_selected).length} de {photos.length} fotos selecionadas pelo cliente
+                </p>
+              )}
+            </div>
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -132,6 +139,14 @@ export function JobGalleryTab({ jobId }: JobGalleryTabProps) {
               >
                 <Upload className="h-4 w-4 mr-2" />
                 Upload Fotos
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyShareLink(selectedGallery.share_token)}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar Link
               </Button>
               <Button
                 variant="outline"
@@ -191,10 +206,15 @@ export function JobGalleryTab({ jobId }: JobGalleryTabProps) {
                     </Button>
                   </div>
                   {photo.client_selected && (
-                    <div className="absolute top-2 right-2 bg-red-500 rounded-full p-1">
-                      <span className="text-white text-xs">❤️</span>
+                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-2 shadow-lg">
+                      <Heart className="h-4 w-4 fill-current" />
                     </div>
                   )}
+                  <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="text-white text-xs truncate bg-black/70 px-2 py-1 rounded">
+                      {photo.file_name}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>

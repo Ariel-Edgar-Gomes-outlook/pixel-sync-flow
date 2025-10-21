@@ -118,14 +118,29 @@ export default function ClientGallery() {
     const photo = photos.find(p => p.id === photoId);
     if (!photo) return;
 
+    const newSelectedState = !photo.client_selected;
+
     await supabase
       .from('gallery_photos')
-      .update({ client_selected: !photo.client_selected })
+      .update({ client_selected: newSelectedState })
       .eq('id', photoId);
 
     setPhotos(photos.map(p => 
-      p.id === photoId ? { ...p, client_selected: !p.client_selected } : p
+      p.id === photoId ? { ...p, client_selected: newSelectedState } : p
     ));
+
+    // Notificar fotógrafo quando cliente seleciona
+    if (newSelectedState) {
+      await supabase.from('notifications').insert({
+        recipient_id: (await supabase.from('client_galleries').select('job_id, jobs!inner(created_by)').eq('id', gallery.id).single()).data?.jobs?.created_by,
+        type: 'gallery_selection',
+        payload: {
+          gallery_id: gallery.id,
+          gallery_name: gallery.name,
+          photo_count: photos.filter(p => p.client_selected).length + 1,
+        }
+      });
+    }
   };
 
   const downloadPhoto = async (photo: PhotoData) => {
@@ -339,18 +354,79 @@ export default function ClientGallery() {
         )}
       </main>
 
-      {selectedPhoto && (
-        <div
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedPhoto(null)}
-        >
-          <img
-            src={photos.find(p => p.id === selectedPhoto)?.file_url}
-            alt="Foto ampliada"
-            className="max-w-full max-h-full object-contain"
-          />
-        </div>
-      )}
+      {selectedPhoto && (() => {
+        const currentIndex = photos.findIndex(p => p.id === selectedPhoto);
+        const currentPhoto = photos[currentIndex];
+        const hasPrev = currentIndex > 0;
+        const hasNext = currentIndex < photos.length - 1;
+
+        const goToPrev = () => hasPrev && setSelectedPhoto(photos[currentIndex - 1].id);
+        const goToNext = () => hasNext && setSelectedPhoto(photos[currentIndex + 1].id);
+
+        return (
+          <div className="fixed inset-0 bg-black/95 z-50 flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 text-white">
+              <span className="text-sm">
+                {currentIndex + 1} / {photos.length}
+              </span>
+              <button
+                onClick={() => setSelectedPhoto(null)}
+                className="text-white hover:text-gray-300 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Main image area */}
+            <div className="flex-1 flex items-center justify-center relative p-4">
+              {hasPrev && (
+                <button
+                  onClick={goToPrev}
+                  className="absolute left-4 text-white hover:text-gray-300 text-4xl font-bold z-10"
+                >
+                  ‹
+                </button>
+              )}
+              
+              <img
+                src={currentPhoto?.file_url}
+                alt="Foto ampliada"
+                className="max-w-full max-h-full object-contain"
+              />
+
+              {hasNext && (
+                <button
+                  onClick={goToNext}
+                  className="absolute right-4 text-white hover:text-gray-300 text-4xl font-bold z-10"
+                >
+                  ›
+                </button>
+              )}
+            </div>
+
+            {/* Footer actions */}
+            <div className="flex items-center justify-center gap-4 p-4">
+              <Button
+                variant="secondary"
+                onClick={() => downloadPhoto(currentPhoto)}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Baixar
+              </Button>
+              {gallery?.allow_selection && (
+                <Button
+                  variant={currentPhoto.client_selected ? "default" : "secondary"}
+                  onClick={() => toggleSelection(currentPhoto.id)}
+                >
+                  <Heart className={`h-4 w-4 mr-2 ${currentPhoto.client_selected ? 'fill-current' : ''}`} />
+                  {currentPhoto.client_selected ? 'Selecionada' : 'Selecionar'}
+                </Button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
