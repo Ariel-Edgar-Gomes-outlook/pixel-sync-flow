@@ -9,8 +9,10 @@ import { ContractDialog } from "@/components/ContractDialog";
 
 const statusConfig = {
   draft: { label: "Rascunho", variant: "secondary" as const },
-  sent: { label: "Enviado", variant: "primary" as const },
+  sent: { label: "Enviado", variant: "default" as const },
+  pending_signature: { label: "Aguardando Assinatura", variant: "warning" as const },
   signed: { label: "Assinado", variant: "success" as const },
+  active: { label: "Ativo", variant: "success" as const },
   cancelled: { label: "Cancelado", variant: "destructive" as const },
 };
 

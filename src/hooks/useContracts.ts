@@ -5,8 +5,17 @@ export interface Contract {
   id: string;
   client_id: string;
   job_id: string | null;
-  status: 'draft' | 'sent' | 'signed' | 'cancelled';
+  status: 'draft' | 'sent' | 'pending_signature' | 'signed' | 'active' | 'cancelled';
   terms_text: string | null;
+  usage_rights_text?: string | null;
+  cancellation_policy_text?: string | null;
+  late_delivery_clause?: string | null;
+  copyright_notice?: string | null;
+  reschedule_policy?: string | null;
+  revision_policy?: string | null;
+  signature_url?: string | null;
+  pdf_url?: string | null;
+  signature_token?: string | null;
   clauses: any;
   attachments_links: any;
   issued_at: string;
@@ -47,20 +56,10 @@ export function useCreateContract() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (contract: Partial<Contract>) => {
+    mutationFn: async (contract: any) => {
       const { data, error } = await supabase
         .from('contracts')
-        .insert({
-          client_id: contract.client_id!,
-          job_id: contract.job_id,
-          status: contract.status,
-          terms_text: contract.terms_text,
-          clauses: contract.clauses as any,
-          attachments_links: contract.attachments_links as any,
-          issued_at: contract.issued_at,
-          signed_at: contract.signed_at,
-          cancellation_fee: contract.cancellation_fee
-        } as any)
+        .insert(contract as any)
         .select()
         .single();
 
@@ -77,7 +76,7 @@ export function useUpdateContract() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<Contract> & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: any) => {
       const { data, error } = await supabase
         .from('contracts')
         .update(updates)
