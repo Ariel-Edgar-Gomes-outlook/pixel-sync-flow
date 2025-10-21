@@ -118,9 +118,18 @@ serve(async (req) => {
       }
 
       case 'disconnect': {
-        // Here you would remove stored tokens
-        // For now, we'll just acknowledge the request
         console.log(`Disconnecting Google Calendar for user ${user.id}`);
+        
+        const { error: updateError } = await supabase
+          .from('calendar_integrations')
+          .update({ is_active: false })
+          .eq('user_id', user.id)
+          .eq('provider', 'google');
+
+        if (updateError) {
+          console.error('Error disconnecting:', updateError);
+          throw new Error('Erro ao desconectar Google Calendar');
+        }
         
         return new Response(
           JSON.stringify({ success: true, message: 'Desconectado com sucesso' }),
@@ -129,27 +138,158 @@ serve(async (req) => {
       }
 
       case 'sync': {
+        // Get calendar integration
+        const { data: integration, error: integrationError } = await supabase
+          .from('calendar_integrations')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('provider', 'google')
+          .eq('is_active', true)
+          .single();
+
+        if (integrationError || !integration) {
+          throw new Error('Google Calendar não conectado');
+        }
+
+        // Check if token needs refresh
+        let accessToken = integration.access_token;
+        const tokenExpiresAt = new Date(integration.token_expires_at || 0);
+        
+        if (tokenExpiresAt <= new Date()) {
+          console.log('Token expired, refreshing...');
+          
+          const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
+          const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
+          
+          if (!clientId || !clientSecret || !integration.refresh_token) {
+            throw new Error('Não foi possível renovar o token');
+          }
+
+          const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              refresh_token: integration.refresh_token,
+              client_id: clientId,
+              client_secret: clientSecret,
+              grant_type: 'refresh_token',
+            }),
+          });
+
+          const refreshData = await refreshResponse.json();
+          
+          if (!refreshData.access_token) {
+            throw new Error('Falha ao renovar token');
+          }
+
+          accessToken = refreshData.access_token;
+          
+          // Update token in database
+          const newExpiresAt = new Date();
+          newExpiresAt.setSeconds(newExpiresAt.getSeconds() + refreshData.expires_in);
+          
+          await supabase
+            .from('calendar_integrations')
+            .update({
+              access_token: accessToken,
+              token_expires_at: newExpiresAt.toISOString(),
+            })
+            .eq('id', integration.id);
+        }
+
         // Fetch user's jobs
         const { data: jobs, error: jobsError } = await supabase
           .from('jobs')
-          .select('*')
+          .select('id, title, description, start_datetime, end_datetime, location, google_calendar_event_id')
+          .eq('created_by', user.id)
           .order('start_datetime', { ascending: true });
 
         if (jobsError) throw jobsError;
 
         console.log(`Syncing ${jobs?.length || 0} jobs to Google Calendar`);
 
-        // Here you would sync jobs with Google Calendar API
-        // This would require:
-        // 1. Getting stored access token
-        // 2. Creating/updating calendar events
-        // 3. Handling refresh tokens
+        let syncedCount = 0;
+        let errors = [];
+
+        // Sync each job with Google Calendar
+        for (const job of jobs || []) {
+          try {
+            const event = {
+              summary: job.title,
+              description: job.description || '',
+              location: job.location || '',
+              start: {
+                dateTime: job.start_datetime,
+                timeZone: 'Africa/Luanda',
+              },
+              end: {
+                dateTime: job.end_datetime || job.start_datetime,
+                timeZone: 'Africa/Luanda',
+              },
+            };
+
+            let eventId = job.google_calendar_event_id;
+            let calendarResponse;
+
+            if (eventId) {
+              // Update existing event
+              calendarResponse = await fetch(
+                `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+                {
+                  method: 'PUT',
+                  headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(event),
+                }
+              );
+            } else {
+              // Create new event
+              calendarResponse = await fetch(
+                'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+                {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(event),
+                }
+              );
+            }
+
+            if (!calendarResponse.ok) {
+              throw new Error(`Google Calendar API error: ${calendarResponse.statusText}`);
+            }
+
+            const calendarData = await calendarResponse.json();
+            
+            // Update job with event ID
+            if (!eventId) {
+              await supabase
+                .from('jobs')
+                .update({ google_calendar_event_id: calendarData.id })
+                .eq('id', job.id);
+            }
+
+            syncedCount++;
+          } catch (error) {
+            console.error(`Error syncing job ${job.id}:`, error);
+            const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+            errors.push({ jobId: job.id, error: errorMessage });
+          }
+        }
+
+        console.log(`Synced ${syncedCount} of ${jobs?.length || 0} jobs`);
         
         return new Response(
           JSON.stringify({ 
             success: true, 
-            message: `${jobs?.length || 0} jobs sincronizados`,
-            jobsCount: jobs?.length || 0
+            message: `${syncedCount} de ${jobs?.length || 0} jobs sincronizados`,
+            syncedCount,
+            totalJobs: jobs?.length || 0,
+            errors: errors.length > 0 ? errors : undefined,
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
