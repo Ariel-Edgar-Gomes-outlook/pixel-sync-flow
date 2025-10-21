@@ -14,7 +14,9 @@ import { ChecklistManager } from "@/components/ChecklistManager";
 import { TeamManagement } from "@/components/TeamManagement";
 import { JobDeliverables } from "@/components/JobDeliverables";
 import { JobResources } from "@/components/JobResources";
+import { TimeTracker } from "@/components/TimeTracker";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Briefcase, User, Calendar, MapPin, DollarSign, Clock, FileText, Tag } from "lucide-react";
 
 interface JobDialogProps {
@@ -122,8 +124,9 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
         
         {job ? (
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="details">Detalhes</TabsTrigger>
+              <TabsTrigger value="time">Tempo</TabsTrigger>
               <TabsTrigger value="deliverables">Entregáveis</TabsTrigger>
               <TabsTrigger value="equipment">Equipamentos</TabsTrigger>
               <TabsTrigger value="checklists">Checklists</TabsTrigger>
@@ -142,6 +145,25 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
                   updateJob={updateJob}
                 />
               </form>
+            </TabsContent>
+
+            <TabsContent value="time" className="space-y-4 py-4">
+              <Card className="p-4 bg-muted/50">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-semibold">Tracking de Tempo</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Controle as horas gastas neste projeto
+                    </p>
+                  </div>
+                  {job.estimated_hours && job.time_spent && (
+                    <Badge variant={job.time_spent <= job.estimated_hours ? "success" : "destructive"}>
+                      {job.time_spent}h / {job.estimated_hours}h
+                    </Badge>
+                  )}
+                </div>
+                <TimeTracker jobId={job.id} estimatedHours={job.estimated_hours || undefined} />
+              </Card>
             </TabsContent>
 
             <TabsContent value="deliverables" className="space-y-4 py-4">

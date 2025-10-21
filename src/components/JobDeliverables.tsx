@@ -1,207 +1,262 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useUpdateJob } from "@/hooks/useJobs";
+import { FileUpload } from "@/components/FileUpload";
+import { useDeliverables, useMarkDeliverableAsSent, useDeleteDeliverable } from "@/hooks/useDeliverables";
 import { toast } from "sonner";
-import { Plus, X, Link as LinkIcon, Image, ExternalLink } from "lucide-react";
+import { Upload, Send, Trash2, Download, ExternalLink, Image as ImageIcon } from "lucide-react";
+import { format } from "date-fns";
 
 interface JobDeliverablesProps {
   jobId: string;
-  externalAssetsLinks: string[];
-  externalGalleryLink: string | null;
+  externalAssetsLinks?: string[];
+  externalGalleryLink?: string | null;
 }
 
-export function JobDeliverables({ jobId, externalAssetsLinks, externalGalleryLink }: JobDeliverablesProps) {
-  const [assetLinks, setAssetLinks] = useState<string[]>(externalAssetsLinks || []);
-  const [newAssetLink, setNewAssetLink] = useState("");
-  const [galleryLink, setGalleryLink] = useState(externalGalleryLink || "");
-  
-  const updateJob = useUpdateJob();
+export function JobDeliverables({ jobId }: JobDeliverablesProps) {
+  const { data: deliverables, isLoading } = useDeliverables(jobId);
+  const markAsSent = useMarkDeliverableAsSent();
+  const deleteDeliverable = useDeleteDeliverable();
+  const [uploadingType, setUploadingType] = useState<string>("");
 
-  const addAssetLink = () => {
-    if (!newAssetLink.trim()) {
-      toast.error("Por favor, insira um link válido");
-      return;
+  const handleUploadComplete = (url: string, fileName: string, fileSize: number) => {
+    // The hook already handles the creation via FileUpload component
+    setUploadingType("");
+    toast.success("Arquivo adicionado aos entregáveis!");
+  };
+
+  const handleMarkAsSent = async (id: string) => {
+    await markAsSent.mutateAsync({ id, jobId });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Deseja remover este arquivo dos entregáveis?")) {
+      await deleteDeliverable.mutateAsync({ id, jobId });
     }
-    
-    const updatedLinks = [...assetLinks, newAssetLink.trim()];
-    setAssetLinks(updatedLinks);
-    setNewAssetLink("");
   };
 
-  const removeAssetLink = (index: number) => {
-    const updatedLinks = assetLinks.filter((_, i) => i !== index);
-    setAssetLinks(updatedLinks);
+  const getFileType = (url: string): string => {
+    const extension = url.split('.').pop()?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) return 'image';
+    if (['mp4', 'mov', 'avi'].includes(extension || '')) return 'video';
+    if (['pdf'].includes(extension || '')) return 'pdf';
+    return 'file';
   };
 
-  const handleSave = async () => {
-    try {
-      await updateJob.mutateAsync({
-        id: jobId,
-        external_assets_links: assetLinks,
-        external_gallery_link: galleryLink || null,
-      });
-      toast.success("Entregáveis atualizados com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao atualizar entregáveis");
-      console.error(error);
+  const getFileIcon = (type: string) => {
+    switch (type) {
+      case 'image': return <ImageIcon className="h-5 w-5" />;
+      case 'video': return <ImageIcon className="h-5 w-5" />;
+      default: return <Download className="h-5 w-5" />;
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Galeria Principal */}
+      {/* Upload Section */}
       <Card className="p-4 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
         <div className="flex items-center gap-3 mb-4">
-          <Image className="h-5 w-5 text-primary" />
+          <Upload className="h-5 w-5 text-primary" />
           <div>
-            <h3 className="text-base font-semibold text-foreground">Galeria Principal</h3>
-            <p className="text-xs text-muted-foreground">Link para a galeria completa do projeto</p>
+            <h3 className="text-base font-semibold text-foreground">Upload de Entregáveis</h3>
+            <p className="text-xs text-muted-foreground">Adicione fotos, vídeos ou arquivos finais</p>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="gallery_link" className="text-sm font-medium">
-            Link da Galeria (Google Drive, Dropbox, etc.)
-          </Label>
-          <div className="flex gap-2">
-            <Input
-              id="gallery_link"
-              value={galleryLink}
-              onChange={(e) => setGalleryLink(e.target.value)}
-              placeholder="https://drive.google.com/... ou https://www.dropbox.com/..."
-              className="bg-background"
-            />
-            {galleryLink && (
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Tipo de Arquivo</label>
+            <div className="flex flex-wrap gap-2 mb-3">
               <Button
                 type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => window.open(galleryLink, '_blank')}
+                variant={uploadingType === "Foto Final" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setUploadingType("Foto Final")}
               >
-                <ExternalLink className="h-4 w-4" />
+                📸 Foto Final
               </Button>
+              <Button
+                type="button"
+                variant={uploadingType === "Vídeo" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setUploadingType("Vídeo")}
+              >
+                🎥 Vídeo
+              </Button>
+              <Button
+                type="button"
+                variant={uploadingType === "RAW" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setUploadingType("RAW")}
+              >
+                📂 RAW
+              </Button>
+              <Button
+                type="button"
+                variant={uploadingType === "Outro" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setUploadingType("Outro")}
+              >
+                📄 Outro
+              </Button>
+            </div>
+
+            {uploadingType && (
+              <FileUpload
+                bucket="deliverables"
+                onUploadComplete={handleUploadComplete}
+                accept="image/*,video/*,.pdf,.raw,.cr2,.nef"
+                jobId={jobId}
+                fileType={uploadingType}
+              />
             )}
           </div>
-          <p className="text-xs text-muted-foreground">
-            📸 Link principal onde o cliente pode acessar todas as fotos
-          </p>
         </div>
       </Card>
 
-      {/* Links de Assets Adicionais */}
-      <Card className="p-4 sm:p-6 bg-muted/50">
-        <div className="flex items-center gap-3 mb-4">
-          <LinkIcon className="h-5 w-5 text-primary" />
+      {/* Gallery Section */}
+      <Card className="p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-base font-semibold text-foreground">Links de Assets Adicionais</h3>
-            <p className="text-xs text-muted-foreground">Vídeos, arquivos RAW, contratos assinados, etc.</p>
+            <h3 className="text-base font-semibold text-foreground">Galeria de Entregáveis</h3>
+            <p className="text-xs text-muted-foreground">Todos os arquivos enviados para este job</p>
           </div>
+          <Badge variant="outline">
+            {deliverables?.length || 0} arquivos
+          </Badge>
         </div>
 
-        {/* Adicionar Novo Link */}
-        <div className="space-y-3 mb-4">
-          <Label htmlFor="new_asset" className="text-sm font-medium">
-            Adicionar Novo Link
-          </Label>
-          <div className="flex gap-2">
-            <Input
-              id="new_asset"
-              value={newAssetLink}
-              onChange={(e) => setNewAssetLink(e.target.value)}
-              placeholder="https://..."
-              className="bg-background"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addAssetLink();
-                }
-              }}
-            />
-            <Button type="button" onClick={addAssetLink} size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              Adicionar
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            🔗 Links para vídeos, arquivos RAW, contratos, ou qualquer outro material
-          </p>
-        </div>
-
-        {/* Lista de Links */}
-        {assetLinks.length === 0 ? (
-          <div className="text-center py-8 border-2 border-dashed rounded-lg">
-            <LinkIcon className="h-12 w-12 mx-auto text-muted-foreground opacity-50 mb-2" />
-            <p className="text-sm text-muted-foreground">Nenhum link adicionado ainda</p>
-            <p className="text-xs text-muted-foreground mt-1">Adicione links para organizar todos os entregáveis</p>
+        {isLoading ? (
+          <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+        ) : !deliverables || deliverables.length === 0 ? (
+          <div className="text-center py-12 border-2 border-dashed rounded-lg">
+            <Upload className="h-12 w-12 mx-auto text-muted-foreground opacity-50 mb-2" />
+            <p className="text-sm text-muted-foreground">Nenhum arquivo enviado ainda</p>
+            <p className="text-xs text-muted-foreground mt-1">Selecione um tipo acima e faça o upload</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {assetLinks.map((link, index) => (
-              <Card key={index} className="p-3 flex items-center justify-between bg-background hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <LinkIcon className="h-4 w-4 text-primary shrink-0" />
-                  <a
-                    href={link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline truncate"
-                  >
-                    {link}
-                  </a>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => window.open(link, '_blank')}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeAssetLink(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </Card>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {deliverables.map((deliverable) => {
+              const fileType = getFileType(deliverable.file_url);
+              const isSent = !!deliverable.sent_to_client_at;
+
+              return (
+                <Card key={deliverable.id} className="p-4 hover:shadow-lg transition-shadow">
+                  <div className="space-y-3">
+                    {/* File Preview */}
+                    <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+                      {fileType === 'image' ? (
+                        <img
+                          src={deliverable.file_url}
+                          alt={deliverable.file_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                          {getFileIcon(fileType)}
+                          <span className="text-xs">{deliverable.type}</span>
+                        </div>
+                      )}
+                      <Badge 
+                        variant={isSent ? "success" : "secondary"}
+                        className="absolute top-2 right-2"
+                      >
+                        {isSent ? "Enviado" : "Novo"}
+                      </Badge>
+                    </div>
+
+                    {/* File Info */}
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium truncate">{deliverable.file_name}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{deliverable.type}</span>
+                        {deliverable.file_size && (
+                          <>
+                            <span>•</span>
+                            <span>{(deliverable.file_size / 1024 / 1024).toFixed(2)} MB</span>
+                          </>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(deliverable.uploaded_at), 'dd/MM/yyyy HH:mm')}
+                      </p>
+                      {isSent && deliverable.sent_to_client_at && (
+                        <p className="text-xs text-green-600">
+                          ✓ Enviado em {format(new Date(deliverable.sent_to_client_at), 'dd/MM/yyyy')}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => window.open(deliverable.file_url, '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Abrir
+                      </Button>
+                      {!isSent && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleMarkAsSent(deliverable.id)}
+                          disabled={markAsSent.isPending}
+                        >
+                          <Send className="h-3 w-3 mr-1" />
+                          Enviar
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(deliverable.id)}
+                        disabled={deleteDeliverable.isPending}
+                      >
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
           </div>
         )}
       </Card>
 
-      {/* Resumo */}
-      <Card className="p-4 bg-primary/5 border-primary/20">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-foreground">Total de Links</p>
-            <div className="flex items-center gap-3 mt-2">
-              <Badge variant="outline" className="bg-background">
-                <Image className="h-3 w-3 mr-1" />
-                {galleryLink ? '1 Galeria' : '0 Galeria'}
-              </Badge>
-              <Badge variant="outline" className="bg-background">
-                <LinkIcon className="h-3 w-3 mr-1" />
-                {assetLinks.length} Assets
-              </Badge>
+      {/* Summary */}
+      {deliverables && deliverables.length > 0 && (
+        <Card className="p-4 bg-primary/5 border-primary/20">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+            <div>
+              <p className="text-sm text-muted-foreground">Total</p>
+              <p className="text-2xl font-bold">{deliverables.length}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Enviados</p>
+              <p className="text-2xl font-bold text-green-600">
+                {deliverables.filter(d => d.sent_to_client_at).length}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Pendentes</p>
+              <p className="text-2xl font-bold text-orange-600">
+                {deliverables.filter(d => !d.sent_to_client_at).length}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Tamanho Total</p>
+              <p className="text-2xl font-bold">
+                {(deliverables.reduce((sum, d) => sum + (d.file_size || 0), 0) / 1024 / 1024).toFixed(0)} MB
+              </p>
             </div>
           </div>
-          <Button
-            onClick={handleSave}
-            disabled={updateJob.isPending}
-            size="lg"
-          >
-            {updateJob.isPending ? "Salvando..." : "Salvar Entregáveis"}
-          </Button>
-        </div>
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }

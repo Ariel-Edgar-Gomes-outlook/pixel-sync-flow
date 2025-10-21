@@ -11,7 +11,10 @@ import { useCreateQuote, useUpdateQuote, Quote } from "@/hooks/useQuotes";
 import { useClients } from "@/hooks/useClients";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Plus, X, FileText, Calculator, Percent, Tag, Briefcase } from "lucide-react";
+import { Plus, X, FileText, Calculator, Percent, Tag, Briefcase, FileDown, Sparkles } from "lucide-react";
+import { useQuoteTemplates } from "@/hooks/useTemplates";
+import { generateQuotePDF } from "@/lib/pdfGenerator";
+import { useUpdateQuote as useUpdateQuoteMutation } from "@/hooks/useQuotes";
 
 interface QuoteDialogProps {
   children?: React.ReactNode;
@@ -42,8 +45,11 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
 
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
+  const updateQuoteMutation = useUpdateQuoteMutation();
   const { data: clients } = useClients();
+  const { data: quoteTemplates } = useQuoteTemplates();
   const navigate = useNavigate();
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const actualOpen = open !== undefined ? open : isOpen;
   const actualOnOpenChange = onOpenChange || setIsOpen;
@@ -147,15 +153,92 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
   const taxAmount = subtotal * (formData.tax / 100);
   const finalTotal = calculateTotal();
 
+  const handleUseTemplate = (templateId: string) => {
+    const template = quoteTemplates?.find(t => t.id === templateId);
+    if (!template) return;
+
+    setFormData(prev => ({
+      ...prev,
+      items: template.items || [],
+      tax: Number(template.tax) || 0,
+      discount: Number(template.discount) || 0,
+      currency: template.currency || "AOA",
+    }));
+    toast.success("Template aplicado!");
+  };
+
+  const handleGeneratePDF = async () => {
+    if (!quote) return;
+
+    setIsGeneratingPDF(true);
+    try {
+      const pdfUrl = await generateQuotePDF({
+        id: quote.id,
+        client_name: quote.clients?.name || "Cliente",
+        validity_date: quote.validity_date,
+        items: quote.items,
+        tax: Number(quote.tax) || 0,
+        discount: Number(quote.discount) || 0,
+        total: Number(quote.total),
+        currency: quote.currency || "AOA",
+        created_at: quote.created_at,
+      });
+
+      await updateQuoteMutation.mutateAsync({
+        id: quote.id,
+        pdf_link: pdfUrl,
+      });
+
+      window.open(pdfUrl, '_blank');
+      toast.success("PDF gerado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast.error("Erro ao gerar PDF");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   return (
     <Dialog open={actualOpen} onOpenChange={actualOnOpenChange}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="w-[95vw] sm:w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
-            <FileText className="h-6 w-6 text-primary" />
-            {quote ? "Editar Orçamento" : "Novo Orçamento"}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
+              <FileText className="h-6 w-6 text-primary" />
+              {quote ? "Editar Orçamento" : "Novo Orçamento"}
+            </DialogTitle>
+            <div className="flex gap-2">
+              {!quote && quoteTemplates && quoteTemplates.length > 0 && (
+                <Select onValueChange={handleUseTemplate}>
+                  <SelectTrigger className="w-[180px]">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Usar Template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {quoteTemplates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {quote && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGeneratePDF}
+                  disabled={isGeneratingPDF}
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  {isGeneratingPDF ? "Gerando..." : "Gerar PDF"}
+                </Button>
+              )}
+            </div>
+          </div>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">

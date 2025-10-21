@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, CheckCircle2 } from "lucide-react";
+import { Plus, X, CheckCircle2, Save } from "lucide-react";
 import { useChecklistsByJob, useCreateChecklist, useUpdateChecklist, ChecklistItem } from "@/hooks/useChecklists";
+import { useChecklistTemplates, useCreateChecklistTemplate } from "@/hooks/useTemplates";
 import { toast } from "sonner";
 
 interface ChecklistManagerProps {
@@ -52,8 +53,10 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
   const [newItemText, setNewItemText] = useState("");
 
   const { data: checklists } = useChecklistsByJob(jobId);
+  const { data: templates } = useChecklistTemplates();
   const createChecklist = useCreateChecklist();
   const updateChecklist = useUpdateChecklist();
+  const createTemplate = useCreateChecklistTemplate();
 
   const handleCreateFromTemplate = async (type: string) => {
     const template = checklistTemplates[type as keyof typeof checklistTemplates];
@@ -126,12 +129,68 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
     setCustomItems(customItems.filter(item => item.id !== id));
   };
 
+  const handleSaveAsTemplate = async (checklist: any) => {
+    if (!checklist) return;
+    
+    try {
+      await createTemplate.mutateAsync({
+        name: `Template: ${checklist.type}`,
+        job_type: checklist.type,
+        items: checklist.items,
+        estimated_time: checklist.estimated_time,
+      });
+      toast.success("Template salvo!");
+    } catch (error) {
+      toast.error("Erro ao salvar template");
+    }
+  };
+
+  const handleUseTemplate = async (templateId: string) => {
+    const template = templates?.find(t => t.id === templateId);
+    if (!template) return;
+
+    try {
+      await createChecklist.mutateAsync({
+        job_id: jobId,
+        type: template.job_type,
+        items: template.items,
+        estimated_time: template.estimated_time,
+      });
+      toast.success("Template aplicado!");
+    } catch (error) {
+      toast.error("Erro ao aplicar template");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold mb-3">Checklists</h3>
         
-        {/* Templates */}
+        {/* Templates from Database */}
+        <Card className="p-4 mb-4">
+          <Label className="text-sm font-medium mb-2 block">Templates Salvos</Label>
+          {templates && templates.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {templates.map((template) => (
+                <Button
+                  key={template.id}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleUseTemplate(template.id)}
+                  disabled={createChecklist.isPending}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  {template.name}
+                </Button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Nenhum template salvo ainda</p>
+          )}
+        </Card>
+
+        {/* Quick Templates */}
         <Card className="p-4 mb-4">
           <Label className="text-sm font-medium mb-2 block">Templates Rápidos</Label>
           <div className="flex flex-wrap gap-2">
@@ -212,9 +271,20 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
             <Card key={checklist.id} className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-semibold text-foreground">{checklist.type}</h4>
-                <Badge variant={progress === 100 ? "success" : "secondary"}>
-                  {completedCount}/{totalCount}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSaveAsTemplate(checklist)}
+                    disabled={createTemplate.isPending}
+                  >
+                    <Save className="h-3 w-3 mr-1" />
+                    Salvar Template
+                  </Button>
+                  <Badge variant={progress === 100 ? "success" : "secondary"}>
+                    {completedCount}/{totalCount}
+                  </Badge>
+                </div>
               </div>
 
               <div className="w-full bg-muted rounded-full h-2 mb-4">

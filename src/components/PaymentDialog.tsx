@@ -11,8 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { useCreatePayment, useUpdatePayment, usePayments, type Payment } from "@/hooks/usePayments";
 import { useClients } from "@/hooks/useClients";
 import { useQuotes } from "@/hooks/useQuotes";
+import { FileUpload } from "@/components/FileUpload";
 import { toast } from "sonner";
-import { Wallet, DollarSign, FileText, CreditCard, User, AlertCircle, History } from "lucide-react";
+import { Wallet, DollarSign, FileText, CreditCard, User, AlertCircle, History, Receipt } from "lucide-react";
 
 interface PaymentDialogProps {
   payment?: Payment | null;
@@ -31,6 +32,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
     method: string;
     currency: string;
     notes: string;
+    receipt_link: string;
   }>({
     client_id: "",
     quote_id: "",
@@ -40,6 +42,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
     method: "",
     currency: "AOA",
     notes: "",
+    receipt_link: "",
   });
 
   const createPayment = useCreatePayment();
@@ -65,6 +68,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
         method: payment.method || "",
         currency: payment.currency || "AOA",
         notes: payment.notes || "",
+        receipt_link: payment.receipt_link || "",
       });
     } else {
       resetForm();
@@ -89,6 +93,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
         method: formData.method || null,
         currency: formData.currency,
         notes: formData.notes || null,
+        receipt_link: formData.receipt_link || null,
         paid_at: formData.status === 'paid' ? new Date().toISOString() : null,
       };
 
@@ -118,6 +123,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
       method: "",
       currency: "AOA",
       notes: "",
+      receipt_link: "",
     });
   };
 
@@ -335,6 +341,27 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                   Situação atual do pagamento
                 </p>
               </div>
+            </div>
+          </Card>
+
+          {/* Comprovante de Pagamento */}
+          <Card className="p-3 sm:p-4 bg-muted/50">
+            <h3 className="text-sm font-semibold mb-3 text-foreground flex items-center gap-2">
+              <Receipt className="h-4 w-4" />
+              Comprovante de Pagamento
+            </h3>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Anexar Comprovante</Label>
+              <FileUpload
+                bucket="receipts"
+                onUploadComplete={(url) => setFormData({ ...formData, receipt_link: url })}
+                currentFile={formData.receipt_link}
+                onRemove={() => setFormData({ ...formData, receipt_link: "" })}
+                accept=".pdf,.jpg,.jpeg,.png"
+              />
+              <p className="text-xs text-muted-foreground">
+                PDF, JPG ou PNG do comprovante de pagamento
+              </p>
             </div>
           </Card>
 

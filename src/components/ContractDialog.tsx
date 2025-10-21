@@ -9,8 +9,12 @@ import { Separator } from "@/components/ui/separator";
 import { useCreateContract, useUpdateContract } from "@/hooks/useContracts";
 import { useClients } from "@/hooks/useClients";
 import { useJobs } from "@/hooks/useJobs";
+import { useContractTemplates } from "@/hooks/useTemplates";
+import { FileUpload } from "@/components/FileUpload";
 import { toast } from "sonner";
-import { FileText, User, Briefcase, FileSignature, DollarSign } from "lucide-react";
+import { FileText, User, Briefcase, FileSignature, DollarSign, Sparkles, FileDown, Paperclip, X } from "lucide-react";
+import { generateContractPDF } from "@/lib/pdfGenerator";
+import { Select as ShadcnSelect, SelectContent as ShadcnSelectContent, SelectItem as ShadcnSelectItem, SelectTrigger as ShadcnSelectTrigger, SelectValue as ShadcnSelectValue } from "@/components/ui/select";
 
 interface Contract {
   id: string;
@@ -22,6 +26,7 @@ interface Contract {
   signed_at?: string | null;
   cancellation_fee?: number;
   clauses?: any;
+  attachments_links?: any;
   clients?: { id: string; name: string };
   jobs?: { id: string; title: string };
 }
@@ -41,12 +46,15 @@ export function ContractDialog({ children, contract, open, onOpenChange }: Contr
     status: "draft" as Contract['status'],
     terms_text: "",
     cancellation_fee: 0,
+    attachments_links: [] as string[],
   });
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
   const { data: clients } = useClients();
   const { data: jobs } = useJobs();
+  const { data: contractTemplates } = useContractTemplates();
 
   const actualOpen = open !== undefined ? open : isOpen;
   const actualOnOpenChange = onOpenChange || setIsOpen;
@@ -59,9 +67,46 @@ export function ContractDialog({ children, contract, open, onOpenChange }: Contr
         status: contract.status,
         terms_text: contract.terms_text || "",
         cancellation_fee: Number(contract.cancellation_fee) || 0,
+        attachments_links: (contract.attachments_links as string[]) || [],
       });
     }
   }, [contract]);
+
+  const handleUseTemplate = (templateId: string) => {
+    const template = contractTemplates?.find(t => t.id === templateId);
+    if (!template) return;
+
+    setFormData(prev => ({
+      ...prev,
+      terms_text: template.terms_text,
+      cancellation_fee: Number(template.cancellation_fee) || 0,
+    }));
+    toast.success("Template aplicado!");
+  };
+
+  const handleGeneratePDF = async () => {
+    if (!contract) return;
+
+    setIsGeneratingPDF(true);
+    try {
+      const pdfUrl = await generateContractPDF({
+        id: contract.id,
+        client_name: contract.clients?.name || "Cliente",
+        job_title: contract.jobs?.title,
+        terms_text: contract.terms_text || "",
+        issued_at: contract.issued_at || new Date().toISOString(),
+        signed_at: contract.signed_at,
+      });
+
+      window.open(pdfUrl, '_blank');
+      toast.success("PDF gerado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast.error("Erro ao gerar PDF");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +138,7 @@ export function ContractDialog({ children, contract, open, onOpenChange }: Contr
       status: "draft",
       terms_text: "",
       cancellation_fee: 0,
+      attachments_links: [],
     });
   };
 
@@ -101,16 +147,49 @@ export function ContractDialog({ children, contract, open, onOpenChange }: Contr
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
-            <FileSignature className="h-5 w-5" />
-            {contract ? "Editar Contrato" : "Novo Contrato"}
-          </DialogTitle>
-          <DialogDescription>
-            {contract 
-              ? "Atualize as informações do contrato de serviço"
-              : "Crie um novo contrato de serviço com termos e condições formalizadas"
-            }
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
+                <FileSignature className="h-5 w-5" />
+                {contract ? "Editar Contrato" : "Novo Contrato"}
+              </DialogTitle>
+              <DialogDescription>
+                {contract 
+                  ? "Atualize as informações do contrato de serviço"
+                  : "Crie um novo contrato de serviço com termos e condições formalizadas"
+                }
+              </DialogDescription>
+            </div>
+            <div className="flex gap-2">
+              {!contract && contractTemplates && contractTemplates.length > 0 && (
+                <ShadcnSelect onValueChange={handleUseTemplate}>
+                  <ShadcnSelectTrigger className="w-[180px]">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    <ShadcnSelectValue placeholder="Usar Template" />
+                  </ShadcnSelectTrigger>
+                  <ShadcnSelectContent>
+                    {contractTemplates.map((template) => (
+                      <ShadcnSelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </ShadcnSelectItem>
+                    ))}
+                  </ShadcnSelectContent>
+                </ShadcnSelect>
+              )}
+              {contract && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGeneratePDF}
+                  disabled={isGeneratingPDF}
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  {isGeneratingPDF ? "Gerando..." : "Gerar PDF"}
+                </Button>
+              )}
+            </div>
+          </div>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Seção: Informações do Contrato */}
@@ -216,6 +295,52 @@ export function ContractDialog({ children, contract, open, onOpenChange }: Contr
                 />
                 <p className="text-xs text-muted-foreground">Valor cobrado em caso de cancelamento</p>
               </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Seção: Anexos */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+              <Paperclip className="h-4 w-4" />
+              <span>Anexos do Contrato</span>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Documentos Anexados</Label>
+              <FileUpload
+                bucket="contracts"
+                onUploadComplete={(url) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    attachments_links: [...prev.attachments_links, url]
+                  }));
+                }}
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              />
+              {formData.attachments_links.length > 0 && (
+                <div className="space-y-2 mt-4">
+                  <p className="text-xs text-muted-foreground">Arquivos anexados:</p>
+                  {formData.attachments_links.map((link, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                      <a href={link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate">
+                        Anexo {index + 1}
+                      </a>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFormData(prev => ({
+                          ...prev,
+                          attachments_links: prev.attachments_links.filter((_, i) => i !== index)
+                        }))}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
