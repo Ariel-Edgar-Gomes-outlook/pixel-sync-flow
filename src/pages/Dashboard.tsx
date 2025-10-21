@@ -17,6 +17,7 @@ import { RevenueChart } from "@/components/RevenueChart";
 import { JobStatusChart } from "@/components/JobStatusChart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CustomizableDashboard } from "@/components/CustomizableDashboard";
+import { GalleriesWidget } from "@/components/GalleriesWidget";
 
 
 const statusColors = {
@@ -273,6 +274,9 @@ export default function Dashboard() {
               </div>
             </Card>
           </div>
+
+          {/* Galleries Widget */}
+          <GalleriesWidget />
 
           {/* Charts Section */}
           <div className="grid gap-6 lg:grid-cols-2">

@@ -17,6 +17,7 @@ import { JobResources } from "@/components/JobResources";
 import { TimeTracker } from "@/components/TimeTracker";
 import { MapEmbedInput } from "@/components/MapEmbedInput";
 import { TagsInput } from "@/components/TagsInput";
+import { JobGalleryTab } from "@/components/JobGalleryTab";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, User, Calendar, MapPin, DollarSign, Clock, FileText, Tag } from "lucide-react";
@@ -132,10 +133,11 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
         
         {job ? (
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="details">Detalhes</TabsTrigger>
               <TabsTrigger value="time">Tempo</TabsTrigger>
               <TabsTrigger value="deliverables">Entregáveis</TabsTrigger>
+              <TabsTrigger value="gallery">Galeria</TabsTrigger>
               <TabsTrigger value="equipment">Equipamentos</TabsTrigger>
               <TabsTrigger value="checklists">Checklists</TabsTrigger>
               <TabsTrigger value="team">Equipa</TabsTrigger>
@@ -180,6 +182,10 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
                 externalAssetsLinks={job.external_assets_links as string[] || []}
                 externalGalleryLink={job.external_gallery_link}
               />
+            </TabsContent>
+
+            <TabsContent value="gallery" className="space-y-4 py-4">
+              <JobGalleryTab jobId={job.id} />
             </TabsContent>
 
             <TabsContent value="equipment" className="space-y-4 py-4">

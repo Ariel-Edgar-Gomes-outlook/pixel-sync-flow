@@ -15,6 +15,7 @@ export function JobGalleryTab({ jobId }: JobGalleryTabProps) {
   const { data: galleries, isLoading } = useGalleries(jobId);
   const [selectedGalleryId, setSelectedGalleryId] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const { data: photos } = useGalleryPhotos(selectedGalleryId || "");
   const uploadPhoto = useUploadGalleryPhoto();
@@ -40,7 +41,7 @@ export function JobGalleryTab({ jobId }: JobGalleryTabProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Galerias de Cliente</h3>
-        <GalleryDialog jobId={jobId}>
+        <GalleryDialog jobId={jobId} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Nova Galeria
@@ -54,7 +55,10 @@ export function JobGalleryTab({ jobId }: JobGalleryTabProps) {
           <p className="text-muted-foreground mb-4">
             Nenhuma galeria criada ainda
           </p>
-          <GalleryDialog jobId={jobId}>
+          <p className="text-sm text-muted-foreground mb-4">
+            Crie galerias privadas para compartilhar fotos com seus clientes de forma segura e profissional.
+          </p>
+          <GalleryDialog jobId={jobId} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <Button>Criar Primeira Galeria</Button>
           </GalleryDialog>
         </Card>
