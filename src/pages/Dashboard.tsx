@@ -13,6 +13,9 @@ import { pt } from "date-fns/locale";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SmartNotificationPanel } from "@/components/SmartNotificationPanel";
 import { useNotificationAutomation } from "@/hooks/useNotificationAutomation";
+import { RevenueChart } from "@/components/RevenueChart";
+import { JobStatusChart } from "@/components/JobStatusChart";
+
 
 const statusColors = {
   confirmed: "success",
@@ -260,6 +263,12 @@ export default function Dashboard() {
             )}
           </div>
         </Card>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <RevenueChart payments={payments || []} />
+        <JobStatusChart jobs={jobs || []} />
       </div>
     </div>
   );

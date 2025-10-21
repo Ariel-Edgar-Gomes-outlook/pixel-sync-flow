@@ -15,6 +15,7 @@ import { TeamManagement } from "@/components/TeamManagement";
 import { JobDeliverables } from "@/components/JobDeliverables";
 import { JobResources } from "@/components/JobResources";
 import { TimeTracker } from "@/components/TimeTracker";
+import { MapEmbedInput } from "@/components/MapEmbedInput";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, User, Calendar, MapPin, DollarSign, Clock, FileText, Tag } from "lucide-react";
@@ -55,6 +56,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
     estimated_hours: job?.estimated_hours?.toString() || "",
     estimated_cost: job?.estimated_cost?.toString() || "",
     estimated_revenue: job?.estimated_revenue?.toString() || "",
+    location_map_embed: job?.location_map_embed || "",
   });
 
   const createJob = useCreateJob();
@@ -76,6 +78,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
       estimated_hours: formData.estimated_hours ? parseFloat(formData.estimated_hours) : null,
       estimated_cost: formData.estimated_cost ? parseFloat(formData.estimated_cost) : null,
       estimated_revenue: formData.estimated_revenue ? parseFloat(formData.estimated_revenue) : null,
+      location_map_embed: formData.location_map_embed || null,
     };
 
     try {
@@ -99,6 +102,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
         estimated_hours: "",
         estimated_cost: "",
         estimated_revenue: "",
+        location_map_embed: "",
       });
     } catch (error) {
       toast.error("Erro ao salvar job");
@@ -315,6 +319,18 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
           />
           <p className="text-xs text-muted-foreground">Local onde ocorrerá o trabalho</p>
+        </div>
+
+        <div className="col-span-2 space-y-2">
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <MapPin className="h-3.5 w-3.5" />
+            Mapa da Localização
+          </Label>
+          <MapEmbedInput
+            value={formData.location_map_embed}
+            onChange={(embedUrl) => setFormData({ ...formData, location_map_embed: embedUrl })}
+          />
+          <p className="text-xs text-muted-foreground">Adicione um mapa do Google Maps para o local do evento</p>
         </div>
       </div>
     </Card>

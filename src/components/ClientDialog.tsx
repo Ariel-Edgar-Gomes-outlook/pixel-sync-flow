@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCreateClient, useUpdateClient, Client } from "@/hooks/useClients";
 import { useToast } from "@/hooks/use-toast";
 import { ClientHistory } from "@/components/ClientHistory";
+import { TagsInput } from "@/components/TagsInput";
 import { Plus, User, Building, Mail, Phone, MapPin, FileText } from "lucide-react";
 
 interface ClientDialogProps {
@@ -31,6 +32,7 @@ export function ClientDialog({ children, client, open: controlledOpen, onOpenCha
   const [address, setAddress] = useState("");
   const [type, setType] = useState("person");
   const [notes, setNotes] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
 
   const createClient = useCreateClient();
   const updateClient = useUpdateClient();
@@ -44,6 +46,7 @@ export function ClientDialog({ children, client, open: controlledOpen, onOpenCha
       setAddress(client.address || "");
       setType(client.type || "person");
       setNotes(client.notes || "");
+      setTags(client.tags || []);
     }
   }, [client]);
 
@@ -67,7 +70,7 @@ export function ClientDialog({ children, client, open: controlledOpen, onOpenCha
         address: address || null,
         type,
         notes: notes || null,
-        tags: client?.tags || [],
+        tags: tags,
         preferences: client?.preferences || {},
       };
 
@@ -92,6 +95,7 @@ export function ClientDialog({ children, client, open: controlledOpen, onOpenCha
       setAddress("");
       setType("person");
       setNotes("");
+      setTags([]);
       setOpen(false);
     } catch (error) {
       toast({
@@ -147,6 +151,8 @@ export function ClientDialog({ children, client, open: controlledOpen, onOpenCha
                   setType={setType}
                   notes={notes}
                   setNotes={setNotes}
+                  tags={tags}
+                  setTags={setTags}
                   setOpen={setOpen}
                   createClient={createClient}
                   updateClient={updateClient}
@@ -174,6 +180,8 @@ export function ClientDialog({ children, client, open: controlledOpen, onOpenCha
               setType={setType}
               notes={notes}
               setNotes={setNotes}
+              tags={tags}
+              setTags={setTags}
               setOpen={setOpen}
               createClient={createClient}
               updateClient={updateClient}
@@ -199,6 +207,8 @@ interface ClientFormProps {
   setType: (type: string) => void;
   notes: string;
   setNotes: (notes: string) => void;
+  tags: string[];
+  setTags: (tags: string[]) => void;
   setOpen: (open: boolean) => void;
   createClient: any;
   updateClient: any;
@@ -207,7 +217,7 @@ interface ClientFormProps {
 
 function ClientForm({
   name, setName, email, setEmail, phone, setPhone, address, setAddress,
-  type, setType, notes, setNotes, setOpen, createClient, updateClient, isEditing
+  type, setType, notes, setNotes, tags, setTags, setOpen, createClient, updateClient, isEditing
 }: ClientFormProps) {
   return (
     <>
@@ -343,6 +353,20 @@ function ClientForm({
                 />
                 <p className="text-xs text-muted-foreground">
                   Preferências, histórico, datas importantes ou qualquer informação relevante
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="tags" className="text-sm font-medium">
+                  Tags/Categorias
+                </Label>
+                <TagsInput
+                  value={tags}
+                  onChange={setTags}
+                  placeholder="Adicionar tag (ex: VIP, Corporativo, Recorrente...)"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Tags para organizar e filtrar clientes facilmente
                 </p>
               </div>
             </div>
