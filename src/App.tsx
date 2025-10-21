@@ -21,6 +21,8 @@ import Reports from "./pages/Reports";
 import Templates from "./pages/Templates";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import ClientGallery from "./pages/ClientGallery";
+import ContractSign from "./pages/ContractSign";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,11 @@ const App = () => (
           <Onboarding />
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            {/* Public Routes */}
+            <Route path="/gallery/:token" element={<ClientGallery />} />
+            <Route path="/contract/sign/:token" element={<ContractSign />} />
+            
+            {/* Protected Routes */}
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
               <Route path="clients" element={<Clients />} />

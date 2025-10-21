@@ -157,6 +157,59 @@ export type Database = {
           },
         ]
       }
+      client_galleries: {
+        Row: {
+          allow_selection: boolean | null
+          created_at: string | null
+          download_limit: number | null
+          expiration_date: string | null
+          id: string
+          job_id: string
+          name: string
+          password_hash: string | null
+          password_protected: boolean | null
+          share_token: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          allow_selection?: boolean | null
+          created_at?: string | null
+          download_limit?: number | null
+          expiration_date?: string | null
+          id?: string
+          job_id: string
+          name: string
+          password_hash?: string | null
+          password_protected?: boolean | null
+          share_token?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          allow_selection?: boolean | null
+          created_at?: string | null
+          download_limit?: number | null
+          expiration_date?: string | null
+          id?: string
+          job_id?: string
+          name?: string
+          password_hash?: string | null
+          password_protected?: boolean | null
+          share_token?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_galleries_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
@@ -242,44 +295,71 @@ export type Database = {
         Row: {
           attachments_links: Json | null
           cancellation_fee: number | null
+          cancellation_policy_text: string | null
           clauses: Json | null
           client_id: string
+          copyright_notice: string | null
           created_at: string
           id: string
           issued_at: string | null
           job_id: string | null
+          late_delivery_clause: string | null
+          pdf_url: string | null
+          reschedule_policy: string | null
+          revision_policy: string | null
+          signature_token: string | null
+          signature_url: string | null
           signed_at: string | null
           status: Database["public"]["Enums"]["contract_status"]
           terms_text: string | null
           updated_at: string
+          usage_rights_text: string | null
         }
         Insert: {
           attachments_links?: Json | null
           cancellation_fee?: number | null
+          cancellation_policy_text?: string | null
           clauses?: Json | null
           client_id: string
+          copyright_notice?: string | null
           created_at?: string
           id?: string
           issued_at?: string | null
           job_id?: string | null
+          late_delivery_clause?: string | null
+          pdf_url?: string | null
+          reschedule_policy?: string | null
+          revision_policy?: string | null
+          signature_token?: string | null
+          signature_url?: string | null
           signed_at?: string | null
           status?: Database["public"]["Enums"]["contract_status"]
           terms_text?: string | null
           updated_at?: string
+          usage_rights_text?: string | null
         }
         Update: {
           attachments_links?: Json | null
           cancellation_fee?: number | null
+          cancellation_policy_text?: string | null
           clauses?: Json | null
           client_id?: string
+          copyright_notice?: string | null
           created_at?: string
           id?: string
           issued_at?: string | null
           job_id?: string | null
+          late_delivery_clause?: string | null
+          pdf_url?: string | null
+          reschedule_policy?: string | null
+          revision_policy?: string | null
+          signature_token?: string | null
+          signature_url?: string | null
           signed_at?: string | null
           status?: Database["public"]["Enums"]["contract_status"]
           terms_text?: string | null
           updated_at?: string
+          usage_rights_text?: string | null
         }
         Relationships: [
           {
@@ -341,6 +421,53 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gallery_photos: {
+        Row: {
+          client_downloaded_at: string | null
+          client_selected: boolean | null
+          created_at: string | null
+          display_order: number | null
+          file_name: string
+          file_size: number | null
+          file_url: string
+          gallery_id: string
+          id: string
+          thumbnail_url: string | null
+        }
+        Insert: {
+          client_downloaded_at?: string | null
+          client_selected?: boolean | null
+          created_at?: string | null
+          display_order?: number | null
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          gallery_id: string
+          id?: string
+          thumbnail_url?: string | null
+        }
+        Update: {
+          client_downloaded_at?: string | null
+          client_selected?: boolean | null
+          created_at?: string | null
+          display_order?: number | null
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          gallery_id?: string
+          id?: string
+          thumbnail_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_photos_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "client_galleries"
             referencedColumns: ["id"]
           },
         ]
@@ -579,6 +706,51 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_plans: {
+        Row: {
+          created_at: string | null
+          id: string
+          installments: Json
+          job_id: string | null
+          quote_id: string | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          installments?: Json
+          job_id?: string | null
+          quote_id?: string | null
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          installments?: Json
+          job_id?: string | null
+          quote_id?: string | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_plans_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_plans_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_reminders: {
         Row: {
           email_sent: boolean | null
@@ -620,12 +792,15 @@ export type Database = {
           client_id: string
           created_at: string
           currency: string | null
+          due_date: string | null
           id: string
           method: string | null
           notes: string | null
           paid_at: string | null
+          payment_plan_id: string | null
           quote_id: string | null
           receipt_link: string | null
+          receipt_url: string | null
           status: Database["public"]["Enums"]["payment_status"]
           type: string
           updated_at: string
@@ -635,12 +810,15 @@ export type Database = {
           client_id: string
           created_at?: string
           currency?: string | null
+          due_date?: string | null
           id?: string
           method?: string | null
           notes?: string | null
           paid_at?: string | null
+          payment_plan_id?: string | null
           quote_id?: string | null
           receipt_link?: string | null
+          receipt_url?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           type: string
           updated_at?: string
@@ -650,12 +828,15 @@ export type Database = {
           client_id?: string
           created_at?: string
           currency?: string | null
+          due_date?: string | null
           id?: string
           method?: string | null
           notes?: string | null
           paid_at?: string | null
+          payment_plan_id?: string | null
           quote_id?: string | null
           receipt_link?: string | null
+          receipt_url?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           type?: string
           updated_at?: string
@@ -666,6 +847,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_payment_plan_id_fkey"
+            columns: ["payment_plan_id"]
+            isOneToOne: false
+            referencedRelation: "payment_plans"
             referencedColumns: ["id"]
           },
           {
@@ -759,6 +947,7 @@ export type Database = {
         Row: {
           accepted_at: string | null
           client_id: string
+          converted_to_job_at: string | null
           created_at: string
           currency: string | null
           discount: number | null
@@ -775,6 +964,7 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           client_id: string
+          converted_to_job_at?: string | null
           created_at?: string
           currency?: string | null
           discount?: number | null
@@ -791,6 +981,7 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           client_id?: string
+          converted_to_job_at?: string | null
           created_at?: string
           currency?: string | null
           discount?: number | null
