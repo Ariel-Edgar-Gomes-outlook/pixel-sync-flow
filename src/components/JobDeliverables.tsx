@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileUpload } from "@/components/FileUpload";
-import { useDeliverables, useMarkDeliverableAsSent, useDeleteDeliverable } from "@/hooks/useDeliverables";
+import { useDeliverables, useMarkDeliverableAsSent, useDeleteDeliverable, useCreateDeliverable } from "@/hooks/useDeliverables";
 import { toast } from "sonner";
 import { Upload, Send, Trash2, Download, ExternalLink, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -18,12 +18,18 @@ export function JobDeliverables({ jobId }: JobDeliverablesProps) {
   const { data: deliverables, isLoading } = useDeliverables(jobId);
   const markAsSent = useMarkDeliverableAsSent();
   const deleteDeliverable = useDeleteDeliverable();
+  const createDeliverable = useCreateDeliverable();
   const [uploadingType, setUploadingType] = useState<string>("");
 
-  const handleUploadComplete = (url: string, fileName: string, fileSize: number) => {
-    // The hook already handles the creation via FileUpload component
+  const handleUploadComplete = async (url: string, fileName: string, fileSize: number) => {
+    await createDeliverable.mutateAsync({
+      job_id: jobId,
+      file_url: url,
+      file_name: fileName,
+      file_size: fileSize,
+      type: uploadingType,
+    });
     setUploadingType("");
-    toast.success("Arquivo adicionado aos entregáveis!");
   };
 
   const handleMarkAsSent = async (id: string) => {
@@ -107,8 +113,7 @@ export function JobDeliverables({ jobId }: JobDeliverablesProps) {
                 bucket="deliverables"
                 onUploadComplete={handleUploadComplete}
                 accept="image/*,video/*,.pdf,.raw,.cr2,.nef"
-                jobId={jobId}
-                fileType={uploadingType}
+                label={`Upload ${uploadingType}`}
               />
             )}
           </div>
