@@ -4,10 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, TrendingUp, Users, Target, Award, ArrowUpDown } from "lucide-react";
+import { Search, Plus, Edit, TrendingUp, Users, Target, Award, ArrowUpDown, Download } from "lucide-react";
 import { useLeads } from "@/hooks/useLeads";
 import { LeadDialog } from "@/components/LeadDialog";
 import { Lead } from "@/hooks/useLeads";
+import { exportToExcel, formatLeadsForExport } from "@/lib/exportUtils";
+import { toast } from "sonner";
 
 const statusConfig = {
   new: { label: "Novo", variant: "default" as const },
@@ -34,6 +36,14 @@ export default function Leads() {
     setDialogOpen(open);
     if (!open) {
       setSelectedLead(undefined);
+    }
+  };
+
+  const handleExport = () => {
+    if (leads && leads.length > 0) {
+      const formatted = formatLeadsForExport(leads);
+      exportToExcel(formatted, "leads.xlsx", "Leads");
+      toast.success("Leads exportados com sucesso!");
     }
   };
 
@@ -85,12 +95,18 @@ export default function Leads() {
             Gerencie oportunidades e acompanhe leads desde o primeiro contacto até conversão
           </p>
         </div>
-        <LeadDialog lead={selectedLead} open={dialogOpen} onOpenChange={handleOpenChange}>
-          <Button className="gap-2 w-full sm:w-auto">
-            <Plus className="h-4 w-4" />
-            Novo Lead
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleExport}>
+            <Download className="h-4 w-4" />
+            Exportar Excel
           </Button>
-        </LeadDialog>
+          <LeadDialog lead={selectedLead} open={dialogOpen} onOpenChange={handleOpenChange}>
+            <Button className="gap-2 w-full sm:w-auto">
+              <Plus className="h-4 w-4" />
+              Novo Lead
+            </Button>
+          </LeadDialog>
+        </div>
       </div>
 
       {showEmptyState ? (

@@ -16,6 +16,7 @@ import { JobDeliverables } from "@/components/JobDeliverables";
 import { JobResources } from "@/components/JobResources";
 import { TimeTracker } from "@/components/TimeTracker";
 import { MapEmbedInput } from "@/components/MapEmbedInput";
+import { TagsInput } from "@/components/TagsInput";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, User, Calendar, MapPin, DollarSign, Clock, FileText, Tag } from "lucide-react";
@@ -57,6 +58,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
     estimated_cost: job?.estimated_cost?.toString() || "",
     estimated_revenue: job?.estimated_revenue?.toString() || "",
     location_map_embed: job?.location_map_embed || "",
+    tags: job?.tags || [],
   });
 
   const createJob = useCreateJob();
@@ -79,6 +81,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
       estimated_cost: formData.estimated_cost ? parseFloat(formData.estimated_cost) : null,
       estimated_revenue: formData.estimated_revenue ? parseFloat(formData.estimated_revenue) : null,
       location_map_embed: formData.location_map_embed || null,
+      tags: formData.tags,
     };
 
     try {
@@ -103,6 +106,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
         estimated_cost: "",
         estimated_revenue: "",
         location_map_embed: "",
+        tags: [],
       });
     } catch (error) {
       toast.error("Erro ao salvar job");
@@ -287,6 +291,19 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">Categoria do trabalho</p>
+        </div>
+
+        <div className="col-span-2 space-y-2">
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <Tag className="h-3.5 w-3.5" />
+            Tags/Categorias
+          </Label>
+          <TagsInput
+            value={formData.tags || []}
+            onChange={(tags) => setFormData({ ...formData, tags })}
+            placeholder="Adicionar tag (ex: Urgente, VIP, Casamento...)"
+          />
+          <p className="text-xs text-muted-foreground">Tags para organizar e filtrar jobs facilmente</p>
         </div>
 
         <div className="space-y-2">

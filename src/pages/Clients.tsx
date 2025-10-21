@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Mail, Phone, MapPin, ExternalLink, Edit, Users, UserPlus, Building } from "lucide-react";
+import { Plus, Search, Mail, Phone, MapPin, ExternalLink, Edit, Users, UserPlus, Building, Download } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
 import { ClientDialog } from "@/components/ClientDialog";
+import { exportToExcel, formatClientsForExport } from "@/lib/exportUtils";
+import { toast } from "sonner";
 
 export default function Clients() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,6 +26,14 @@ export default function Clients() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setSelectedClient(null);
+  };
+
+  const handleExport = () => {
+    if (clients && clients.length > 0) {
+      const formatted = formatClientsForExport(clients);
+      exportToExcel(formatted, "clientes.xlsx", "Clientes");
+      toast.success("Clientes exportados com sucesso!");
+    }
   };
 
   const filteredClients = useMemo(() => {
@@ -59,7 +69,13 @@ export default function Clients() {
             Gerencie sua carteira de clientes, contactos e histórico de trabalhos
           </p>
         </div>
-        <ClientDialog />
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleExport}>
+            <Download className="h-4 w-4" />
+            Exportar Excel
+          </Button>
+          <ClientDialog />
+        </div>
       </div>
 
       {/* Estado vazio informativo */}

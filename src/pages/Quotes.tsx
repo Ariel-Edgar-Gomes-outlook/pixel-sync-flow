@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle } from "lucide-react";
+import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle, Download } from "lucide-react";
 import { useQuotes } from "@/hooks/useQuotes";
 import { QuoteDialog } from "@/components/QuoteDialog";
+import { exportToExcel, formatQuotesForExport } from "@/lib/exportUtils";
+import { toast } from "sonner";
 
 const statusConfig = {
   draft: { label: "Rascunho", variant: "secondary" as const },
@@ -31,6 +33,14 @@ export default function Quotes() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setSelectedQuote(null);
+  };
+
+  const handleExport = () => {
+    if (quotes && quotes.length > 0) {
+      const formatted = formatQuotesForExport(quotes);
+      exportToExcel(formatted, "orcamentos.xlsx", "Orçamentos");
+      toast.success("Orçamentos exportados com sucesso!");
+    }
   };
 
   const filteredQuotes = useMemo(() => {
@@ -65,12 +75,18 @@ export default function Quotes() {
             Crie propostas profissionais e acompanhe aceitações de clientes
           </p>
         </div>
-        <QuoteDialog>
-          <Button className="gap-2 w-full sm:w-auto">
-            <Plus className="h-4 w-4" />
-            Novo Orçamento
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleExport}>
+            <Download className="h-4 w-4" />
+            Exportar Excel
           </Button>
-        </QuoteDialog>
+          <QuoteDialog>
+            <Button className="gap-2 w-full sm:w-auto">
+              <Plus className="h-4 w-4" />
+              Novo Orçamento
+            </Button>
+          </QuoteDialog>
+        </div>
       </div>
 
       {showEmptyState ? (

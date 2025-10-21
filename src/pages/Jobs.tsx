@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase } from "lucide-react";
+import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase, Download } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobs } from "@/hooks/useJobs";
 import { JobDialog } from "@/components/JobDialog";
+import { exportToExcel, formatJobsForExport } from "@/lib/exportUtils";
+import { toast } from "sonner";
 
 const statusConfig = {
   confirmed: { label: "Confirmado", variant: "success" as const },
@@ -24,6 +26,14 @@ export default function Jobs() {
   const [sortBy, setSortBy] = useState<"date" | "value">("date");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const { data: jobs, isLoading } = useJobs();
+
+  const handleExport = () => {
+    if (jobs && jobs.length > 0) {
+      const formatted = formatJobsForExport(jobs);
+      exportToExcel(formatted, "jobs.xlsx", "Jobs");
+      toast.success("Jobs exportados com sucesso!");
+    }
+  };
 
   const jobTypes = useMemo(() => {
     const uniqueTypes = new Set(jobs?.map(j => j.type).filter(Boolean));
@@ -64,12 +74,18 @@ export default function Jobs() {
             Gerencie eventos, sessões fotográficas e produções do início ao fim
           </p>
         </div>
-        <JobDialog>
-          <Button className="gap-2 w-full sm:w-auto">
-            <Plus className="h-4 w-4" />
-            Novo Job
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleExport}>
+            <Download className="h-4 w-4" />
+            Exportar Excel
           </Button>
-        </JobDialog>
+          <JobDialog>
+            <Button className="gap-2 w-full sm:w-auto">
+              <Plus className="h-4 w-4" />
+              Novo Job
+            </Button>
+          </JobDialog>
+        </div>
       </div>
 
       {showEmptyState ? (

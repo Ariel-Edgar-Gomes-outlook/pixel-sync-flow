@@ -3,9 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, DollarSign, Calendar, CreditCard, Edit, TrendingUp, Wallet, Receipt } from "lucide-react";
+import { Plus, Search, DollarSign, Calendar, CreditCard, Edit, TrendingUp, Wallet, Receipt, Download } from "lucide-react";
 import { usePayments, type Payment } from "@/hooks/usePayments";
 import PaymentDialog from "@/components/PaymentDialog";
+import { exportToExcel, formatPaymentsForExport } from "@/lib/exportUtils";
+import { toast } from "sonner";
 
 const statusConfig = {
   pending: { label: "Pendente", variant: "warning" as const },
@@ -37,6 +39,14 @@ export default function Payments() {
     setIsDialogOpen(true);
   };
 
+  const handleExport = () => {
+    if (payments && payments.length > 0) {
+      const formatted = formatPaymentsForExport(payments);
+      exportToExcel(formatted, "pagamentos.xlsx", "Pagamentos");
+      toast.success("Pagamentos exportados com sucesso!");
+    }
+  };
+
   const filteredPayments = payments?.filter(payment =>
     payment.clients?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
@@ -61,10 +71,16 @@ export default function Payments() {
             Controle completo de pagamentos, receitas e fluxo de caixa
           </p>
         </div>
-        <Button className="gap-2 w-full sm:w-auto" onClick={handleNewPayment}>
-          <Plus className="h-4 w-4" />
-          Novo Pagamento
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleExport}>
+            <Download className="h-4 w-4" />
+            Exportar Excel
+          </Button>
+          <Button className="gap-2 w-full sm:w-auto" onClick={handleNewPayment}>
+            <Plus className="h-4 w-4" />
+            Novo Pagamento
+          </Button>
+        </div>
       </div>
 
       {showEmptyState ? (

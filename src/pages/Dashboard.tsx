@@ -15,6 +15,8 @@ import { SmartNotificationPanel } from "@/components/SmartNotificationPanel";
 import { useNotificationAutomation } from "@/hooks/useNotificationAutomation";
 import { RevenueChart } from "@/components/RevenueChart";
 import { JobStatusChart } from "@/components/JobStatusChart";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CustomizableDashboard } from "@/components/CustomizableDashboard";
 
 
 const statusColors = {
@@ -147,129 +149,142 @@ export default function Dashboard() {
         <p className="text-sm sm:text-base text-muted-foreground mt-1">Visão geral do seu negócio fotográfico</p>
       </div>
 
-      {/* Smart Notifications */}
-      <SmartNotificationPanel />
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="custom">Dashboard Personalizável</TabsTrigger>
+        </TabsList>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <TooltipProvider>
-          {stats.map((stat) => (
-            <Card key={stat.name} className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <stat.icon className="h-6 w-6 text-primary" />
-                </div>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1">
-                      <span className={`text-sm font-medium ${stat.trend === 'up' ? 'text-success' : 'text-destructive'}`}>
-                        {stat.change}
-                      </span>
-                      <Info className="h-3 w-3 text-muted-foreground" />
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-6">
+          {/* Smart Notifications */}
+          <SmartNotificationPanel />
+
+          {/* Stats Grid */}
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <TooltipProvider>
+              {stats.map((stat) => (
+                <Card key={stat.name} className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                      <stat.icon className="h-6 w-6 text-primary" />
                     </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">
-                      {stat.name === "Taxa Conversão" 
-                        ? "Últimos 30 dias vs período anterior (30-60 dias)"
-                        : "Últimos 30 dias vs período anterior"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-1">
+                          <span className={`text-sm font-medium ${stat.trend === 'up' ? 'text-success' : 'text-destructive'}`}>
+                            {stat.change}
+                          </span>
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">
+                          {stat.name === "Taxa Conversão" 
+                            ? "Últimos 30 dias vs período anterior (30-60 dias)"
+                            : "Últimos 30 dias vs período anterior"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-muted-foreground">{stat.name}</p>
+                    <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
+                  </div>
+                </Card>
+              ))}
+            </TooltipProvider>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Upcoming Jobs */}
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <Calendar className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold text-foreground">Próximos Jobs</h2>
               </div>
-              <div className="mt-4">
-                <p className="text-sm font-medium text-muted-foreground">{stat.name}</p>
-                <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
+              <div className="space-y-4">
+                {upcomingJobs.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-4">Nenhum job próximo</p>
+                ) : (
+                  upcomingJobs.map((job) => (
+                    <div key={job.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-medium text-foreground">{job.title}</h3>
+                          <Badge variant={statusColors[job.status] || 'secondary'}>
+                            {job.status === "confirmed" ? "Confirmado" : 
+                             job.status === "scheduled" ? "Agendado" : "Pendente"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {job.clients?.name || 'Cliente não especificado'}
+                        </p>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                          <span>{new Date(job.start_datetime).toLocaleDateString("pt-PT")}</span>
+                          <span>•</span>
+                          <span>{new Date(job.start_datetime).toLocaleTimeString("pt-PT", { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>•</span>
+                          <span>{job.type}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </Card>
-          ))}
-        </TooltipProvider>
-      </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Upcoming Jobs */}
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Calendar className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground">Próximos Jobs</h2>
-          </div>
-          <div className="space-y-4">
-            {upcomingJobs.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">Nenhum job próximo</p>
-            ) : (
-              upcomingJobs.map((job) => (
-                <div key={job.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-medium text-foreground">{job.title}</h3>
-                      <Badge variant={statusColors[job.status] || 'secondary'}>
-                        {job.status === "confirmed" ? "Confirmado" : 
-                         job.status === "scheduled" ? "Agendado" : "Pendente"}
-                      </Badge>
+            {/* Recent Leads */}
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <AlertCircle className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold text-foreground">Leads Recentes</h2>
+              </div>
+               <div className="space-y-4">
+                {displayedLeads.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-4">Nenhum lead recente</p>
+                ) : (
+                  displayedLeads.map((lead) => (
+                    <div key={lead.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-medium text-foreground">
+                            {lead.clients?.name || 'Nome não especificado'}
+                          </h3>
+                          <Badge variant={statusColors[lead.status] || 'secondary'}>
+                            {lead.status === "new" ? "Novo" : 
+                             lead.status === "contacted" ? "Contactado" : 
+                             lead.status === "won" ? "Ganho" :
+                             lead.status === "proposal_sent" ? "Proposta Enviada" : "Perdido"}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                          {lead.source && (
+                            <>
+                              <span>via {lead.source}</span>
+                              <span>•</span>
+                            </>
+                          )}
+                          <span>{new Date(lead.created_at).toLocaleDateString("pt-PT")}</span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {job.clients?.name || 'Cliente não especificado'}
-                    </p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                      <span>{new Date(job.start_datetime).toLocaleDateString("pt-PT")}</span>
-                      <span>•</span>
-                      <span>{new Date(job.start_datetime).toLocaleTimeString("pt-PT", { hour: '2-digit', minute: '2-digit' })}</span>
-                      <span>•</span>
-                      <span>{job.type}</span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+                  ))
+                )}
+              </div>
+            </Card>
           </div>
-        </Card>
 
-        {/* Recent Leads */}
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <AlertCircle className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground">Leads Recentes</h2>
+          {/* Charts Section */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <RevenueChart payments={payments || []} />
+            <JobStatusChart jobs={jobs || []} />
           </div>
-           <div className="space-y-4">
-            {displayedLeads.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">Nenhum lead recente</p>
-            ) : (
-              displayedLeads.map((lead) => (
-                <div key={lead.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-medium text-foreground">
-                        {lead.clients?.name || 'Nome não especificado'}
-                      </h3>
-                      <Badge variant={statusColors[lead.status] || 'secondary'}>
-                        {lead.status === "new" ? "Novo" : 
-                         lead.status === "contacted" ? "Contactado" : 
-                         lead.status === "won" ? "Ganho" :
-                         lead.status === "proposal_sent" ? "Proposta Enviada" : "Perdido"}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                      {lead.source && (
-                        <>
-                          <span>via {lead.source}</span>
-                          <span>•</span>
-                        </>
-                      )}
-                      <span>{new Date(lead.created_at).toLocaleDateString("pt-PT")}</span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
-      </div>
+        </TabsContent>
 
-      {/* Charts Section */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <RevenueChart payments={payments || []} />
-        <JobStatusChart jobs={jobs || []} />
-      </div>
+        <TabsContent value="custom" className="mt-6">
+          <CustomizableDashboard />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
