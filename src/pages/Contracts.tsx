@@ -3,9 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Edit, FileText, FileSignature, Shield, CheckCircle2 } from "lucide-react";
+import { Search, Plus, Edit, FileText, FileSignature, Shield, CheckCircle2, Link2, Send } from "lucide-react";
 import { useContracts } from "@/hooks/useContracts";
 import { ContractDialog } from "@/components/ContractDialog";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const statusConfig = {
   draft: { label: "Rascunho", variant: "secondary" as const },
@@ -21,6 +23,7 @@ export default function Contracts() {
   const [selectedContract, setSelectedContract] = useState<any>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { data: contracts, isLoading } = useContracts();
+  const { toast } = useToast();
 
   const handleEdit = (contract: any) => {
     setSelectedContract(contract);
@@ -31,6 +34,43 @@ export default function Contracts() {
     setDialogOpen(open);
     if (!open) {
       setSelectedContract(undefined);
+    }
+  };
+
+  const copySignatureLink = (contract: any) => {
+    const baseUrl = window.location.origin;
+    const signatureUrl = `${baseUrl}/contract/sign/${contract.signature_token}`;
+    
+    navigator.clipboard.writeText(signatureUrl);
+    toast({
+      title: "Link copiado!",
+      description: "O link de assinatura foi copiado para a área de transferência",
+    });
+  };
+
+  const sendForSignature = async (contract: any) => {
+    try {
+      const { error } = await supabase
+        .from('contracts')
+        .update({ status: 'sent' })
+        .eq('id', contract.id);
+
+      if (error) throw error;
+
+      const baseUrl = window.location.origin;
+      const signatureUrl = `${baseUrl}/contract/sign/${contract.signature_token}`;
+      
+      toast({
+        title: "Contrato enviado!",
+        description: `Link de assinatura: ${signatureUrl}`,
+        duration: 10000,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: error.message,
+      });
     }
   };
 
@@ -176,15 +216,38 @@ export default function Contracts() {
                 </div>
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleEdit(contract)}
-                className="gap-2"
-              >
-                <Edit className="h-3 w-3" />
-                Editar
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEdit(contract)}
+                  className="gap-2"
+                >
+                  <Edit className="h-3 w-3" />
+                  Editar
+                </Button>
+                
+                {!['signed', 'active', 'cancelled'].includes(contract.status) && (
+                  <>
+                    <Button 
+                      onClick={() => copySignatureLink(contract)} 
+                      variant="outline"
+                      size="sm"
+                      title="Copiar link de assinatura"
+                    >
+                      <Link2 className="h-3 w-3" />
+                    </Button>
+                    <Button 
+                      onClick={() => sendForSignature(contract)} 
+                      variant="default"
+                      size="sm"
+                      title="Enviar para assinatura"
+                    >
+                      <Send className="h-3 w-3" />
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </Card>
         ))}
