@@ -37,7 +37,7 @@ export function GoogleCalendarIntegration({ userId }: GoogleCalendarIntegrationP
     setIsConnecting(true);
     try {
       const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
-        body: { action: 'get_auth_url' }
+        body: { action: 'connect' }
       });
 
       if (error) throw error;
@@ -77,7 +77,7 @@ export function GoogleCalendarIntegration({ userId }: GoogleCalendarIntegrationP
   const syncMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
-        body: { action: 'sync_jobs' }
+        body: { action: 'sync' }
       });
 
       if (error) throw error;
