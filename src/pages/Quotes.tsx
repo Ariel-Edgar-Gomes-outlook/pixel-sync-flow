@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle, Download } from "lucide-react";
+import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle, Download, CreditCard } from "lucide-react";
 import { useQuotes } from "@/hooks/useQuotes";
 import { QuoteDialog } from "@/components/QuoteDialog";
+import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
 import { exportToExcel, formatQuotesForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -23,6 +24,8 @@ export default function Quotes() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"date" | "value">("date");
+  const [paymentPlanQuote, setPaymentPlanQuote] = useState<any>(null);
+  const [paymentPlanDialogOpen, setPaymentPlanDialogOpen] = useState(false);
   const { data: quotes, isLoading } = useQuotes();
 
   const handleEdit = (quote: any) => {
@@ -233,15 +236,29 @@ export default function Quotes() {
                         {quote.currency || 'AOA'}
                       </div>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="gap-2 w-full sm:w-auto"
-                      onClick={() => handleEdit(quote)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                      <span className="sm:inline">Editar</span>
-                    </Button>
+                    <div className="flex flex-col gap-2 w-full sm:w-auto">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => handleEdit(quote)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                        <span>Editar</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => {
+                          setPaymentPlanQuote(quote);
+                          setPaymentPlanDialogOpen(true);
+                        }}
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        <span>Plano</span>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -255,6 +272,13 @@ export default function Quotes() {
         quote={selectedQuote} 
         open={isDialogOpen} 
         onOpenChange={handleCloseDialog}
+      />
+      
+      <PaymentPlanDialog
+        quoteId={paymentPlanQuote?.id}
+        totalAmount={paymentPlanQuote?.total || 0}
+        open={paymentPlanDialogOpen}
+        onOpenChange={setPaymentPlanDialogOpen}
       />
     </div>
   );

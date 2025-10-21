@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase, Download } from "lucide-react";
+import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase, Download, CreditCard } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobs } from "@/hooks/useJobs";
 import { JobDialog } from "@/components/JobDialog";
+import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
 import { exportToExcel, formatJobsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -25,6 +26,8 @@ export default function Jobs() {
   const [activeTab, setActiveTab] = useState("all");
   const [sortBy, setSortBy] = useState<"date" | "value">("date");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [paymentPlanJob, setPaymentPlanJob] = useState<any>(null);
+  const [paymentPlanDialogOpen, setPaymentPlanDialogOpen] = useState(false);
   const { data: jobs, isLoading } = useJobs();
 
   const handleExport = () => {
@@ -238,12 +241,26 @@ export default function Jobs() {
                         {job.estimated_revenue && (
                           <div className="text-xl sm:text-2xl font-bold text-foreground">Kz {Number(job.estimated_revenue).toFixed(0)}</div>
                         )}
-                        <JobDialog job={job}>
-                          <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm">
-                            <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
-                            Editar
+                        <div className="flex flex-col gap-2">
+                          <JobDialog job={job}>
+                            <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm">
+                              <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
+                              Editar
+                            </Button>
+                          </JobDialog>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-2 text-xs sm:text-sm"
+                            onClick={() => {
+                              setPaymentPlanJob(job);
+                              setPaymentPlanDialogOpen(true);
+                            }}
+                          >
+                            <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
+                            Plano
                           </Button>
-                        </JobDialog>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -254,6 +271,13 @@ export default function Jobs() {
           </TabsContent>
         </Tabs>
       )}
+      
+      <PaymentPlanDialog
+        jobId={paymentPlanJob?.id}
+        totalAmount={paymentPlanJob?.estimated_revenue || 0}
+        open={paymentPlanDialogOpen}
+        onOpenChange={setPaymentPlanDialogOpen}
+      />
     </div>
   );
 }
