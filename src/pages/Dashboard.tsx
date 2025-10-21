@@ -18,6 +18,7 @@ import { JobStatusChart } from "@/components/JobStatusChart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CustomizableDashboard } from "@/components/CustomizableDashboard";
 import { GalleriesWidget } from "@/components/GalleriesWidget";
+import { PaymentAlertsWidget } from "@/components/PaymentAlertsWidget";
 
 
 const statusColors = {
@@ -274,6 +275,9 @@ export default function Dashboard() {
               </div>
             </Card>
           </div>
+
+          {/* Payment Alerts Widget */}
+          <PaymentAlertsWidget />
 
           {/* Galleries Widget */}
           <GalleriesWidget />
