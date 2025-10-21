@@ -18,14 +18,15 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
   const [selectedRole, setSelectedRole] = useState("");
   const queryClient = useQueryClient();
 
-  // Fetch all team members/staff (profiles = fotógrafos, assistentes, equipe)
-  // NOT clients (clients are in the 'clients' table)
+  // Fetch only team members (NOT clients)
+  // Filter by type: photographer, assistant, editor, admin
   const { data: allUsers } = useQuery({
-    queryKey: ['profiles'],
+    queryKey: ['team_profiles'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
+        .neq('type', 'client')
         .order('name');
       
       if (error) throw error;

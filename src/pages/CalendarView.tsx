@@ -1,56 +1,180 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar, Plus } from "lucide-react";
-import { useJobs } from "@/hooks/useJobs";
-import { useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Calendar, Plus, AlertTriangle, Users, Package } from "lucide-react";
+import { useJobs, useUpdateJob } from "@/hooks/useJobs";
+import { useState, useMemo } from "react";
 import { JobDialog } from "@/components/JobDialog";
+import { toast } from "sonner";
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function CalendarView() {
   const { data: jobs, isLoading } = useJobs();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const updateJob = useUpdateJob();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isJobDialogOpen, setIsJobDialogOpen] = useState(false);
-  
-  const currentMonth = currentDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
+  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [showJobSheet, setShowJobSheet] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterType, setFilterType] = useState<string>("all");
 
-  // Generate calendar days for current month
-  const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-  const daysInMonth = lastDay.getDate();
-  const startDay = firstDay.getDay();
-  
-  const calendarDays = [];
-  
-  // Add empty days for alignment
-  for (let i = 0; i < startDay; i++) {
-    const prevMonthDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), -i);
-    calendarDays.unshift({ 
-      date: prevMonthDay.getDate(), 
-      jobs: [], 
-      nextMonth: false,
-      prevMonth: true 
-    });
-  }
-  
-  // Add days of current month
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    const dayJobs = jobs?.filter(job => {
-      const jobDate = new Date(job.start_datetime);
-      return jobDate.toDateString() === dayDate.toDateString();
-    }).map(job => ({
-      title: job.title,
-      time: new Date(job.start_datetime).toLocaleTimeString("pt-PT", { hour: '2-digit', minute: '2-digit' }),
-      type: job.status
-    })) || [];
-    
-    calendarDays.push({ date: day, jobs: dayJobs, nextMonth: false, prevMonth: false });
-  }
-  
-  const confirmedCount = jobs?.filter(j => j.status === 'confirmed').length || 0;
-  const pendingCount = jobs?.filter(j => j.status === 'in_production').length || 0;
-  const scheduledCount = jobs?.filter(j => j.status === 'scheduled').length || 0;
+  // Fetch resources to check conflicts
+  const { data: jobResources } = useQuery({
+    queryKey: ['all_job_resources'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('job_resources')
+        .select('*');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: teamMembers } = useQuery({
+    queryKey: ['all_team_members'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('job_team_members')
+        .select('*');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Check for conflicts
+  const checkConflicts = (jobId: string, start: Date, end: Date) => {
+    const jobResourcesList = jobResources?.filter(jr => jr.job_id === jobId) || [];
+    const jobTeamList = teamMembers?.filter(tm => tm.job_id === jobId) || [];
+
+    let hasResourceConflict = false;
+    let hasTeamConflict = false;
+
+    // Check resource conflicts
+    for (const resource of jobResourcesList) {
+      const otherJobs = jobResources?.filter(
+        jr => jr.resource_id === resource.resource_id && jr.job_id !== jobId
+      ) || [];
+      
+      for (const other of otherJobs) {
+        const otherStart = new Date(other.reserved_from);
+        const otherEnd = new Date(other.reserved_until);
+        
+        if ((start >= otherStart && start < otherEnd) || 
+            (end > otherStart && end <= otherEnd) ||
+            (start <= otherStart && end >= otherEnd)) {
+          hasResourceConflict = true;
+          break;
+        }
+      }
+      if (hasResourceConflict) break;
+    }
+
+    // Check team conflicts
+    for (const member of jobTeamList) {
+      const otherJobs = jobs?.filter(
+        j => j.id !== jobId && 
+        teamMembers?.some(tm => tm.job_id === j.id && tm.user_id === member.user_id)
+      ) || [];
+      
+      for (const other of otherJobs) {
+        const otherStart = new Date(other.start_datetime);
+        const otherEnd = new Date(other.end_datetime || other.start_datetime);
+        
+        if ((start >= otherStart && start < otherEnd) || 
+            (end > otherStart && end <= otherEnd) ||
+            (start <= otherStart && end >= otherEnd)) {
+          hasTeamConflict = true;
+          break;
+        }
+      }
+      if (hasTeamConflict) break;
+    }
+
+    return { hasResourceConflict, hasTeamConflict };
+  };
+
+  // Filter and prepare events
+  const events = useMemo(() => {
+    if (!jobs) return [];
+
+    return jobs
+      .filter(job => {
+        if (filterStatus !== "all" && job.status !== filterStatus) return false;
+        if (filterType !== "all" && job.type !== filterType) return false;
+        return true;
+      })
+      .map(job => {
+        const start = new Date(job.start_datetime);
+        const end = job.end_datetime ? new Date(job.end_datetime) : new Date(start.getTime() + 2 * 60 * 60 * 1000);
+        const { hasResourceConflict, hasTeamConflict } = checkConflicts(job.id, start, end);
+        const hasConflict = hasResourceConflict || hasTeamConflict;
+
+        return {
+          id: job.id,
+          title: job.title,
+          start: start.toISOString(),
+          end: end.toISOString(),
+          backgroundColor: hasConflict 
+            ? 'hsl(0 84% 60%)' 
+            : job.status === 'confirmed' 
+            ? 'hsl(142 71% 45%)' 
+            : job.status === 'in_production'
+            ? 'hsl(38 92% 50%)'
+            : 'hsl(221 83% 53%)',
+          borderColor: hasConflict 
+            ? 'hsl(0 84% 50%)' 
+            : job.status === 'confirmed' 
+            ? 'hsl(142 71% 35%)' 
+            : job.status === 'in_production'
+            ? 'hsl(38 92% 40%)'
+            : 'hsl(221 83% 43%)',
+          extendedProps: { job, hasConflict, hasResourceConflict, hasTeamConflict }
+        };
+      });
+  }, [jobs, filterStatus, filterType, jobResources, teamMembers]);
+
+  const handleEventDrop = async (info: any) => {
+    const job = info.event.extendedProps.job;
+    const newStart = info.event.start;
+    const duration = job.end_datetime 
+      ? new Date(job.end_datetime).getTime() - new Date(job.start_datetime).getTime()
+      : 2 * 60 * 60 * 1000;
+    const newEnd = new Date(newStart.getTime() + duration);
+
+    try {
+      await updateJob.mutateAsync({
+        id: job.id,
+        start_datetime: newStart.toISOString(),
+        end_datetime: newEnd.toISOString(),
+      });
+      toast.success("Job reagendado com sucesso!");
+    } catch (error) {
+      info.revert();
+      toast.error("Erro ao reagendar job");
+    }
+  };
+
+  const handleEventClick = (info: any) => {
+    setSelectedJob(info.event.extendedProps.job);
+    setShowJobSheet(true);
+  };
+
+  const handleDateSelect = (selectInfo: any) => {
+    setSelectedDate(selectInfo.start);
+    setIsJobDialogOpen(true);
+  };
+
+  const jobTypes = useMemo(() => {
+    if (!jobs) return [];
+    return [...new Set(jobs.map(j => j.type))];
+  }, [jobs]);
 
   if (isLoading) {
     return <div className="space-y-6">Carregando...</div>;
@@ -76,138 +200,164 @@ export default function CalendarView() {
           </Button>
           <Button variant="outline" className="gap-2">
             <Calendar className="h-4 w-4" />
-            Sincronizar Google Calendar
+            Sincronizar Google
           </Button>
         </div>
       </div>
 
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-foreground">{currentMonth}</h2>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setCurrentDate(new Date())}
-            >
-              Hoje
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+      {/* Filters */}
+      <Card className="p-4">
+        <div className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-[200px]">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filtrar por status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os status</SelectItem>
+                <SelectItem value="scheduled">Agendado</SelectItem>
+                <SelectItem value="confirmed">Confirmado</SelectItem>
+                <SelectItem value="in_production">Em Produção</SelectItem>
+                <SelectItem value="completed">Concluído</SelectItem>
+                <SelectItem value="cancelled">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-
-        <div className="grid grid-cols-7 gap-2">
-          {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => (
-            <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
-              {day}
-            </div>
-          ))}
-          
-          {calendarDays.map((day, index) => {
-            const isToday = !day.nextMonth && !day.prevMonth && 
-              day.date === new Date().getDate() && 
-              currentDate.getMonth() === new Date().getMonth() &&
-              currentDate.getFullYear() === new Date().getFullYear();
-            
-            return (
-              <div
-                key={index}
-                onClick={() => {
-                  if (!day.nextMonth && !day.prevMonth) {
-                    const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day.date);
-                    setSelectedDate(clickedDate);
-                    setIsJobDialogOpen(true);
-                  }
-                }}
-                className={`min-h-32 p-2 rounded-lg border cursor-pointer ${
-                  day.nextMonth || day.prevMonth
-                    ? "border-border/50 bg-muted/20" 
-                    : isToday
-                    ? "border-primary bg-primary/5"
-                    : "border-border bg-card"
-                } hover:border-primary/50 transition-colors`}
-              >
-                <div className={`text-sm font-medium mb-2 ${
-                  isToday 
-                    ? "text-primary font-bold" 
-                    : day.nextMonth || day.prevMonth 
-                    ? "text-muted-foreground" 
-                    : "text-foreground"
-                }`}>
-                  {day.date}
-                </div>
-                <div className="space-y-1">
-                  {day.jobs.length === 0 && !day.nextMonth && !day.prevMonth && (
-                    <div className="text-xs text-muted-foreground/50 italic mt-4">
-                      Clique para adicionar
-                    </div>
-                  )}
-                  {day.jobs.map((job, jobIndex) => (
-                    <div
-                      key={jobIndex}
-                      className={`text-xs p-2 rounded ${
-                        job.type === "confirmed" 
-                          ? "bg-success/10 text-success" 
-                          : job.type === "in_production"
-                          ? "bg-warning/10 text-warning"
-                          : job.type === "scheduled"
-                          ? "bg-primary/10 text-primary"
-                          : "bg-secondary/10 text-secondary"
-                      }`}
-                    >
-                      <div className="font-medium truncate">{job.title}</div>
-                      <div className="opacity-75">{job.time}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+          <div className="flex-1 min-w-[200px]">
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filtrar por tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os tipos</SelectItem>
+                {jobTypes.map(type => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="h-3 w-3 rounded-full bg-success" />
-            <div>
-              <div className="text-sm font-medium text-foreground">Confirmados</div>
-              <div className="text-2xl font-bold text-foreground mt-1">{confirmedCount}</div>
+      {/* Calendar */}
+      <Card className="p-6">
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          }}
+          locale="pt"
+          events={events}
+          editable={true}
+          droppable={true}
+          selectable={true}
+          selectMirror={true}
+          dayMaxEvents={true}
+          weekends={true}
+          eventDrop={handleEventDrop}
+          eventClick={handleEventClick}
+          select={handleDateSelect}
+          height="auto"
+          eventContent={(arg) => (
+            <div className="p-1 text-xs overflow-hidden">
+              {arg.event.extendedProps.hasConflict && (
+                <AlertTriangle className="h-3 w-3 inline mr-1" />
+              )}
+              <span className="font-medium">{arg.event.title}</span>
             </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="h-3 w-3 rounded-full bg-warning" />
-            <div>
-              <div className="text-sm font-medium text-foreground">Em Produção</div>
-              <div className="text-2xl font-bold text-foreground mt-1">{pendingCount}</div>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="h-3 w-3 rounded-full bg-primary" />
-            <div>
-              <div className="text-sm font-medium text-foreground">Agendados</div>
-              <div className="text-2xl font-bold text-foreground mt-1">{scheduledCount}</div>
-            </div>
-          </div>
-        </Card>
-      </div>
+          )}
+        />
+      </Card>
+
+      {/* Job Details Sheet */}
+      <Sheet open={showJobSheet} onOpenChange={setShowJobSheet}>
+        <SheetContent>
+          {selectedJob && (
+            <>
+              <SheetHeader>
+                <SheetTitle>{selectedJob.title}</SheetTitle>
+                <SheetDescription>
+                  {new Date(selectedJob.start_datetime).toLocaleDateString("pt-PT", {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="mt-6 space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Status</p>
+                  <Badge variant={selectedJob.status === 'confirmed' ? 'success' : 'secondary'}>
+                    {selectedJob.status}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Tipo</p>
+                  <p className="font-medium">{selectedJob.type}</p>
+                </div>
+                {selectedJob.description && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Descrição</p>
+                    <p>{selectedJob.description}</p>
+                  </div>
+                )}
+                {selectedJob.location && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Local</p>
+                    <p>{selectedJob.location}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Cliente</p>
+                  <p className="font-medium">{selectedJob.clients?.name || 'Não especificado'}</p>
+                </div>
+                {checkConflicts(
+                  selectedJob.id, 
+                  new Date(selectedJob.start_datetime), 
+                  new Date(selectedJob.end_datetime || selectedJob.start_datetime)
+                ).hasResourceConflict && (
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <Package className="h-4 w-4 text-destructive mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-destructive">Conflito de Recursos</p>
+                        <p className="text-xs text-destructive/80">Equipamentos já alocados neste horário</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {checkConflicts(
+                  selectedJob.id, 
+                  new Date(selectedJob.start_datetime), 
+                  new Date(selectedJob.end_datetime || selectedJob.start_datetime)
+                ).hasTeamConflict && (
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <Users className="h-4 w-4 text-destructive mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-destructive">Conflito de Equipe</p>
+                        <p className="text-xs text-destructive/80">Membros da equipe já em outro job</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <Button 
+                  onClick={() => {
+                    setShowJobSheet(false);
+                    // Open edit dialog
+                  }}
+                  className="w-full"
+                >
+                  Editar Job
+                </Button>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
 
       <JobDialog 
         open={isJobDialogOpen} 

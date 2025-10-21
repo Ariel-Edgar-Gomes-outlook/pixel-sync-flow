@@ -8,16 +8,18 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
-import { Settings as SettingsIcon, User, Bell, Shield, Activity } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, Activity, Moon, Sun } from "lucide-react";
 import { AuditLogViewer } from "@/components/AuditLogViewer";
 import { GoogleCalendarIntegration } from "@/components/GoogleCalendarIntegration";
 import { NotificationSettings } from "@/components/NotificationSettings";
+import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
 export default function Settings() {
   const { user } = useAuth();
   const { data: profile, isLoading } = useProfile(user?.id);
   const updateProfile = useUpdateProfile();
+  const { theme, setTheme } = useTheme();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -172,6 +174,26 @@ export default function Settings() {
           </div>
 
           <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-foreground">Modo Escuro</p>
+                <p className="text-sm text-muted-foreground">Ativar tema escuro</p>
+              </div>
+              <div className="flex items-center gap-3">
+                {theme === 'dark' ? (
+                  <Moon className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Sun className="h-4 w-4 text-muted-foreground" />
+                )}
+                <Switch
+                  checked={theme === 'dark'}
+                  onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
             <div className="grid gap-2">
               <Label htmlFor="currency">Moeda Padrão</Label>
               <Input

@@ -47,6 +47,45 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_integrations: {
+        Row: {
+          access_token: string | null
+          calendar_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          provider: string
+          refresh_token: string | null
+          token_expires_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          calendar_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          provider?: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          calendar_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          provider?: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       checklist_templates: {
         Row: {
           created_at: string | null
@@ -395,6 +434,7 @@ export type Database = {
           estimated_revenue: number | null
           external_assets_links: Json | null
           external_gallery_link: string | null
+          google_calendar_event_id: string | null
           id: string
           location: string | null
           location_map_embed: string | null
@@ -417,6 +457,7 @@ export type Database = {
           estimated_revenue?: number | null
           external_assets_links?: Json | null
           external_gallery_link?: string | null
+          google_calendar_event_id?: string | null
           id?: string
           location?: string | null
           location_map_embed?: string | null
@@ -439,6 +480,7 @@ export type Database = {
           estimated_revenue?: number | null
           external_assets_links?: Json | null
           external_gallery_link?: string | null
+          google_calendar_event_id?: string | null
           id?: string
           location?: string | null
           location_map_embed?: string | null
@@ -643,6 +685,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          type: string | null
           updated_at: string
           user_id: string
         }
@@ -653,6 +696,7 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
+          type?: string | null
           updated_at?: string
           user_id: string
         }
@@ -663,6 +707,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          type?: string | null
           updated_at?: string
           user_id?: string
         }
