@@ -1,183 +1,220 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useJobs } from "@/hooks/useJobs";
-import { useLeads } from "@/hooks/useLeads";
-import { usePayments } from "@/hooks/usePayments";
-import { useResources } from "@/hooks/useResources";
-import { AlertCircle, Clock, DollarSign, Wrench, TrendingUp, Calendar } from "lucide-react";
-import { differenceInDays, differenceInHours, parseISO } from "date-fns";
-import { format } from "date-fns";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Bell, Check, CheckCheck, AlertCircle, Calendar, DollarSign, Wrench, Briefcase, TrendingUp } from "lucide-react";
+import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useUnreadNotificationsCount } from "@/hooks/useNotifications";
+import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
-import { useNavigate } from "react-router-dom";
+
+const notificationIcons = {
+  job_reminder: Calendar,
+  lead_followup: TrendingUp,
+  lead_follow_up: TrendingUp,
+  payment_overdue: DollarSign,
+  maintenance_due: Wrench,
+  maintenance_reminder: Wrench,
+  job_completed: Briefcase,
+  new_lead: TrendingUp,
+  default: AlertCircle,
+};
+
+const notificationColors = {
+  job_reminder: "text-blue-500",
+  lead_followup: "text-purple-500",
+  lead_follow_up: "text-purple-500",
+  payment_overdue: "text-red-500",
+  maintenance_due: "text-orange-500",
+  maintenance_reminder: "text-orange-500",
+  job_completed: "text-green-500",
+  new_lead: "text-indigo-500",
+  default: "text-muted-foreground",
+};
+
+const notificationTitles: Record<string, string> = {
+  job_reminder: "Lembrete de Job",
+  lead_followup: "Follow-up de Lead",
+  lead_follow_up: "Follow-up de Lead",
+  payment_overdue: "Pagamento Atrasado",
+  maintenance_due: "Manutenção Pendente",
+  maintenance_reminder: "Manutenção Pendente",
+  job_completed: "Job Concluído",
+  new_lead: "Novo Lead",
+};
 
 export function SmartNotificationPanel() {
-  const { data: jobs } = useJobs();
-  const { data: leads } = useLeads();
-  const { data: payments } = usePayments();
-  const { data: resources } = useResources();
-  const navigate = useNavigate();
+  const [filter, setFilter] = useState<"all" | "unread">("unread");
+  const { data: notifications, isLoading } = useNotifications();
+  const { data: unreadCount } = useUnreadNotificationsCount();
+  const markAsRead = useMarkNotificationAsRead();
+  const markAllAsRead = useMarkAllNotificationsAsRead();
 
-  const now = new Date();
-  const alerts: Array<{
-    id: string;
-    type: string;
-    priority: 'high' | 'medium' | 'low';
-    title: string;
-    message: string;
-    action?: () => void;
-    icon: any;
-    color: string;
-  }> = [];
-
-  // 1. Jobs starting in 24 hours
-  jobs?.forEach((job) => {
-    const startDate = parseISO(job.start_datetime);
-    const hoursUntil = differenceInHours(startDate, now);
-
-    if (hoursUntil > 0 && hoursUntil <= 24) {
-      alerts.push({
-        id: `job-${job.id}`,
-        type: 'job_reminder',
-        priority: 'high',
-        title: 'Job começando em breve',
-        message: `"${job.title}" começa em ${hoursUntil}h`,
-        action: () => navigate('/jobs'),
-        icon: Calendar,
-        color: 'text-red-600',
-      });
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await markAsRead.mutateAsync(notificationId);
+    } catch (error) {
+      toast.error("Erro ao marcar como lida");
     }
-  });
+  };
 
-  // 2. Leads without follow-up for 3+ days
-  leads?.forEach((lead) => {
-    if (lead.status === 'new' || lead.status === 'contacted') {
-      const createdDate = parseISO(lead.created_at);
-      const daysSince = differenceInDays(now, createdDate);
-
-      if (daysSince >= 3) {
-        alerts.push({
-          id: `lead-${lead.id}`,
-          type: 'lead_follow_up',
-          priority: 'medium',
-          title: 'Lead sem follow-up',
-          message: `${lead.clients?.name || 'Lead'} há ${daysSince} dias sem contacto`,
-          action: () => navigate('/leads'),
-          icon: TrendingUp,
-          color: 'text-orange-600',
-        });
-      }
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead.mutateAsync();
+      toast.success("Todas as notificações marcadas como lidas");
+    } catch (error) {
+      toast.error("Erro ao marcar todas como lidas");
     }
-  });
+  };
 
-  // 3. Overdue payments
-  payments?.forEach((payment) => {
-    if (payment.status === 'pending' && payment.created_at) {
-      const createdDate = parseISO(payment.created_at);
-      const daysSince = differenceInDays(now, createdDate);
+  const filteredNotifications = notifications?.filter(n => 
+    filter === "all" ? true : !n.read
+  ) || [];
 
-      if (daysSince >= 7) {
-        alerts.push({
-          id: `payment-${payment.id}`,
-          type: 'payment_overdue',
-          priority: 'high',
-          title: 'Pagamento atrasado',
-          message: `${payment.clients?.name} - ${daysSince} dias de atraso`,
-          action: () => navigate('/payments'),
-          icon: DollarSign,
-          color: 'text-red-600',
-        });
-      }
-    }
-  });
-
-  // 4. Equipment maintenance due
-  resources?.forEach((resource) => {
-    if (resource.next_maintenance_date) {
-      const maintenanceDate = parseISO(resource.next_maintenance_date);
-      const daysUntil = differenceInDays(maintenanceDate, now);
-
-      if (daysUntil >= 0 && daysUntil <= 7) {
-        alerts.push({
-          id: `resource-${resource.id}`,
-          type: 'maintenance_reminder',
-          priority: daysUntil <= 2 ? 'high' : 'medium',
-          title: 'Manutenção de equipamento',
-          message: `"${resource.name}" em ${daysUntil} dias`,
-          action: () => navigate('/resources'),
-          icon: Wrench,
-          color: daysUntil <= 2 ? 'text-red-600' : 'text-orange-600',
-        });
-      }
-    }
-  });
-
-  // Sort by priority
-  const sortedAlerts = alerts.sort((a, b) => {
-    const priorityOrder = { high: 0, medium: 1, low: 2 };
-    return priorityOrder[a.priority] - priorityOrder[b.priority];
-  });
-
-  if (sortedAlerts.length === 0) {
+  if (isLoading) {
     return (
-      <Card className="p-6 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 mx-auto text-green-600 mb-3" />
-          <p className="font-semibold text-foreground">Tudo em ordem! ✅</p>
-          <p className="text-sm text-muted-foreground mt-1">Nenhuma ação urgente necessária</p>
-        </div>
+      <Card className="p-6">
+        <div className="text-center py-4 text-muted-foreground">Carregando notificações...</div>
       </Card>
     );
   }
 
+  // Don't show empty panel if no unread notifications
+  if (filter === "unread" && filteredNotifications.length === 0) {
+    return null;
+  }
+
   return (
     <Card className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <AlertCircle className="h-5 w-5 text-orange-600" />
-        <div>
-          <h3 className="text-lg font-semibold">Ações Necessárias</h3>
-          <p className="text-sm text-muted-foreground">{sortedAlerts.length} alertas ativos</p>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Bell className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-semibold text-foreground">Notificações</h2>
+          {unreadCount && unreadCount > 0 && (
+            <Badge variant="destructive" className="rounded-full">
+              {unreadCount}
+            </Badge>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border border-border p-1">
+            <Button
+              variant={filter === "all" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setFilter("all")}
+            >
+              Todas
+            </Button>
+            <Button
+              variant={filter === "unread" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setFilter("unread")}
+            >
+              Não lidas
+            </Button>
+          </div>
+
+          {unreadCount && unreadCount > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleMarkAllAsRead}
+              disabled={markAllAsRead.isPending}
+            >
+              <CheckCheck className="h-4 w-4 mr-2" />
+              Marcar lidas
+            </Button>
+          )}
         </div>
       </div>
 
-      <div className="space-y-3">
-        {sortedAlerts.map((alert) => (
-          <Card
-            key={alert.id}
-            className={`p-4 ${
-              alert.priority === 'high' ? 'border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20' :
-              alert.priority === 'medium' ? 'border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-950/20' :
-              'border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20'
-            }`}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3 flex-1">
-                <alert.icon className={`h-5 w-5 ${alert.color} mt-0.5`} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-sm text-foreground">{alert.title}</p>
-                    <Badge variant={
-                      alert.priority === 'high' ? 'destructive' :
-                      alert.priority === 'medium' ? 'warning' :
-                      'secondary'
-                    } className="text-xs">
-                      {alert.priority === 'high' ? '🔴 Urgente' :
-                       alert.priority === 'medium' ? '🟠 Atenção' :
-                       '🔵 Info'}
-                    </Badge>
+      <ScrollArea className="h-[400px] pr-4">
+        <div className="space-y-3">
+          {filteredNotifications.length > 0 ? (
+            filteredNotifications.map((notification) => {
+              const Icon = notificationIcons[notification.type as keyof typeof notificationIcons] || notificationIcons.default;
+              const iconColor = notificationColors[notification.type as keyof typeof notificationColors] || notificationColors.default;
+              const title = notificationTitles[notification.type] || "Notificação";
+              const payload = notification.payload as any;
+
+              return (
+                <Card
+                  key={notification.id}
+                  className={`p-4 transition-all hover:shadow-md ${
+                    notification.read ? "bg-muted/20" : "bg-primary/5 border-primary/20"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className={`p-2 rounded-lg bg-muted/50 ${iconColor}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-foreground text-sm">
+                            {title}
+                          </h3>
+                          {!notification.read && (
+                            <Badge variant="default" className="h-5 px-2 text-xs">
+                              Nova
+                            </Badge>
+                          )}
+                        </div>
+
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {payload?.message || payload?.title || "Sem mensagem"}
+                        </p>
+
+                        {payload?.entity_name && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="font-medium">{payload.entity_name}</span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                          <span>
+                            {formatDistanceToNow(new Date(notification.created_at), {
+                              addSuffix: true,
+                              locale: pt,
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {!notification.read && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleMarkAsRead(notification.id)}
+                        disabled={markAsRead.isPending}
+                        title="Marcar como lida"
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{alert.message}</p>
-                </div>
-              </div>
-              {alert.action && (
-                <Button size="sm" variant="outline" onClick={alert.action}>
-                  Ver
-                </Button>
-              )}
+                </Card>
+              );
+            })
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="font-medium mb-1">
+                {filter === "unread" ? "Nenhuma notificação não lida" : "Nenhuma notificação"}
+              </p>
+              <p className="text-sm">
+                {filter === "unread"
+                  ? "Você está em dia com todas as notificações"
+                  : "Notificações aparecerão aqui quando houver atualizações"}
+              </p>
             </div>
-          </Card>
-        ))}
-      </div>
+          )}
+        </div>
+      </ScrollArea>
     </Card>
   );
 }

@@ -1,20 +1,18 @@
 import { Card } from "@/components/ui/card";
-import { 
-  TrendingUp, 
-  Users, 
-  Briefcase, 
-  DollarSign,
-  Calendar,
-  AlertCircle,
-  Info
-} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { SmartNotificationPanel } from "@/components/SmartNotificationPanel";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { useJobs } from "@/hooks/useJobs";
+import { usePayments } from "@/hooks/usePayments";
 import { useLeads } from "@/hooks/useLeads";
 import { useClients } from "@/hooks/useClients";
-import { usePayments } from "@/hooks/usePayments";
+import { Briefcase, DollarSign, TrendingUp, Users, Calendar, AlertCircle, Info } from "lucide-react";
+import { Link } from "react-router-dom";
+import { format, isAfter, isBefore, addDays, startOfDay } from "date-fns";
+import { pt } from "date-fns/locale";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { SmartNotificationPanel } from "@/components/SmartNotificationPanel";
+import { useNotificationAutomation } from "@/hooks/useNotificationAutomation";
 
 const statusColors = {
   confirmed: "success",
@@ -29,6 +27,9 @@ export default function Dashboard() {
   const { data: leads, isLoading: leadsLoading } = useLeads();
   const { data: clients, isLoading: clientsLoading } = useClients();
   const { data: payments, isLoading: paymentsLoading } = usePayments();
+  
+  // Initialize notification automation
+  useNotificationAutomation();
 
   const upcomingJobs = jobs?.filter(j => j.status === 'confirmed' || j.status === 'scheduled').slice(0, 3) || [];
   const displayedLeads = leads?.slice(0, 3) || [];
