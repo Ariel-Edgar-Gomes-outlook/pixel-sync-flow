@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle, Download, CreditCard, Briefcase } from "lucide-react";
 import { useQuotes, useUpdateQuote } from "@/hooks/useQuotes";
 import { useCreateJob } from "@/hooks/useJobs";
@@ -11,6 +12,7 @@ import { QuoteDialog } from "@/components/QuoteDialog";
 import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
 import { exportToExcel, formatQuotesForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const statusConfig = {
   draft: { label: "Rascunho", variant: "secondary" as const },
@@ -20,6 +22,7 @@ const statusConfig = {
 };
 
 export default function Quotes() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedQuote, setSelectedQuote] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -51,15 +54,25 @@ export default function Quotes() {
 
   const handleConvertToJob = async (quote: any) => {
     try {
-      // Criar job com dados do orçamento
+      // Preparar descrição detalhada com itens do orçamento
+      let itemsDescription = '';
+      if (quote.items && Array.isArray(quote.items)) {
+        itemsDescription = '\n\nItens do Orçamento:\n' + 
+          quote.items.map((item: any, idx: number) => 
+            `${idx + 1}. ${item.description || item.name} - ${item.quantity || 1}x ${Number(item.price || 0).toFixed(2)} ${quote.currency || 'AOA'}`
+          ).join('\n');
+      }
+
       const jobData = {
         client_id: quote.client_id,
-        title: `Job - ${quote.clients?.name || 'Cliente'}`,
-        type: 'Serviço',
+        title: `${quote.clients?.name || 'Cliente'} - ${quote.items?.[0]?.description || 'Serviço'}`,
+        type: quote.items?.[0]?.category || 'Fotografia',
         status: 'confirmed' as const,
         start_datetime: new Date().toISOString(),
         estimated_revenue: quote.total,
-        description: `Convertido do orçamento #${quote.id.substring(0, 8)}`,
+        estimated_cost: quote.total * 0.3, // Estimativa de 30% de custo
+        description: `Orçamento #${quote.id.substring(0, 8)} aceito em ${new Date(quote.accepted_at).toLocaleDateString('pt-PT')}\n\nValor Total: ${Number(quote.total).toFixed(2)} ${quote.currency || 'AOA'}${itemsDescription}`,
+        tags: ['orçamento-convertido'],
       };
 
       const newJob = await createJob.mutateAsync(jobData);
@@ -71,8 +84,15 @@ export default function Quotes() {
       });
 
       toast.success("Job criado com sucesso!", {
-        description: "O orçamento foi convertido em um job.",
+        description: "Navegando para o job...",
+        action: {
+          label: "Ver Job",
+          onClick: () => navigate('/jobs'),
+        },
       });
+
+      // Navegar para página de jobs após 1.5s
+      setTimeout(() => navigate('/jobs'), 1500);
     } catch (error: any) {
       toast.error("Erro ao converter", {
         description: error.message,
@@ -281,16 +301,56 @@ export default function Quotes() {
                         <span>Editar</span>
                       </Button>
                       {quote.status === 'accepted' && !quote.job_id && (
-                        <Button 
-                          variant="default" 
-                          size="sm" 
-                          className="gap-2"
-                          onClick={() => handleConvertToJob(quote)}
-                          disabled={createJob.isPending}
-                        >
-                          <Briefcase className="h-4 w-4" />
-                          <span>Converter em Job</span>
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              className="gap-2"
+                              disabled={createJob.isPending}
+                            >
+                              <Briefcase className="h-4 w-4" />
+                              <span>Converter em Job</span>
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Converter Orçamento em Job?</AlertDialogTitle>
+                              <AlertDialogDescription className="space-y-3">
+                                <p>Será criado um novo job com os seguintes dados:</p>
+                                <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
+                                  <div><strong>Cliente:</strong> {quote.clients?.name}</div>
+                                  <div><strong>Valor:</strong> {Number(quote.total).toFixed(2)} {quote.currency || 'AOA'}</div>
+                                  <div><strong>Status:</strong> Confirmado</div>
+                                  {quote.items && Array.isArray(quote.items) && quote.items.length > 0 && (
+                                    <div>
+                                      <strong>Itens:</strong>
+                                      <ul className="list-disc list-inside mt-1">
+                                        {quote.items.slice(0, 3).map((item: any, idx: number) => (
+                                          <li key={idx}>{item.description || item.name}</li>
+                                        ))}
+                                        {quote.items.length > 3 && <li>... e mais {quote.items.length - 3} itens</li>}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
+                                <p className="text-muted-foreground">O orçamento ficará vinculado ao job criado.</p>
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleConvertToJob(quote)}>
+                                Confirmar Conversão
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                      {quote.job_id && (
+                        <Badge variant="secondary" className="gap-1">
+                          <Briefcase className="h-3 w-3" />
+                          Job Criado
+                        </Badge>
                       )}
                       <Button 
                         variant="outline" 
