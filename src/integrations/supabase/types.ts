@@ -47,6 +47,111 @@ export type Database = {
         }
         Relationships: []
       }
+      business_settings: {
+        Row: {
+          account_holder: string | null
+          address_line1: string | null
+          address_line2: string | null
+          bank_name: string | null
+          business_name: string
+          city: string | null
+          country: string | null
+          created_at: string | null
+          email: string
+          iban: string | null
+          id: string
+          invoice_prefix: string | null
+          legal_representative_name: string | null
+          legal_representative_title: string | null
+          logo_url: string | null
+          next_invoice_number: number | null
+          next_proforma_number: number | null
+          nif: string | null
+          payment_terms: string | null
+          phone: string | null
+          postal_code: string | null
+          primary_color: string | null
+          proforma_prefix: string | null
+          province: string | null
+          secondary_color: string | null
+          signature_url: string | null
+          terms_footer: string | null
+          trade_name: string | null
+          updated_at: string | null
+          user_id: string
+          website: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          account_holder?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          bank_name?: string | null
+          business_name: string
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          email: string
+          iban?: string | null
+          id?: string
+          invoice_prefix?: string | null
+          legal_representative_name?: string | null
+          legal_representative_title?: string | null
+          logo_url?: string | null
+          next_invoice_number?: number | null
+          next_proforma_number?: number | null
+          nif?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          primary_color?: string | null
+          proforma_prefix?: string | null
+          province?: string | null
+          secondary_color?: string | null
+          signature_url?: string | null
+          terms_footer?: string | null
+          trade_name?: string | null
+          updated_at?: string | null
+          user_id: string
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          account_holder?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          bank_name?: string | null
+          business_name?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string
+          iban?: string | null
+          id?: string
+          invoice_prefix?: string | null
+          legal_representative_name?: string | null
+          legal_representative_title?: string | null
+          logo_url?: string | null
+          next_invoice_number?: number | null
+          next_proforma_number?: number | null
+          nif?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          primary_color?: string | null
+          proforma_prefix?: string | null
+          province?: string | null
+          secondary_color?: string | null
+          signature_url?: string | null
+          terms_footer?: string | null
+          trade_name?: string | null
+          updated_at?: string | null
+          user_id?: string
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       calendar_integrations: {
         Row: {
           access_token: string | null

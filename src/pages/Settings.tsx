@@ -8,10 +8,11 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
-import { Settings as SettingsIcon, User, Bell, Shield, Activity, Moon, Sun } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, Activity, Moon, Sun, Building2 } from "lucide-react";
 import { AuditLogViewer } from "@/components/AuditLogViewer";
 import { GoogleCalendarIntegration } from "@/components/GoogleCalendarIntegration";
 import { NotificationSettings } from "@/components/NotificationSettings";
+import { BusinessSettingsForm } from "@/components/BusinessSettingsForm";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
@@ -68,8 +69,9 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-7">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
+          <TabsTrigger value="business">Empresa</TabsTrigger>
           <TabsTrigger value="notifications">Notificações</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
           <TabsTrigger value="preferences">Preferências</TabsTrigger>
@@ -126,6 +128,19 @@ export default function Settings() {
           </div>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="business" className="mt-6">
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <Building2 className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-semibold text-foreground">Configurações Empresariais</h2>
+            </div>
+            <p className="text-sm text-muted-foreground mb-6">
+              Configure os dados da sua empresa para emitir faturas e contratos profissionais
+            </p>
+            <BusinessSettingsForm />
+          </Card>
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-6">
