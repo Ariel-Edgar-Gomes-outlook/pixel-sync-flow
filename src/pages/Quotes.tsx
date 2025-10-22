@@ -300,19 +300,33 @@ export default function Quotes() {
                         <Pencil className="h-4 w-4" />
                         <span>Editar</span>
                       </Button>
-                      {quote.status === 'accepted' && !quote.job_id && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="default" 
-                              size="sm" 
-                              className="gap-2"
-                              disabled={createJob.isPending}
-                            >
-                              <Briefcase className="h-4 w-4" />
-                              <span>Converter em Job</span>
-                            </Button>
-                          </AlertDialogTrigger>
+                      {quote.status === 'accepted' && (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-2"
+                            onClick={() => {
+                              // Navigate to invoices with quote pre-selected
+                              navigate('/invoices?from_quote=' + quote.id);
+                            }}
+                          >
+                            <FileText className="h-4 w-4" />
+                            <span>Fatura</span>
+                          </Button>
+                          {!quote.job_id && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  variant="default" 
+                                  size="sm" 
+                                  className="gap-2"
+                                  disabled={createJob.isPending}
+                                >
+                                  <Briefcase className="h-4 w-4" />
+                                  <span>Job</span>
+                                </Button>
+                              </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Converter Orçamento em Job?</AlertDialogTitle>
@@ -345,6 +359,8 @@ export default function Quotes() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
+                          )}
+                        </>
                       )}
                       {quote.job_id && (
                         <Badge variant="secondary" className="gap-1">

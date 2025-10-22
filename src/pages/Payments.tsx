@@ -20,6 +20,7 @@ export default function Payments() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   const { data: payments, isLoading } = usePayments();
 
   const handleEdit = (payment: Payment) => {
@@ -257,10 +258,15 @@ export default function Payments() {
         </>
       )}
 
-      <PaymentDialog
-        payment={selectedPayment}
-        open={isDialogOpen}
+      <PaymentDialog 
+        payment={selectedPayment} 
+        open={isDialogOpen} 
         onOpenChange={handleOpenChange}
+      />
+      
+      <PaymentReceiptDialog
+        open={isReceiptDialogOpen}
+        onOpenChange={setIsReceiptDialogOpen}
       />
     </div>
   );

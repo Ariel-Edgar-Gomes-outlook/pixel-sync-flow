@@ -612,6 +612,7 @@ export type Database = {
           issue_date: string
           items: Json
           job_id: string | null
+          last_payment_date: string | null
           notes: string | null
           paid_date: string | null
           payment_instructions: string | null
@@ -638,6 +639,7 @@ export type Database = {
           issue_date?: string
           items?: Json
           job_id?: string | null
+          last_payment_date?: string | null
           notes?: string | null
           paid_date?: string | null
           payment_instructions?: string | null
@@ -664,6 +666,7 @@ export type Database = {
           issue_date?: string
           items?: Json
           job_id?: string | null
+          last_payment_date?: string | null
           notes?: string | null
           paid_date?: string | null
           payment_instructions?: string | null
@@ -1023,6 +1026,7 @@ export type Database = {
           currency: string | null
           due_date: string | null
           id: string
+          invoice_id: string | null
           method: string | null
           notes: string | null
           paid_at: string | null
@@ -1041,6 +1045,7 @@ export type Database = {
           currency?: string | null
           due_date?: string | null
           id?: string
+          invoice_id?: string | null
           method?: string | null
           notes?: string | null
           paid_at?: string | null
@@ -1059,6 +1064,7 @@ export type Database = {
           currency?: string | null
           due_date?: string | null
           id?: string
+          invoice_id?: string | null
           method?: string | null
           notes?: string | null
           paid_at?: string | null
@@ -1076,6 +1082,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
           {

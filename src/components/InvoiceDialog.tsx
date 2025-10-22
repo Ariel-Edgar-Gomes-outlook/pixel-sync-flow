@@ -31,6 +31,7 @@ import { useCreateInvoice, useUpdateInvoice } from '@/hooks/useInvoices';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { generateInvoicePDF } from '@/lib/professionalPdfGenerator';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Trash2, FileText } from 'lucide-react';
 
@@ -190,6 +191,19 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
         await updateInvoice.mutateAsync({ id: invoice.id, ...invoiceData });
       } else {
         const newInvoice = await createInvoice.mutateAsync(invoiceData);
+        
+        // Increment invoice number in business_settings
+        if (businessSettings) {
+          const field = data.is_proforma ? 'next_proforma_number' : 'next_invoice_number';
+          const nextNumber = data.is_proforma 
+            ? businessSettings.next_proforma_number + 1 
+            : businessSettings.next_invoice_number + 1;
+          
+          await supabase
+            .from('business_settings')
+            .update({ [field]: nextNumber })
+            .eq('user_id', user.id);
+        }
         
         // Generate PDF after creating
         const pdfUrl = await handleGeneratePDF({ ...newInvoice, ...invoiceData });
@@ -499,12 +513,16 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                   variant="outline"
                   onClick={() => handleGeneratePDF(invoice)}
                   disabled={isGeneratingPDF}
+                  className="gap-2"
                 >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Gerar PDF
+                  <FileText className="h-4 w-4" />
+                  {isGeneratingPDF ? 'Gerando...' : 'Gerar PDF'}
                 </Button>
               )}
-              <Button type="submit" disabled={createInvoice.isPending || updateInvoice.isPending}>
+              <Button
+                type="submit"
+                disabled={createInvoice.isPending || updateInvoice.isPending || isGeneratingPDF}
+              >
                 {invoice ? 'Atualizar' : 'Criar Fatura'}
               </Button>
             </div>

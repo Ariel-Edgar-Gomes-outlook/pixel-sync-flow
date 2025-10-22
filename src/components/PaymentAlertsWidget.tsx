@@ -1,124 +1,146 @@
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { usePayments } from "@/hooks/usePayments";
-import { AlertTriangle, Clock, DollarSign } from "lucide-react";
-import { Link } from "react-router-dom";
-
-interface Client {
-  name: string;
-}
-
-interface Payment {
-  id: string;
-  amount: number;
-  status: string;
-  due_date: string | null;
-  clients?: Client;
-}
+import { useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { AlertTriangle, Clock, ArrowRight } from 'lucide-react';
+import { useInvoices } from '@/hooks/useInvoices';
+import { useNavigate } from 'react-router-dom';
 
 export function PaymentAlertsWidget() {
-  const { data: payments } = usePayments();
+  const { data: invoices } = useInvoices();
+  const navigate = useNavigate();
 
-  const today = new Date();
-  
-  // Pagamentos vencidos
-  const overduePayments = payments?.filter(
-    p => p.status === 'pending' && p.due_date && new Date(p.due_date) < today
-  ) || [];
+  const { overdueInvoices, upcomingInvoices, totalOverdue, totalUpcoming } = useMemo(() => {
+    if (!invoices) return { overdueInvoices: [], upcomingInvoices: [], totalOverdue: 0, totalUpcoming: 0 };
 
-  // Pagamentos vencendo nos próximos 7 dias
-  const upcomingPayments = payments?.filter(p => {
-    if (p.status !== 'pending' || !p.due_date) return false;
-    const dueDate = new Date(p.due_date);
-    const daysUntilDue = Math.floor((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return daysUntilDue >= 0 && daysUntilDue <= 7;
-  }) || [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const sevenDaysFromNow = new Date(today);
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
 
-  const totalOverdue = overduePayments.reduce((sum, p) => sum + Number(p.amount), 0);
-  const totalUpcoming = upcomingPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const overdue = invoices.filter(inv => {
+      if (inv.status === 'paid' || inv.status === 'cancelled' || !inv.due_date) return false;
+      const dueDate = new Date(inv.due_date);
+      dueDate.setHours(0, 0, 0, 0);
+      return dueDate < today;
+    });
 
-  // Não mostrar se não houver alertas
-  if (overduePayments.length === 0 && upcomingPayments.length === 0) {
+    const upcoming = invoices.filter(inv => {
+      if (inv.status === 'paid' || inv.status === 'cancelled' || !inv.due_date) return false;
+      const dueDate = new Date(inv.due_date);
+      dueDate.setHours(0, 0, 0, 0);
+      return dueDate >= today && dueDate <= sevenDaysFromNow;
+    });
+
+    const totalOverdue = overdue.reduce((sum, inv) => sum + (inv.total - (inv.amount_paid || 0)), 0);
+    const totalUpcoming = upcoming.reduce((sum, inv) => sum + (inv.total - (inv.amount_paid || 0)), 0);
+
+    return {
+      overdueInvoices: overdue.slice(0, 3),
+      upcomingInvoices: upcoming.slice(0, 3),
+      totalOverdue,
+      totalUpcoming,
+    };
+  }, [invoices]);
+
+  if (overdueInvoices.length === 0 && upcomingInvoices.length === 0) {
     return null;
   }
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <DollarSign className="h-5 w-5 text-primary" />
-        <h2 className="text-lg font-semibold">Alertas de Pagamento</h2>
-      </div>
-
-      <div className="space-y-4">
-        {/* Pagamentos Vencidos */}
-        {overduePayments.length > 0 && (
-          <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-medium text-destructive mb-1">
-                  {overduePayments.length} Pagamento(s) Vencido(s)
-                </p>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Total: {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(totalOverdue)}
-                </p>
-                <div className="space-y-2">
-                  {overduePayments.slice(0, 3).map(payment => {
-                    const daysOverdue = Math.floor((today.getTime() - new Date(payment.due_date!).getTime()) / (1000 * 60 * 60 * 24));
-                    return (
-                      <div key={payment.id} className="flex items-center justify-between text-sm">
-                        <span className="text-foreground">
-                          {payment.clients?.name} - {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(Number(payment.amount))}
-                        </span>
-                        <Badge variant="destructive" className="text-xs">
-                          {daysOverdue} dia(s) atrás
-                        </Badge>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+    <Card className="border-destructive/50">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <AlertTriangle className="h-5 w-5 text-destructive" />
+          Alertas de Pagamento
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {overdueInvoices.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-sm flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                Faturas Vencidas ({overdueInvoices.length})
+              </h4>
+              <span className="text-sm font-bold text-destructive">
+                {totalOverdue.toFixed(2)} AOA
+              </span>
+            </div>
+            <div className="space-y-2">
+              {overdueInvoices.map((invoice) => {
+                const daysOverdue = Math.floor(
+                  (new Date().getTime() - new Date(invoice.due_date!).getTime()) / (1000 * 60 * 60 * 24)
+                );
+                return (
+                  <div
+                    key={invoice.id}
+                    className="flex items-center justify-between p-2 rounded-lg bg-destructive/5 border border-destructive/20"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{invoice.clients?.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {invoice.invoice_number} • Vencida há {daysOverdue} dias
+                      </p>
+                    </div>
+                    <Badge variant="destructive" className="ml-2">
+                      {Number(invoice.total - (invoice.amount_paid || 0)).toFixed(2)} AOA
+                    </Badge>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* Pagamentos Próximos */}
-        {upcomingPayments.length > 0 && (
-          <div className="p-4 rounded-lg bg-warning/10 border border-warning/20">
-            <div className="flex items-start gap-3">
-              <Clock className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-medium text-warning mb-1">
-                  {upcomingPayments.length} Pagamento(s) Vencendo em Breve
-                </p>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Total: {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(totalUpcoming)}
-                </p>
-                <div className="space-y-2">
-                  {upcomingPayments.slice(0, 3).map(payment => {
-                    const daysUntilDue = Math.floor((new Date(payment.due_date!).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                    return (
-                      <div key={payment.id} className="flex items-center justify-between text-sm">
-                        <span className="text-foreground">
-                          {payment.clients?.name} - {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(Number(payment.amount))}
-                        </span>
-                        <Badge variant="secondary" className="text-xs">
-                          {daysUntilDue} dia(s)
-                        </Badge>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+        {upcomingInvoices.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-sm flex items-center gap-2">
+                <Clock className="h-4 w-4 text-warning" />
+                Vencimento Próximo ({upcomingInvoices.length})
+              </h4>
+              <span className="text-sm font-bold text-warning">
+                {totalUpcoming.toFixed(2)} AOA
+              </span>
+            </div>
+            <div className="space-y-2">
+              {upcomingInvoices.map((invoice) => {
+                const daysUntilDue = Math.ceil(
+                  (new Date(invoice.due_date!).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+                );
+                return (
+                  <div
+                    key={invoice.id}
+                    className="flex items-center justify-between p-2 rounded-lg bg-warning/5 border border-warning/20"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{invoice.clients?.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {invoice.invoice_number} • Vence em {daysUntilDue} dias
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="ml-2 border-warning text-warning">
+                      {Number(invoice.total - (invoice.amount_paid || 0)).toFixed(2)} AOA
+                    </Badge>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
 
-        <Button asChild className="w-full" variant="outline">
-          <Link to="/payments">Ver Todos os Pagamentos</Link>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full gap-2"
+          onClick={() => navigate('/invoices')}
+        >
+          Ver Todas as Faturas
+          <ArrowRight className="h-4 w-4" />
         </Button>
-      </div>
+      </CardContent>
     </Card>
   );
 }
