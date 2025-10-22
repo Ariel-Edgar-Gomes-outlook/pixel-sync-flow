@@ -174,6 +174,14 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
         return;
       }
 
+      // Validate business settings before proceeding
+      if (!businessSettings) {
+        toast.error('Por favor, configure seus dados empresariais antes de criar faturas', {
+          description: 'Acesse Configurações > Dados da Empresa'
+        });
+        return;
+      }
+
       const invoiceNumber = invoice 
         ? invoice.invoice_number 
         : await getNextInvoiceNumber(data.is_proforma);
@@ -508,16 +516,29 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                 Cancelar
               </Button>
               {invoice && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleGeneratePDF(invoice)}
-                  disabled={isGeneratingPDF}
-                  className="gap-2"
-                >
-                  <FileText className="h-4 w-4" />
-                  {isGeneratingPDF ? 'Gerando...' : 'Gerar PDF'}
-                </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isGeneratingPDF}
+                onClick={async () => {
+                  setIsGeneratingPDF(true);
+                  try {
+                    const pdfUrl = await handleGeneratePDF(invoice);
+                    if (pdfUrl) {
+                      await updateInvoice.mutateAsync({ id: invoice.id, pdf_url: pdfUrl });
+                      toast.success('PDF regenerado com sucesso!');
+                    }
+                  } catch (error) {
+                    console.error('Error regenerating PDF:', error);
+                    toast.error('Erro ao regenerar PDF');
+                  } finally {
+                    setIsGeneratingPDF(false);
+                  }
+                }}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Regenerar PDF
+              </Button>
               )}
               <Button
                 type="submit"

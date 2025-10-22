@@ -74,13 +74,19 @@ export class ProfessionalPDFGenerator {
     }
   }
 
-  private addHeader(invoiceData: InvoiceData) {
+  private async addHeader(invoiceData: InvoiceData) {
     const startY = this.margin;
 
     // Add logo if available
     if (this.businessSettings.logo_url) {
-      // Logo will be added asynchronously
-      this.doc.text('', this.margin, startY);
+      try {
+        const logoData = await this.loadImage(this.businessSettings.logo_url);
+        if (logoData) {
+          this.doc.addImage(logoData, 'PNG', this.margin, startY, 30, 30);
+        }
+      } catch (error) {
+        console.error('Error loading logo:', error);
+      }
     }
 
     // Company name and details
@@ -336,7 +342,7 @@ export class ProfessionalPDFGenerator {
   }
 
   async generateInvoice(invoiceData: InvoiceData): Promise<string> {
-    let currentY = this.addHeader(invoiceData);
+    let currentY = await this.addHeader(invoiceData);
     currentY = this.addClientInfo(invoiceData, currentY + 10);
     currentY = this.addItemsTable(invoiceData, currentY + 5);
     currentY = this.addTotalsSection(invoiceData, currentY);

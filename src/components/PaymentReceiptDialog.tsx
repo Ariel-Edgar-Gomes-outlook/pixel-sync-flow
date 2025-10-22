@@ -117,9 +117,10 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
         savedPayment = await createPayment.mutateAsync(paymentData);
       }
 
-      // Update invoice amount_paid and status
+      // Update invoice amount_paid - handle both new and edited payments
       if (selectedInvoice) {
-        const newAmountPaid = (selectedInvoice.amount_paid || 0) + data.amount;
+        const oldPaymentAmount = payment ? (payment.amount || 0) : 0;
+        const newAmountPaid = (selectedInvoice.amount_paid || 0) - oldPaymentAmount + data.amount;
         const newStatus = newAmountPaid >= selectedInvoice.total ? 'paid' : 'partial';
 
         await updateInvoice.mutateAsync({

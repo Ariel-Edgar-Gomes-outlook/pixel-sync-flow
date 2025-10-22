@@ -131,16 +131,16 @@ export async function generateReceiptPDF(
   const fileName = `receipt_${payment.id}_${Date.now()}.pdf`;
   
   const { data, error } = await supabase.storage
-    .from('receipts')
+    .from('pdfs')
     .upload(fileName, pdfBlob, {
       contentType: 'application/pdf',
-      upsert: false,
+      upsert: true,
     });
   
   if (error) throw error;
   
   const { data: urlData } = supabase.storage
-    .from('receipts')
+    .from('pdfs')
     .getPublicUrl(fileName);
   
   return urlData.publicUrl;

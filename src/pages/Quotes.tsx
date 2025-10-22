@@ -1,18 +1,23 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle, Download, CreditCard, Briefcase } from "lucide-react";
+import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle, Download, CreditCard, Briefcase, Clock } from "lucide-react";
 import { useQuotes, useUpdateQuote } from "@/hooks/useQuotes";
 import { useCreateJob } from "@/hooks/useJobs";
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { useCreateInvoice } from '@/hooks/useInvoices';
+import { generateInvoicePDF } from '@/lib/professionalPdfGenerator';
 import { QuoteDialog } from "@/components/QuoteDialog";
 import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
 import { exportToExcel, formatQuotesForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 
 const statusConfig = {
   draft: { label: "Rascunho", variant: "secondary" as const },
@@ -30,9 +35,13 @@ export default function Quotes() {
   const [sortBy, setSortBy] = useState<"date" | "value">("date");
   const [paymentPlanQuote, setPaymentPlanQuote] = useState<any>(null);
   const [paymentPlanDialogOpen, setPaymentPlanDialogOpen] = useState(false);
+  
   const { data: quotes, isLoading } = useQuotes();
   const createJob = useCreateJob();
   const updateQuote = useUpdateQuote();
+  const createInvoice = useCreateInvoice();
+  const { user } = useAuth();
+  const { data: businessSettings } = useBusinessSettings(user?.id);
 
   const handleEdit = (quote: any) => {
     setSelectedQuote(quote);
@@ -52,9 +61,71 @@ export default function Quotes() {
     }
   };
 
+  const handleGenerateInvoice = async (quote: any) => {
+    try {
+      if (!businessSettings) {
+        toast.error('Configure seus dados empresariais antes de criar faturas');
+        return;
+      }
+
+      toast.loading('A criar fatura...');
+
+      const prefix = businessSettings.invoice_prefix || 'FT';
+      const nextNumber = businessSettings.next_invoice_number || 1;
+      const invoiceNumber = `${prefix}${String(nextNumber).padStart(4, '0')}/${new Date().getFullYear()}`;
+
+      const { data: client } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('id', quote.client_id)
+        .single();
+
+      if (!client) throw new Error('Cliente não encontrado');
+
+      const invoiceData = {
+        user_id: user?.id,
+        client_id: quote.client_id,
+        quote_id: quote.id,
+        invoice_number: invoiceNumber,
+        issue_date: new Date().toISOString().split('T')[0],
+        due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        items: quote.items,
+        subtotal: quote.total - (quote.tax || 0),
+        tax_rate: 14,
+        tax_amount: quote.tax || 0,
+        discount_amount: quote.discount || 0,
+        total: quote.total,
+        currency: quote.currency || 'AOA',
+        status: 'issued',
+        is_proforma: false,
+      };
+
+      const newInvoice = await createInvoice.mutateAsync(invoiceData);
+
+      const pdfUrl = await generateInvoicePDF(newInvoice, client, businessSettings);
+
+      await supabase
+        .from('invoices')
+        .update({ pdf_url: pdfUrl })
+        .eq('id', newInvoice.id);
+
+      await supabase
+        .from('business_settings')
+        .update({ next_invoice_number: nextNumber + 1 })
+        .eq('user_id', user?.id);
+
+      toast.dismiss();
+      toast.success('Fatura criada com sucesso!');
+      navigate(`/invoices`);
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      toast.dismiss();
+      toast.error('Erro ao criar fatura');
+    }
+  };
+
   const handleConvertToJob = async (quote: any) => {
     try {
-      // Preparar descrição detalhada com itens do orçamento
       let itemsDescription = '';
       if (quote.items && Array.isArray(quote.items)) {
         itemsDescription = '\n\nItens do Orçamento:\n' + 
@@ -70,14 +141,13 @@ export default function Quotes() {
         status: 'confirmed' as const,
         start_datetime: new Date().toISOString(),
         estimated_revenue: quote.total,
-        estimated_cost: quote.total * 0.3, // Estimativa de 30% de custo
+        estimated_cost: quote.total * 0.3,
         description: `Orçamento #${quote.id.substring(0, 8)} aceito em ${new Date(quote.accepted_at).toLocaleDateString('pt-PT')}\n\nValor Total: ${Number(quote.total).toFixed(2)} ${quote.currency || 'AOA'}${itemsDescription}`,
         tags: ['orçamento-convertido'],
       };
 
       const newJob = await createJob.mutateAsync(jobData);
 
-      // Atualizar orçamento linkando ao job
       await updateQuote.mutateAsync({
         id: quote.id,
         job_id: newJob.id,
@@ -91,7 +161,6 @@ export default function Quotes() {
         },
       });
 
-      // Navegar para página de jobs após 1.5s
       setTimeout(() => navigate('/jobs'), 1500);
     } catch (error: any) {
       toast.error("Erro ao converter", {
@@ -107,7 +176,6 @@ export default function Quotes() {
       return matchesSearch && matchesStatus;
     }) || [];
 
-    // Ordenação
     if (sortBy === "date") {
       filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     } else if (sortBy === "value") {
@@ -307,7 +375,6 @@ export default function Quotes() {
                             size="sm" 
                             className="gap-2"
                             onClick={() => {
-                              // Navigate to invoices with quote pre-selected
                               navigate('/invoices?from_quote=' + quote.id);
                             }}
                           >
