@@ -598,6 +598,109 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          amount_paid: number | null
+          client_id: string
+          created_at: string
+          currency: string | null
+          discount_amount: number | null
+          due_date: string | null
+          id: string
+          invoice_number: string
+          is_proforma: boolean | null
+          issue_date: string
+          items: Json
+          job_id: string | null
+          notes: string | null
+          paid_date: string | null
+          payment_instructions: string | null
+          pdf_url: string | null
+          quote_id: string | null
+          status: string | null
+          subtotal: number
+          tax_amount: number | null
+          tax_rate: number | null
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number | null
+          client_id: string
+          created_at?: string
+          currency?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          is_proforma?: boolean | null
+          issue_date?: string
+          items?: Json
+          job_id?: string | null
+          notes?: string | null
+          paid_date?: string | null
+          payment_instructions?: string | null
+          pdf_url?: string | null
+          quote_id?: string | null
+          status?: string | null
+          subtotal: number
+          tax_amount?: number | null
+          tax_rate?: number | null
+          total: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number | null
+          client_id?: string
+          created_at?: string
+          currency?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          is_proforma?: boolean | null
+          issue_date?: string
+          items?: Json
+          job_id?: string | null
+          notes?: string | null
+          paid_date?: string | null
+          payment_instructions?: string | null
+          pdf_url?: string | null
+          quote_id?: string | null
+          status?: string | null
+          subtotal?: number
+          tax_amount?: number | null
+          tax_rate?: number | null
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_resources: {
         Row: {
           created_at: string
