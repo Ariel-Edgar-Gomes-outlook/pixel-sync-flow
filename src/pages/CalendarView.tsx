@@ -175,7 +175,7 @@ export default function CalendarView() {
 
   const jobTypes = useMemo(() => {
     if (!jobs) return [];
-    return [...new Set(jobs.map(j => j.type))];
+    return [...new Set(jobs.map(j => j.type).filter(type => type && type.trim() !== ''))];
   }, [jobs]);
 
   if (isLoading) {
