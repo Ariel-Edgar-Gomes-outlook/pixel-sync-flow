@@ -3,11 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Calendar, Plus, AlertTriangle, Users, Package } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Calendar, Plus, AlertTriangle, Users, Package, Check } from "lucide-react";
 import { useJobs, useUpdateJob } from "@/hooks/useJobs";
 import { useState, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { JobDialog } from "@/components/JobDialog";
+import { GoogleCalendarIntegration } from "@/components/GoogleCalendarIntegration";
 import { toast } from "sonner";
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -15,17 +17,21 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function CalendarView() {
   const { data: jobs, isLoading } = useJobs();
   const updateJob = useUpdateJob();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isJobDialogOpen, setIsJobDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [showJobSheet, setShowJobSheet] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
+  const [showGoogleDialog, setShowGoogleDialog] = useState(false);
+  const [mobileView, setMobileView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'>('dayGridMonth');
 
   // Fetch resources to check conflicts
   const { data: jobResources } = useQuery({
@@ -48,6 +54,25 @@ export default function CalendarView() {
       if (error) throw error;
       return data;
     },
+  });
+
+  // Check Google Calendar integration status
+  const { data: googleIntegration } = useQuery({
+    queryKey: ['calendar_integration', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('calendar_integrations')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('provider', 'google')
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+    enabled: !!user?.id,
   });
 
   // Check for conflicts
@@ -202,12 +227,18 @@ export default function CalendarView() {
             {!isMobile && "Novo Job"}
           </Button>
           <Button 
-            variant="outline" 
-            className="gap-2 flex-1 sm:flex-none"
+            variant={googleIntegration ? "default" : "outline"}
+            className="gap-2 flex-1 sm:flex-none relative"
             size={isMobile ? "sm" : "default"}
+            onClick={() => setShowGoogleDialog(true)}
           >
+            {googleIntegration && (
+              <Badge variant="default" className="absolute -top-1 -right-1 h-5 w-5 p-0 bg-green-500 hover:bg-green-600">
+                <Check className="h-3 w-3" />
+              </Badge>
+            )}
             <Calendar className="h-4 w-4" />
-            {!isMobile && "Sincronizar Google"}
+            {!isMobile && (googleIntegration ? "Google Calendar" : "Conectar Google")}
           </Button>
         </div>
       </div>
@@ -246,11 +277,43 @@ export default function CalendarView() {
         </div>
       </Card>
 
+      {/* Mobile View Selector */}
+      {isMobile && (
+        <Card className="p-3">
+          <div className="flex gap-2">
+            <Button
+              variant={mobileView === 'dayGridMonth' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setMobileView('dayGridMonth')}
+              className="flex-1"
+            >
+              Mês
+            </Button>
+            <Button
+              variant={mobileView === 'timeGridWeek' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setMobileView('timeGridWeek')}
+              className="flex-1"
+            >
+              Semana
+            </Button>
+            <Button
+              variant={mobileView === 'timeGridDay' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setMobileView('timeGridDay')}
+              className="flex-1"
+            >
+              Dia
+            </Button>
+          </div>
+        </Card>
+      )}
+
       {/* Calendar */}
       <Card className="p-2 sm:p-6 overflow-hidden">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView={isMobile ? "timeGridDay" : "dayGridMonth"}
+          initialView={isMobile ? mobileView : "dayGridMonth"}
           headerToolbar={isMobile ? {
             left: 'prev,next',
             center: 'title',
@@ -260,21 +323,26 @@ export default function CalendarView() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
           }}
-          titleFormat={isMobile ? { month: 'short', day: 'numeric' } : { month: 'long', year: 'numeric' }}
+          titleFormat={isMobile 
+            ? (mobileView === 'dayGridMonth' 
+              ? { month: 'short', year: 'numeric' } 
+              : { month: 'short', day: 'numeric' })
+            : { month: 'long', year: 'numeric' }
+          }
           locale="pt"
           events={events}
           editable={!isMobile}
           droppable={!isMobile}
           selectable={true}
           selectMirror={true}
-          dayMaxEvents={true}
+          dayMaxEvents={isMobile && mobileView === 'dayGridMonth' ? 2 : true}
           weekends={true}
           eventDrop={handleEventDrop}
           eventClick={handleEventClick}
           select={handleDateSelect}
           height="auto"
-          contentHeight={isMobile ? 500 : "auto"}
-          aspectRatio={isMobile ? 1 : 1.35}
+          contentHeight={isMobile ? (mobileView === 'dayGridMonth' ? 400 : 500) : "auto"}
+          aspectRatio={isMobile ? (mobileView === 'dayGridMonth' ? 1.2 : 1) : 1.35}
           eventContent={(arg) => (
             <div className="p-1 text-xs overflow-hidden">
               {arg.event.extendedProps.hasConflict && (
@@ -378,6 +446,23 @@ export default function CalendarView() {
         onOpenChange={setIsJobDialogOpen}
         initialDate={selectedDate}
       />
+
+      {/* Google Calendar Integration Dialog */}
+      <Dialog open={showGoogleDialog} onOpenChange={setShowGoogleDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Integração com Google Calendar</DialogTitle>
+            <DialogDescription>
+              Sincronize seus jobs automaticamente com o Google Calendar
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            {user?.id && (
+              <GoogleCalendarIntegration userId={user.id} />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
