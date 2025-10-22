@@ -179,11 +179,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
             </TabsContent>
 
             <TabsContent value="deliverables" className="space-y-4 py-4">
-              <JobDeliverables 
-                jobId={job.id}
-                externalAssetsLinks={job.external_assets_links as string[] || []}
-                externalGalleryLink={job.external_gallery_link}
-              />
+              <JobDeliverables jobId={job.id} />
             </TabsContent>
 
             <TabsContent value="gallery" className="space-y-4 py-4">

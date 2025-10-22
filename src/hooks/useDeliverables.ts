@@ -6,13 +6,16 @@ export interface Deliverable {
   id: string;
   job_id: string;
   type: string;
-  file_url: string;
+  file_url: string | null;
   file_name: string;
   file_size: number | null;
   uploaded_at: string;
   sent_to_client_at: string | null;
   downloaded_at: string | null;
   created_by: string | null;
+  external_platform: string | null;
+  access_instructions: string | null;
+  version: string;
 }
 
 export function useDeliverables(jobId: string) {
@@ -35,7 +38,7 @@ export function useCreateDeliverable() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (deliverable: Omit<Deliverable, 'id' | 'uploaded_at' | 'created_by' | 'sent_to_client_at' | 'downloaded_at'>) => {
+    mutationFn: async (deliverable: Omit<Deliverable, 'id' | 'uploaded_at' | 'created_by' | 'sent_to_client_at' | 'downloaded_at' | 'version'>) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 

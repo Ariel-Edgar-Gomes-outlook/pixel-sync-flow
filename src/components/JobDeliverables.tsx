@@ -1,35 +1,85 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { FileUpload } from "@/components/FileUpload";
-import { useDeliverables, useMarkDeliverableAsSent, useDeleteDeliverable, useCreateDeliverable } from "@/hooks/useDeliverables";
-import { toast } from "sonner";
-import { Upload, Send, Trash2, Download, ExternalLink, Image as ImageIcon } from "lucide-react";
-import { format } from "date-fns";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { 
+  useDeliverables, 
+  useCreateDeliverable, 
+  useMarkDeliverableAsSent,
+  useDeleteDeliverable,
+  type Deliverable 
+} from '@/hooks/useDeliverables';
+import { 
+  FileText, 
+  Image as ImageIcon, 
+  Film, 
+  File, 
+  ExternalLink,
+  Send,
+  Trash2,
+  Plus,
+  Link as LinkIcon
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface JobDeliverablesProps {
   jobId: string;
-  externalAssetsLinks?: string[];
-  externalGalleryLink?: string | null;
 }
 
 export function JobDeliverables({ jobId }: JobDeliverablesProps) {
   const { data: deliverables, isLoading } = useDeliverables(jobId);
+  const createDeliverable = useCreateDeliverable();
   const markAsSent = useMarkDeliverableAsSent();
   const deleteDeliverable = useDeleteDeliverable();
-  const createDeliverable = useCreateDeliverable();
-  const [uploadingType, setUploadingType] = useState<string>("");
+  
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deliverableToDelete, setDeliverableToDelete] = useState<string | null>(null);
+  
+  const [newDeliverable, setNewDeliverable] = useState({
+    type: 'Foto Final',
+    file_name: '',
+    file_url: '',
+    external_platform: 'gdrive' as string | null,
+    access_instructions: '' as string | null,
+  });
 
-  const handleUploadComplete = async (url: string, fileName: string, fileSize: number) => {
+  const handleAddDeliverable = async () => {
+    if (!newDeliverable.file_name || !newDeliverable.file_url) return;
+
     await createDeliverable.mutateAsync({
       job_id: jobId,
-      file_url: url,
-      file_name: fileName,
-      file_size: fileSize,
-      type: uploadingType,
+      type: newDeliverable.type,
+      file_name: newDeliverable.file_name,
+      file_url: newDeliverable.file_url,
+      file_size: null,
+      external_platform: newDeliverable.external_platform,
+      access_instructions: newDeliverable.access_instructions,
     });
-    setUploadingType("");
+
+    setNewDeliverable({
+      type: 'Foto Final',
+      file_name: '',
+      file_url: '',
+      external_platform: 'gdrive',
+      access_instructions: '',
+    });
+    setShowAddForm(false);
   };
 
   const handleMarkAsSent = async (id: string) => {
@@ -37,231 +87,281 @@ export function JobDeliverables({ jobId }: JobDeliverablesProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Deseja remover este arquivo dos entregáveis?")) {
-      await deleteDeliverable.mutateAsync({ id, jobId });
-    }
-  };
-
-  const getFileType = (url: string): string => {
-    const extension = url.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) return 'image';
-    if (['mp4', 'mov', 'avi'].includes(extension || '')) return 'video';
-    if (['pdf'].includes(extension || '')) return 'pdf';
-    return 'file';
+    await deleteDeliverable.mutateAsync({ id, jobId });
+    setDeleteDialogOpen(false);
+    setDeliverableToDelete(null);
   };
 
   const getFileIcon = (type: string) => {
-    switch (type) {
-      case 'image': return <ImageIcon className="h-5 w-5" />;
-      case 'video': return <ImageIcon className="h-5 w-5" />;
-      default: return <Download className="h-5 w-5" />;
+    const lowerType = type.toLowerCase();
+    if (lowerType.includes('foto') || lowerType.includes('imagem')) {
+      return <ImageIcon className="h-5 w-5" />;
     }
+    if (lowerType.includes('video') || lowerType.includes('vídeo')) {
+      return <Film className="h-5 w-5" />;
+    }
+    if (lowerType.includes('pdf') || lowerType.includes('documento')) {
+      return <FileText className="h-5 w-5" />;
+    }
+    return <File className="h-5 w-5" />;
   };
+
+  const platformIcons: Record<string, string> = {
+    gdrive: '🔷',
+    dropbox: '📦',
+    wetransfer: '✈️',
+    onedrive: '☁️',
+    other: '🔗',
+  };
+
+  if (isLoading) {
+    return <div>Carregando entregáveis...</div>;
+  }
+
+  const sentCount = deliverables?.filter(d => d.sent_to_client_at).length || 0;
+  const pendingCount = (deliverables?.length || 0) - sentCount;
 
   return (
     <div className="space-y-6">
-      {/* Upload Section */}
-      <Card className="p-4 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-        <div className="flex items-center gap-3 mb-4">
-          <Upload className="h-5 w-5 text-primary" />
-          <div>
-            <h3 className="text-base font-semibold text-foreground">Upload de Entregáveis</h3>
-            <p className="text-xs text-muted-foreground">Adicione fotos, vídeos ou arquivos finais</p>
-          </div>
-        </div>
+      {/* Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold">{deliverables?.length || 0}</div>
+            <p className="text-sm text-muted-foreground">Total de Entregáveis</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-green-600">{sentCount}</div>
+            <p className="text-sm text-muted-foreground">Enviados</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-orange-600">{pendingCount}</div>
+            <p className="text-sm text-muted-foreground">Pendentes</p>
+          </CardContent>
+        </Card>
+      </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">Tipo de Arquivo</label>
-            <div className="flex flex-wrap gap-2 mb-3">
-              <Button
-                type="button"
-                variant={uploadingType === "Foto Final" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setUploadingType("Foto Final")}
-              >
-                📸 Foto Final
-              </Button>
-              <Button
-                type="button"
-                variant={uploadingType === "Vídeo" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setUploadingType("Vídeo")}
-              >
-                🎥 Vídeo
-              </Button>
-              <Button
-                type="button"
-                variant={uploadingType === "RAW" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setUploadingType("RAW")}
-              >
-                📂 RAW
-              </Button>
-              <Button
-                type="button"
-                variant={uploadingType === "Outro" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setUploadingType("Outro")}
-              >
-                📄 Outro
-              </Button>
+      {/* Add Form */}
+      {showAddForm ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LinkIcon className="h-5 w-5" />
+              Adicionar Link de Entregável
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label htmlFor="type">Tipo</Label>
+                <Select
+                  value={newDeliverable.type}
+                  onValueChange={(value) => setNewDeliverable({ ...newDeliverable, type: value })}
+                >
+                  <SelectTrigger id="type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Foto Final">📸 Foto Final</SelectItem>
+                    <SelectItem value="Foto RAW">🎞️ Foto RAW</SelectItem>
+                    <SelectItem value="Vídeo">🎬 Vídeo</SelectItem>
+                    <SelectItem value="PDF">📄 PDF</SelectItem>
+                    <SelectItem value="Outro">📦 Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="platform">Plataforma</Label>
+                <Select
+                  value={newDeliverable.external_platform || 'gdrive'}
+                  onValueChange={(value) => setNewDeliverable({ ...newDeliverable, external_platform: value })}
+                >
+                  <SelectTrigger id="platform">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gdrive">🔷 Google Drive</SelectItem>
+                    <SelectItem value="dropbox">📦 Dropbox</SelectItem>
+                    <SelectItem value="wetransfer">✈️ WeTransfer</SelectItem>
+                    <SelectItem value="onedrive">☁️ OneDrive</SelectItem>
+                    <SelectItem value="other">🔗 Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            {uploadingType && (
-              <FileUpload
-                bucket="deliverables"
-                onUploadComplete={handleUploadComplete}
-                accept="image/*,video/*,.pdf,.raw,.cr2,.nef"
-                label={`Upload ${uploadingType}`}
+            <div>
+              <Label htmlFor="file-name">Nome do Arquivo/Pasta</Label>
+              <Input
+                id="file-name"
+                value={newDeliverable.file_name}
+                onChange={(e) => setNewDeliverable({ ...newDeliverable, file_name: e.target.value })}
+                placeholder="Ex: Fotos Editadas - Casamento Maria & João"
               />
-            )}
-          </div>
-        </div>
-      </Card>
+            </div>
 
-      {/* Gallery Section */}
-      <Card className="p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-base font-semibold text-foreground">Galeria de Entregáveis</h3>
-            <p className="text-xs text-muted-foreground">Todos os arquivos enviados para este job</p>
-          </div>
-          <Badge variant="outline">
-            {deliverables?.length || 0} arquivos
-          </Badge>
-        </div>
+            <div>
+              <Label htmlFor="file-url">URL do Link</Label>
+              <Input
+                id="file-url"
+                type="url"
+                value={newDeliverable.file_url}
+                onChange={(e) => setNewDeliverable({ ...newDeliverable, file_url: e.target.value })}
+                placeholder="https://..."
+              />
+            </div>
 
-        {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">Carregando...</div>
-        ) : !deliverables || deliverables.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed rounded-lg">
-            <Upload className="h-12 w-12 mx-auto text-muted-foreground opacity-50 mb-2" />
-            <p className="text-sm text-muted-foreground">Nenhum arquivo enviado ainda</p>
-            <p className="text-xs text-muted-foreground mt-1">Selecione um tipo acima e faça o upload</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {deliverables.map((deliverable) => {
-              const fileType = getFileType(deliverable.file_url);
-              const isSent = !!deliverable.sent_to_client_at;
+            <div>
+              <Label htmlFor="instructions">Instruções de Acesso</Label>
+              <Textarea
+                id="instructions"
+                value={newDeliverable.access_instructions || ''}
+                onChange={(e) => setNewDeliverable({ ...newDeliverable, access_instructions: e.target.value })}
+                placeholder="Ex: Senha: abc123, Baixe todas as fotos em alta resolução..."
+                rows={3}
+              />
+            </div>
 
-              return (
-                <Card key={deliverable.id} className="p-4 hover:shadow-lg transition-shadow">
-                  <div className="space-y-3">
-                    {/* File Preview */}
-                    <div className="relative aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center">
-                      {fileType === 'image' ? (
-                        <img
-                          src={deliverable.file_url}
-                          alt={deliverable.file_name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                          {getFileIcon(fileType)}
-                          <span className="text-xs">{deliverable.type}</span>
-                        </div>
+            <div className="flex gap-2">
+              <Button onClick={handleAddDeliverable} disabled={!newDeliverable.file_name || !newDeliverable.file_url}>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar
+              </Button>
+              <Button variant="outline" onClick={() => setShowAddForm(false)}>
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Button onClick={() => setShowAddForm(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Adicionar Link de Entregável
+        </Button>
+      )}
+
+      {/* Deliverables List */}
+      <div className="grid gap-4">
+        {deliverables?.map((deliverable) => (
+          <Card key={deliverable.id}>
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="p-2 bg-muted rounded-lg">
+                    {getFileIcon(deliverable.type)}
+                  </div>
+                  
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold">{deliverable.file_name}</h3>
+                      <Badge variant="secondary">{deliverable.type}</Badge>
+                      {deliverable.version && (
+                        <Badge variant="outline">{deliverable.version}</Badge>
                       )}
-                      <Badge 
-                        variant={isSent ? "success" : "secondary"}
-                        className="absolute top-2 right-2"
-                      >
-                        {isSent ? "Enviado" : "Novo"}
-                      </Badge>
+                      {deliverable.external_platform && (
+                        <span className="text-xl">{platformIcons[deliverable.external_platform]}</span>
+                      )}
                     </div>
-
-                    {/* File Info */}
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium truncate">{deliverable.file_name}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{deliverable.type}</span>
-                        {deliverable.file_size && (
-                          <>
-                            <span>•</span>
-                            <span>{(deliverable.file_size / 1024 / 1024).toFixed(2)} MB</span>
-                          </>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(deliverable.uploaded_at), 'dd/MM/yyyy HH:mm')}
+                    
+                    {deliverable.file_url && (
+                      <a 
+                        href={deliverable.file_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+                      >
+                        {deliverable.file_url.substring(0, 60)}...
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    
+                    {deliverable.access_instructions && (
+                      <p className="text-sm text-muted-foreground">
+                        📝 {deliverable.access_instructions}
                       </p>
-                      {isSent && deliverable.sent_to_client_at && (
-                        <p className="text-xs text-green-600">
-                          ✓ Enviado em {format(new Date(deliverable.sent_to_client_at), 'dd/MM/yyyy')}
-                        </p>
+                    )}
+                    
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span>
+                        Adicionado {formatDistanceToNow(new Date(deliverable.uploaded_at), { 
+                          addSuffix: true, 
+                          locale: ptBR 
+                        })}
+                      </span>
+                      {deliverable.sent_to_client_at && (
+                        <Badge variant="default" className="bg-green-600">
+                          ✓ Enviado ao Cliente
+                        </Badge>
                       )}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => window.open(deliverable.file_url, '_blank')}
-                      >
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        Abrir
-                      </Button>
-                      {!isSent && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => handleMarkAsSent(deliverable.id)}
-                          disabled={markAsSent.isPending}
-                        >
-                          <Send className="h-3 w-3 mr-1" />
-                          Enviar
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(deliverable.id)}
-                        disabled={deleteDeliverable.isPending}
-                      >
-                        <Trash2 className="h-3 w-3 text-destructive" />
-                      </Button>
                     </div>
                   </div>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </Card>
+                </div>
 
-      {/* Summary */}
-      {deliverables && deliverables.length > 0 && (
-        <Card className="p-4 bg-primary/5 border-primary/20">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-            <div>
-              <p className="text-sm text-muted-foreground">Total</p>
-              <p className="text-2xl font-bold">{deliverables.length}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Enviados</p>
-              <p className="text-2xl font-bold text-green-600">
-                {deliverables.filter(d => d.sent_to_client_at).length}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Pendentes</p>
-              <p className="text-2xl font-bold text-orange-600">
-                {deliverables.filter(d => !d.sent_to_client_at).length}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Tamanho Total</p>
-              <p className="text-2xl font-bold">
-                {(deliverables.reduce((sum, d) => sum + (d.file_size || 0), 0) / 1024 / 1024).toFixed(0)} MB
-              </p>
-            </div>
-          </div>
+                <div className="flex gap-2">
+                  {!deliverable.sent_to_client_at && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleMarkAsSent(deliverable.id)}
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Marcar como Enviado
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setDeliverableToDelete(deliverable.id);
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {deliverables?.length === 0 && !showAddForm && (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <File className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhum entregável adicionado</h3>
+            <p className="text-muted-foreground mb-4">
+              Adicione links para fotos finais, vídeos ou outros arquivos
+            </p>
+            <Button onClick={() => setShowAddForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar Primeiro Entregável
+            </Button>
+          </CardContent>
         </Card>
       )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover este entregável? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deliverableToDelete && handleDelete(deliverableToDelete)}>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

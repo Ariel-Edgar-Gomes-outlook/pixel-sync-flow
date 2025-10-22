@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useCreateGallery, useUpdateGallery, type Gallery } from "@/hooks/useGalleries";
+import { Textarea } from "@/components/ui/textarea";
+import { useCreateGallery, useUpdateGallery, type Gallery, type GalleryLink } from "@/hooks/useGalleries";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { CalendarIcon, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { GalleryLinksManager } from "./GalleryLinksManager";
 
 interface GalleryDialogProps {
   jobId: string;
@@ -29,11 +31,14 @@ export function GalleryDialog({ jobId, gallery, children, open, onOpenChange }: 
     allow_selection: gallery?.allow_selection ?? true,
     download_limit: gallery?.download_limit || null,
     status: gallery?.status || "active",
+    gallery_links: gallery?.gallery_links || [],
+    access_instructions: gallery?.access_instructions || "",
   });
   const [expirationDate, setExpirationDate] = useState<Date | undefined>(
     gallery?.expiration_date ? new Date(gallery.expiration_date) : undefined
   );
   const [password, setPassword] = useState("");
+  const [galleryLinks, setGalleryLinks] = useState<GalleryLink[]>(gallery?.gallery_links || []);
 
   const createGallery = useCreateGallery();
   const updateGallery = useUpdateGallery();
@@ -49,7 +54,8 @@ export function GalleryDialog({ jobId, gallery, children, open, onOpenChange }: 
       const galleryData = {
         ...formData,
         expiration_date: expirationDate?.toISOString() || null,
-        password_hash: password ? password : null, // Idealmente deveria ser hasheado
+        password_hash: password ? password : null,
+        gallery_links: galleryLinks as any,
       };
 
       if (gallery) {
@@ -100,6 +106,19 @@ export function GalleryDialog({ jobId, gallery, children, open, onOpenChange }: 
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ex: Casamento João e Maria"
               required
+            />
+          </div>
+
+          <GalleryLinksManager links={galleryLinks} onChange={setGalleryLinks} />
+
+          <div>
+            <Label htmlFor="access-instructions">Instruções Gerais de Acesso</Label>
+            <Textarea
+              id="access-instructions"
+              value={formData.access_instructions || ""}
+              onChange={(e) => setFormData({ ...formData, access_instructions: e.target.value })}
+              placeholder="Instruções gerais para o cliente acessar as galerias..."
+              rows={3}
             />
           </div>
 

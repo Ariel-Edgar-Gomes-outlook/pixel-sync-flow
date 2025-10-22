@@ -159,10 +159,12 @@ export type Database = {
       }
       client_galleries: {
         Row: {
+          access_instructions: string | null
           allow_selection: boolean | null
           created_at: string | null
           download_limit: number | null
           expiration_date: string | null
+          gallery_links: Json | null
           id: string
           job_id: string
           name: string
@@ -173,10 +175,12 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          access_instructions?: string | null
           allow_selection?: boolean | null
           created_at?: string | null
           download_limit?: number | null
           expiration_date?: string | null
+          gallery_links?: Json | null
           id?: string
           job_id: string
           name: string
@@ -187,10 +191,12 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          access_instructions?: string | null
           allow_selection?: boolean | null
           created_at?: string | null
           download_limit?: number | null
           expiration_date?: string | null
+          gallery_links?: Json | null
           id?: string
           job_id?: string
           name?: string
@@ -380,40 +386,49 @@ export type Database = {
       }
       deliverables: {
         Row: {
+          access_instructions: string | null
           created_by: string | null
           downloaded_at: string | null
+          external_platform: string | null
           file_name: string
           file_size: number | null
-          file_url: string
+          file_url: string | null
           id: string
           job_id: string
           sent_to_client_at: string | null
           type: string
           uploaded_at: string | null
+          version: string | null
         }
         Insert: {
+          access_instructions?: string | null
           created_by?: string | null
           downloaded_at?: string | null
+          external_platform?: string | null
           file_name: string
           file_size?: number | null
-          file_url: string
+          file_url?: string | null
           id?: string
           job_id: string
           sent_to_client_at?: string | null
           type: string
           uploaded_at?: string | null
+          version?: string | null
         }
         Update: {
+          access_instructions?: string | null
           created_by?: string | null
           downloaded_at?: string | null
+          external_platform?: string | null
           file_name?: string
           file_size?: number | null
-          file_url?: string
+          file_url?: string | null
           id?: string
           job_id?: string
           sent_to_client_at?: string | null
           type?: string
           uploaded_at?: string | null
+          version?: string | null
         }
         Relationships: [
           {
@@ -431,11 +446,13 @@ export type Database = {
           client_selected: boolean | null
           created_at: string | null
           display_order: number | null
+          external_url: string | null
           file_name: string
           file_size: number | null
-          file_url: string
+          file_url: string | null
           gallery_id: string
           id: string
+          item_id: string | null
           thumbnail_url: string | null
         }
         Insert: {
@@ -443,11 +460,13 @@ export type Database = {
           client_selected?: boolean | null
           created_at?: string | null
           display_order?: number | null
+          external_url?: string | null
           file_name: string
           file_size?: number | null
-          file_url: string
+          file_url?: string | null
           gallery_id: string
           id?: string
+          item_id?: string | null
           thumbnail_url?: string | null
         }
         Update: {
@@ -455,11 +474,13 @@ export type Database = {
           client_selected?: boolean | null
           created_at?: string | null
           display_order?: number | null
+          external_url?: string | null
           file_name?: string
           file_size?: number | null
-          file_url?: string
+          file_url?: string | null
           gallery_id?: string
           id?: string
+          item_id?: string | null
           thumbnail_url?: string | null
         }
         Relationships: [

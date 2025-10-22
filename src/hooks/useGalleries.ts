@@ -1,6 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface GalleryLink {
+  name: string;
+  url: string;
+  type: 'gdrive' | 'dropbox' | 'wetransfer' | 'onedrive' | 'pixieset' | 'other';
+  password?: string;
+  instructions?: string;
+}
+
 export interface Gallery {
   id: string;
   job_id: string;
@@ -12,6 +20,8 @@ export interface Gallery {
   allow_selection: boolean;
   status: 'active' | 'expired' | 'closed';
   share_token: string;
+  gallery_links: GalleryLink[];
+  access_instructions: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -19,13 +29,15 @@ export interface Gallery {
 export interface GalleryPhoto {
   id: string;
   gallery_id: string;
-  file_url: string;
+  file_url: string | null;
   thumbnail_url: string | null;
   file_name: string;
   file_size: number | null;
   display_order: number;
   client_selected: boolean;
   client_downloaded_at: string | null;
+  item_id: string | null;
+  external_url: string | null;
   created_at: string;
 }
 
@@ -73,7 +85,10 @@ export function useCreateGallery() {
     mutationFn: async (gallery: any) => {
       const { data, error } = await supabase
         .from('client_galleries')
-        .insert([gallery])
+        .insert([{
+          ...gallery,
+          gallery_links: JSON.parse(JSON.stringify(gallery.gallery_links || []))
+        }])
         .select()
         .single();
 
@@ -91,9 +106,14 @@ export function useUpdateGallery() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Gallery> & { id: string }) => {
+      const updateData: any = { ...updates };
+      if (updates.gallery_links) {
+        updateData.gallery_links = JSON.parse(JSON.stringify(updates.gallery_links));
+      }
+      
       const { data, error } = await supabase
         .from('client_galleries')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
