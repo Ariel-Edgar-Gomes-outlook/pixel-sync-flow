@@ -5,6 +5,3 @@ verify_jwt = true
 
 [functions.send-deliverable-notification]
 verify_jwt = true
-
-[functions.send-invoice-email]
-verify_jwt = false

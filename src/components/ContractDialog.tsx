@@ -11,8 +11,9 @@ import { useCreateContract, useUpdateContract } from "@/hooks/useContracts";
 import { useClients } from "@/hooks/useClients";
 import { useJobs } from "@/hooks/useJobs";
 import { useContractTemplates } from "@/hooks/useTemplates";
+import { generateContractPDF } from "@/lib/pdfGenerator";
 import { toast } from "sonner";
-import { FileText, Sparkles, Send, Copy, FileSignature } from "lucide-react";
+import { FileText, Sparkles, Send, Copy, FileSignature, FileDown } from "lucide-react";
 import { z } from "zod";
 
 const contractSchema = z.object({
@@ -59,6 +60,7 @@ interface ContractDialogProps {
 
 export function ContractDialog({ children, contract, open, onOpenChange }: ContractDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [formData, setFormData] = useState({
     client_id: "",
     job_id: null as string | null,
@@ -210,26 +212,96 @@ Valor total: [Valor acordado]`,
     toast.success(`Template de ${type === 'wedding' ? 'Casamento' : type === 'event' ? 'Evento' : 'Ensaio'} aplicado!`);
   };
 
+  const handleGeneratePDF = async () => {
+    if (!contract) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      const client = clients?.find(c => c.id === contract.client_id);
+      const job = jobs?.find(j => j.id === contract.job_id);
+      
+      const pdfUrl = await generateContractPDF({
+        id: contract.id,
+        client_name: client?.name || "Cliente",
+        job_title: job?.title,
+        terms_text: contract.terms_text || "",
+        issued_at: contract.issued_at || new Date().toISOString(),
+        signed_at: contract.signed_at || null,
+      });
+
+      await updateContract.mutateAsync({
+        id: contract.id,
+        pdf_url: pdfUrl,
+      });
+
+      window.open(pdfUrl, '_blank');
+      toast.success("PDF gerado com sucesso!", {
+        action: {
+          label: "Abrir PDF",
+          onClick: () => window.open(pdfUrl, '_blank')
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast.error("Erro ao gerar PDF");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
+      setIsGeneratingPDF(true);
       const validatedData = contractSchema.parse(formData);
       
+      let savedContract;
       if (contract) {
-        await updateContract.mutateAsync({ id: contract.id, ...validatedData });
+        savedContract = await updateContract.mutateAsync({ id: contract.id, ...validatedData });
         toast.success("Contrato atualizado!");
       } else {
-        await createContract.mutateAsync(validatedData);
+        savedContract = await createContract.mutateAsync(validatedData);
         toast.success("Contrato criado!");
       }
+
+      // Gerar PDF automaticamente
+      if (savedContract) {
+        const client = clients?.find(c => c.id === formData.client_id);
+        const job = jobs?.find(j => j.id === formData.job_id);
+        
+        const pdfUrl = await generateContractPDF({
+          id: savedContract.id,
+          client_name: client?.name || "Cliente",
+          job_title: job?.title,
+          terms_text: savedContract.terms_text || "",
+          issued_at: savedContract.issued_at || new Date().toISOString(),
+          signed_at: savedContract.signed_at || null,
+        });
+
+        await updateContract.mutateAsync({
+          id: savedContract.id,
+          pdf_url: pdfUrl,
+        });
+
+        toast.success("PDF gerado automaticamente!", {
+          action: {
+            label: "Abrir PDF",
+            onClick: () => window.open(pdfUrl, '_blank')
+          }
+        });
+      }
+
       actualOnOpenChange(false);
-      } catch (error) {
+    } catch (error) {
       if (error instanceof z.ZodError) {
         error.issues.forEach(err => toast.error(err.message));
       } else {
+        console.error("Erro ao salvar contrato:", error);
         toast.error("Erro ao salvar contrato");
       }
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -251,12 +323,26 @@ Valor total: [Valor acordado]`,
               <FileText className="h-5 w-5" />
               {contract ? "Editar Contrato" : "Novo Contrato Profissional"}
             </DialogTitle>
-            {contract?.signature_token && (
-              <Button variant="outline" size="sm" onClick={copySignatureLink}>
-                <Copy className="h-4 w-4 mr-2" />
-                Link Assinatura
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {contract && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGeneratePDF}
+                  disabled={isGeneratingPDF}
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  {isGeneratingPDF ? "Gerando..." : "Gerar PDF"}
+                </Button>
+              )}
+              {contract?.signature_token && (
+                <Button variant="outline" size="sm" onClick={copySignatureLink}>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Link Assinatura
+                </Button>
+              )}
+            </div>
           </div>
         </DialogHeader>
 
@@ -489,8 +575,8 @@ Valor total: [Valor acordado]`,
             <Button type="button" variant="outline" onClick={() => actualOnOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={createContract.isPending || updateContract.isPending}>
-              {contract ? "Atualizar" : "Criar"} Contrato
+            <Button type="submit" disabled={createContract.isPending || updateContract.isPending || isGeneratingPDF}>
+              {isGeneratingPDF ? 'A gerar PDF...' : (contract ? "Atualizar" : "Criar") + ' Contrato'}
             </Button>
             {contract && formData.status === 'draft' && (
               <Button

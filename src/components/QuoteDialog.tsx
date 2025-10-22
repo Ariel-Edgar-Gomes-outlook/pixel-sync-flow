@@ -119,17 +119,52 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
     const quoteData = { ...formData, total };
 
     try {
+      setIsGeneratingPDF(true);
+      let savedQuote;
+      
       if (quote) {
-        await updateQuote.mutateAsync({ id: quote.id, ...quoteData });
+        savedQuote = await updateQuote.mutateAsync({ id: quote.id, ...quoteData });
         toast.success("Orçamento atualizado!");
       } else {
-        await createQuote.mutateAsync(quoteData);
+        savedQuote = await createQuote.mutateAsync(quoteData);
         toast.success("Orçamento criado!");
       }
+
+      // Gerar PDF automaticamente
+      if (savedQuote) {
+        const client = clients?.find(c => c.id === formData.client_id);
+        const pdfUrl = await generateQuotePDF({
+          id: savedQuote.id,
+          client_name: client?.name || "Cliente",
+          validity_date: savedQuote.validity_date,
+          items: savedQuote.items,
+          tax: Number(savedQuote.tax) || 0,
+          discount: Number(savedQuote.discount) || 0,
+          total: Number(savedQuote.total),
+          currency: savedQuote.currency || "AOA",
+          created_at: savedQuote.created_at,
+        });
+
+        await updateQuoteMutation.mutateAsync({
+          id: savedQuote.id,
+          pdf_link: pdfUrl,
+        });
+
+        toast.success("PDF gerado automaticamente!", {
+          action: {
+            label: "Abrir PDF",
+            onClick: () => window.open(pdfUrl, '_blank')
+          }
+        });
+      }
+
       actualOnOpenChange(false);
       resetForm();
     } catch (error) {
+      console.error("Erro ao salvar orçamento:", error);
       toast.error("Erro ao salvar orçamento");
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 

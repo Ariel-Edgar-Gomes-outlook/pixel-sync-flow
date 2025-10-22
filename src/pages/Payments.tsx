@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, DollarSign, Calendar, CreditCard, Edit, TrendingUp, Wallet, Receipt, Download } from "lucide-react";
+import { Plus, Search, DollarSign, Calendar, CreditCard, Edit, TrendingUp, Wallet, Receipt, Download, FileText } from "lucide-react";
 import { usePayments, type Payment } from "@/hooks/usePayments";
 import PaymentDialog from "@/components/PaymentDialog";
 import { PaymentReceiptDialog } from "@/components/PaymentReceiptDialog";
@@ -240,15 +240,28 @@ export default function Payments() {
                     <div className="text-xs text-muted-foreground mt-1">
                       {payment.currency || 'AOA'}
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="mt-3 gap-2"
-                      onClick={() => handleEdit(payment)}
-                    >
-                      <Edit className="h-4 w-4" />
-                      Editar
-                    </Button>
+                    <div className="flex gap-2 mt-3">
+                      {payment.receipt_url && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="gap-2"
+                          onClick={() => window.open(payment.receipt_url!, '_blank')}
+                        >
+                          <FileText className="h-4 w-4" />
+                          Ver Recibo
+                        </Button>
+                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => handleEdit(payment)}
+                      >
+                        <Edit className="h-4 w-4" />
+                        Editar
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -359,6 +359,21 @@ export default function Quotes() {
                       </div>
                     </div>
                     <div className="flex flex-col gap-2 w-full sm:w-auto">
+                      {quote.pdf_link ? (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => window.open(quote.pdf_link!, '_blank')}
+                        >
+                          <FileText className="h-4 w-4" />
+                          <span>Ver PDF</span>
+                        </Button>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">
+                          PDF ao salvar
+                        </Badge>
+                      )}
                       <Button 
                         variant="outline" 
                         size="sm" 

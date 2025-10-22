@@ -24,7 +24,6 @@ import {
   AlertCircle,
   DollarSign,
   TrendingUp,
-  Mail,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -77,25 +76,6 @@ export default function Invoices() {
       window.open(invoice.pdf_url, '_blank');
     } else {
       toast.error('PDF não disponível');
-    }
-  };
-
-  const handleSendEmail = async (invoice: any) => {
-    try {
-      toast.loading('A enviar email...');
-      
-      const { data, error } = await supabase.functions.invoke('send-invoice-email', {
-        body: { invoice_id: invoice.id }
-      });
-
-      if (error) throw error;
-
-      toast.dismiss();
-      toast.success('Email enviado com sucesso!');
-    } catch (error) {
-      console.error('Error sending email:', error);
-      toast.dismiss();
-      toast.error('Erro ao enviar email. Verifique se configurou a RESEND_API_KEY');
     }
   };
 
@@ -297,10 +277,6 @@ export default function Invoices() {
                           <Button variant="outline" size="sm" onClick={() => handleViewPDF(invoice)}>
                             <FileText className="h-4 w-4 mr-2" />
                             Ver PDF
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleSendEmail(invoice)}>
-                            <Mail className="h-4 w-4 mr-2" />
-                            Enviar Email
                           </Button>
                         </>
                       )}
