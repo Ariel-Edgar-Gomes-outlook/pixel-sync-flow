@@ -33,6 +33,7 @@ const navigation = [
   { name: "Agenda", href: "/calendar", icon: Calendar },
   { name: "Leads", href: "/leads", icon: UserPlus },
   { name: "Orçamentos", href: "/quotes", icon: FileText },
+  { name: "Faturas", href: "/invoices", icon: FileText },
   { name: "Contratos", href: "/contracts", icon: FileText },
   { name: "Financeiro", href: "/payments", icon: CreditCard },
   { name: "Relatórios", href: "/reports", icon: BarChart3 },

@@ -19,6 +19,7 @@ import Resources from "./pages/Resources";
 import Contracts from "./pages/Contracts";
 import Reports from "./pages/Reports";
 import Templates from "./pages/Templates";
+import Invoices from "./pages/Invoices";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ClientGallery from "./pages/ClientGallery";
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="calendar" element={<CalendarView />} />
               <Route path="leads" element={<Leads />} />
               <Route path="quotes" element={<Quotes />} />
+              <Route path="invoices" element={<Invoices />} />
               <Route path="payments" element={<Payments />} />
               <Route path="resources" element={<Resources />} />
               <Route path="contracts" element={<Contracts />} />
