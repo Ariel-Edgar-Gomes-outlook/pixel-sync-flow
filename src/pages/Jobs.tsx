@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase, Download, CreditCard } from "lucide-react";
+import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase, Download, CreditCard, Sparkles } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobs } from "@/hooks/useJobs";
 import { JobDialog } from "@/components/JobDialog";
 import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
+import { QuickStartWizard } from "@/components/QuickStartWizard";
 import { exportToExcel, formatJobsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -28,6 +29,7 @@ export default function Jobs() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [paymentPlanJob, setPaymentPlanJob] = useState<any>(null);
   const [paymentPlanDialogOpen, setPaymentPlanDialogOpen] = useState(false);
+  const [quickStartOpen, setQuickStartOpen] = useState(false);
   const { data: jobs, isLoading } = useJobs();
 
   const handleExport = () => {
@@ -82,10 +84,18 @@ export default function Jobs() {
             <Download className="h-4 w-4" />
             Exportar Excel
           </Button>
+          <Button 
+            variant="default" 
+            className="gap-2 w-full sm:w-auto"
+            onClick={() => setQuickStartOpen(true)}
+          >
+            <Sparkles className="h-4 w-4" />
+            Quick Start
+          </Button>
           <JobDialog>
-            <Button className="gap-2 w-full sm:w-auto">
+            <Button variant="outline" className="gap-2 w-full sm:w-auto">
               <Plus className="h-4 w-4" />
-              Novo Job
+              Manual
             </Button>
           </JobDialog>
         </div>
@@ -130,12 +140,22 @@ export default function Jobs() {
               </div>
             </div>
 
-            <JobDialog>
-              <Button size="lg" className="gap-2">
-                <Plus className="h-5 w-5" />
-                Criar Primeiro Job
+            <div className="flex gap-3">
+              <Button 
+                size="lg" 
+                className="gap-2"
+                onClick={() => setQuickStartOpen(true)}
+              >
+                <Sparkles className="h-5 w-5" />
+                Quick Start
               </Button>
-            </JobDialog>
+              <JobDialog>
+                <Button size="lg" variant="outline" className="gap-2">
+                  <Plus className="h-5 w-5" />
+                  Criar Manualmente
+                </Button>
+              </JobDialog>
+            </div>
 
             <div className="mt-8 p-4 bg-muted/30 rounded-lg max-w-2xl">
               <p className="text-sm text-muted-foreground">
@@ -277,6 +297,11 @@ export default function Jobs() {
         totalAmount={paymentPlanJob?.estimated_revenue || 0}
         open={paymentPlanDialogOpen}
         onOpenChange={setPaymentPlanDialogOpen}
+      />
+      
+      <QuickStartWizard
+        open={quickStartOpen}
+        onOpenChange={setQuickStartOpen}
       />
     </div>
   );

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useGalleries, useGalleryPhotos, useUploadGalleryPhoto, useDeleteGalleryPhoto } from "@/hooks/useGalleries";
+import { useGalleries } from "@/hooks/useGalleries";
 import { GalleryDialog } from "./GalleryDialog";
-import { Plus, ExternalLink, Image, Trash2, Upload, Copy, Heart } from "lucide-react";
+import { Plus, ExternalLink, Image, Copy, Link as LinkIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -14,15 +14,11 @@ interface JobGalleryTabProps {
 export function JobGalleryTab({ jobId }: JobGalleryTabProps) {
   const { data: galleries, isLoading } = useGalleries(jobId);
   const [selectedGalleryId, setSelectedGalleryId] = useState<string | null>(null);
-  const [showUpload, setShowUpload] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
-  const { data: photos } = useGalleryPhotos(selectedGalleryId || "");
-  const uploadPhoto = useUploadGalleryPhoto();
-  const deletePhoto = useDeleteGalleryPhoto();
   const { toast } = useToast();
 
   const selectedGallery = galleries?.find(g => g.id === selectedGalleryId);
+  const galleryLinks = (selectedGallery?.gallery_links as any[]) || [];
 
   const copyShareLink = (token: string) => {
     const url = `${window.location.origin}/gallery/${token}`;
@@ -31,6 +27,18 @@ export function JobGalleryTab({ jobId }: JobGalleryTabProps) {
       title: "Link Copiado!",
       description: "O link da galeria foi copiado para a área de transferência",
     });
+  };
+
+  const getPlatformIcon = (platform: string) => {
+    const icons: Record<string, string> = {
+      'google_drive': '📁',
+      'dropbox': '📦',
+      'wetransfer': '📤',
+      'onedrive': '☁️',
+      'mega': '💾',
+      'other': '🔗'
+    };
+    return icons[platform] || icons.other;
   };
 
   if (isLoading) {
@@ -70,7 +78,7 @@ export function JobGalleryTab({ jobId }: JobGalleryTabProps) {
                 <div>
                   <h4 className="font-semibold">{gallery.name}</h4>
                   <p className="text-sm text-muted-foreground">
-                    {gallery.gallery_photos?.[0]?.count || 0} fotos
+                    {Array.isArray(gallery.gallery_links) ? gallery.gallery_links.length : 0} links externos
                   </p>
                 </div>
                 <div className={`px-2 py-1 rounded text-xs font-medium ${
@@ -125,21 +133,17 @@ export function JobGalleryTab({ jobId }: JobGalleryTabProps) {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h4 className="text-lg font-semibold">{selectedGallery.name}</h4>
-              {selectedGallery.allow_selection && photos && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  {photos.filter(p => p.client_selected).length} de {photos.length} fotos selecionadas pelo cliente
-                </p>
-              )}
+              <p className="text-sm text-muted-foreground mt-1">
+                {galleryLinks.length} links de galerias externas
+              </p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowUpload(!showUpload)}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Upload Fotos
-              </Button>
+              <GalleryDialog jobId={jobId} gallery={selectedGallery as any} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Editar Links
+                </Button>
+              </GalleryDialog>
               <Button
                 variant="outline"
                 size="sm"
@@ -158,64 +162,53 @@ export function JobGalleryTab({ jobId }: JobGalleryTabProps) {
             </div>
           </div>
 
-          {showUpload && (
-            <div className="mb-4">
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={async (e) => {
-                  const files = Array.from(e.target.files || []);
-                  for (const file of files) {
-                    await uploadPhoto.mutateAsync({ galleryId: selectedGalleryId!, file });
-                  }
-                  toast({ title: "Fotos enviadas!" });
-                  setShowUpload(false);
-                }}
-                className="w-full"
-              />
+          {selectedGallery.access_instructions && (
+            <div className="mb-4 p-3 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">{selectedGallery.access_instructions}</p>
             </div>
           )}
 
-          {!photos || photos.length === 0 ? (
+          {galleryLinks.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <p>Nenhuma foto nesta galeria</p>
-              <Button
-                variant="link"
-                onClick={() => setShowUpload(true)}
-              >
-                Fazer upload de fotos
-              </Button>
+              <LinkIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="mb-2">Nenhum link adicionado ainda</p>
+              <p className="text-xs mb-4">Adicione links de plataformas como Google Drive, Dropbox, WeTransfer, etc.</p>
+              <GalleryDialog jobId={jobId} gallery={selectedGallery as any} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <Button variant="outline">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Links
+                </Button>
+              </GalleryDialog>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {photos.map((photo) => (
-                <div key={photo.id} className="relative group">
-                  <img
-                    src={photo.file_url}
-                    alt={photo.file_name}
-                    className="w-full aspect-square object-cover rounded-lg"
-                  />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => deletePhoto.mutate(photo.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
+            <div className="space-y-3">
+              {galleryLinks.map((link: any, index: number) => (
+                <Card key={index} className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">{getPlatformIcon(link.platform)}</span>
+                        <div>
+                          <h5 className="font-semibold">{link.name}</h5>
+                          <p className="text-xs text-muted-foreground">{link.platform}</p>
+                        </div>
+                      </div>
+                      {link.password && (
+                        <p className="text-sm text-muted-foreground mb-1">
+                          🔒 Senha: <code className="bg-muted px-2 py-1 rounded">{link.password}</code>
+                        </p>
+                      )}
+                      {link.access_instructions && (
+                        <p className="text-sm text-muted-foreground">{link.access_instructions}</p>
+                      )}
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={link.url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
                     </Button>
                   </div>
-                  {photo.client_selected && (
-                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-2 shadow-lg">
-                      <Heart className="h-4 w-4 fill-current" />
-                    </div>
-                  )}
-                  <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <p className="text-white text-xs truncate bg-black/70 px-2 py-1 rounded">
-                      {photo.file_name}
-                    </p>
-                  </div>
-                </div>
+                </Card>
               ))}
             </div>
           )}
