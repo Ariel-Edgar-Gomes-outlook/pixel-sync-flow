@@ -1205,7 +1205,7 @@ export type Database = {
           id: string
           items: Json
           job_id: string | null
-          pdf_link: string | null
+          pdf_url: string | null
           status: Database["public"]["Enums"]["quote_status"]
           tax: number | null
           total: number
@@ -1222,7 +1222,7 @@ export type Database = {
           id?: string
           items?: Json
           job_id?: string | null
-          pdf_link?: string | null
+          pdf_url?: string | null
           status?: Database["public"]["Enums"]["quote_status"]
           tax?: number | null
           total: number
@@ -1239,7 +1239,7 @@ export type Database = {
           id?: string
           items?: Json
           job_id?: string | null
-          pdf_link?: string | null
+          pdf_url?: string | null
           status?: Database["public"]["Enums"]["quote_status"]
           tax?: number | null
           total?: number

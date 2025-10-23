@@ -190,7 +190,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
 
         await updateQuoteMutation.mutateAsync({
           id: savedQuote.id,
-          pdf_link: pdfUrl,
+          pdf_url: pdfUrl,
         });
 
         // Auto-send email if status changed to 'sent'
@@ -290,7 +290,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
 
       await updateQuoteMutation.mutateAsync({
         id: quote.id,
-        pdf_link: pdfUrl,
+        pdf_url: pdfUrl,
       });
 
       const event = new CustomEvent('openPDFViewer', { 

@@ -371,13 +371,13 @@ export default function Quotes() {
                      </div>
                    </div>
 
-                   <div className="flex flex-wrap gap-2 pt-2 border-t">
-                      {quote.pdf_link ? (
+                    <div className="flex flex-wrap gap-2 pt-2 border-t">
+                       {quote.pdf_url ? (
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => {
-                            setSelectedPdfUrl(quote.pdf_link);
+                            setSelectedPdfUrl(quote.pdf_url);
                             setPdfTitle(`Orçamento - ${quote.clients?.name || 'Cliente'}`);
                             setPdfViewerOpen(true);
                           }}
