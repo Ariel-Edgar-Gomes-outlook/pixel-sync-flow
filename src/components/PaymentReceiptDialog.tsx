@@ -156,7 +156,7 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5" />
@@ -192,7 +192,7 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
             />
 
             {selectedInvoice && (
-              <div className="p-3 bg-muted rounded-lg text-sm space-y-1">
+              <div className="p-3 sm:p-4 bg-muted rounded-lg text-sm space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total da Fatura:</span>
                   <span className="font-semibold">{Number(selectedInvoice.total).toFixed(2)} AOA</span>
@@ -210,7 +210,7 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="amount"
@@ -245,7 +245,7 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="type"

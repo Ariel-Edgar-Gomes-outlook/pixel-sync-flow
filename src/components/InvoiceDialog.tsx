@@ -230,7 +230,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>
             {invoice ? 'Editar Fatura' : 'Nova Fatura'}
@@ -239,7 +239,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="client_id"
@@ -291,7 +291,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="issue_date"
@@ -331,8 +331,8 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
               </div>
 
               {items.map((item, index) => (
-                <div key={index} className="grid grid-cols-12 gap-2 items-start p-4 border rounded-lg">
-                  <div className="col-span-5">
+                <div key={index} className="grid grid-cols-1 gap-3 p-3 sm:p-4 border rounded-lg">
+                  <div className="w-full">
                     <FormField
                       control={form.control}
                       name={`items.${index}.description`}
@@ -347,7 +347,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                     />
                   </div>
 
-                  <div className="col-span-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <FormField
                       control={form.control}
                       name={`items.${index}.quantity`}
@@ -368,9 +368,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                         </FormItem>
                       )}
                     />
-                  </div>
 
-                  <div className="col-span-2">
                     <FormField
                       control={form.control}
                       name={`items.${index}.unit_price`}
@@ -392,9 +390,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                         </FormItem>
                       )}
                     />
-                  </div>
 
-                  <div className="col-span-2">
                     <Input
                       type="number"
                       value={item.total.toFixed(2)}
@@ -403,22 +399,22 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                     />
                   </div>
 
-                  <div className="col-span-1 flex justify-end">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeItem(index)}
-                      disabled={items.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeItem(index)}
+                    disabled={items.length === 1}
+                    className="w-full sm:w-auto"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    <span className="sm:inline">Remover</span>
+                  </Button>
                 </div>
               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="discount_amount"

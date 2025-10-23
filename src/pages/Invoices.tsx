@@ -216,69 +216,65 @@ export default function Invoices() {
 
             return (
               <Card key={invoice.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-lg font-semibold">{invoice.invoice_number}</h3>
-                        <Badge variant={status.variant}>
-                          <StatusIcon className="h-3 w-3 mr-1" />
-                          {status.label}
-                        </Badge>
-                        {invoice.is_proforma && <Badge variant="outline">Pro-Forma</Badge>}
-                      </div>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg font-semibold">{invoice.invoice_number}</h3>
+                      <Badge variant={status.variant}>
+                        <StatusIcon className="h-3 w-3 mr-1" />
+                        {status.label}
+                      </Badge>
+                      {invoice.is_proforma && <Badge variant="outline">Pro-Forma</Badge>}
+                    </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Cliente:</span>
+                        <p className="font-medium">{invoice.clients?.name}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Data de Emissão:</span>
+                        <p className="font-medium">
+                          {new Date(invoice.issue_date).toLocaleDateString('pt-PT')}
+                        </p>
+                      </div>
+                      {invoice.due_date && (
                         <div>
-                          <span className="text-muted-foreground">Cliente:</span>
-                          <p className="font-medium">{invoice.clients?.name}</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Data de Emissão:</span>
+                          <span className="text-muted-foreground">Vencimento:</span>
                           <p className="font-medium">
-                            {new Date(invoice.issue_date).toLocaleDateString('pt-PT')}
+                            {new Date(invoice.due_date).toLocaleDateString('pt-PT')}
                           </p>
                         </div>
-                        {invoice.due_date && (
-                          <div>
-                            <span className="text-muted-foreground">Vencimento:</span>
-                            <p className="font-medium">
-                              {new Date(invoice.due_date).toLocaleDateString('pt-PT')}
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                      )}
+                    </div>
 
-                      <div className="flex items-center gap-4 pt-2">
+                    <div className="flex flex-wrap items-center gap-4 pt-2 border-t">
+                      <div>
+                        <span className="text-sm text-muted-foreground">Total:</span>
+                        <p className="text-xl font-bold">
+                          {invoice.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}{' '}
+                          {invoice.currency}
+                        </p>
+                      </div>
+                      {invoice.amount_paid > 0 && invoice.status !== 'paid' && (
                         <div>
-                          <span className="text-sm text-muted-foreground">Total:</span>
-                          <p className="text-xl font-bold">
-                            {invoice.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}{' '}
+                          <span className="text-sm text-muted-foreground">Pago:</span>
+                          <p className="text-lg font-semibold text-green-600">
+                            {invoice.amount_paid.toLocaleString('pt-PT', {
+                              minimumFractionDigits: 2,
+                            })}{' '}
                             {invoice.currency}
                           </p>
                         </div>
-                        {invoice.amount_paid > 0 && invoice.status !== 'paid' && (
-                          <div>
-                            <span className="text-sm text-muted-foreground">Pago:</span>
-                            <p className="text-lg font-semibold text-green-600">
-                              {invoice.amount_paid.toLocaleString('pt-PT', {
-                                minimumFractionDigits: 2,
-                              })}{' '}
-                              {invoice.currency}
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
 
-                    <div className="flex flex-col gap-2 ml-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 pt-2 border-t">
                       {invoice.pdf_url && (
-                        <>
-                          <Button variant="outline" size="sm" onClick={() => handleViewPDF(invoice)}>
-                            <FileText className="h-4 w-4 mr-2" />
-                            Ver PDF
-                          </Button>
-                        </>
+                        <Button variant="outline" size="sm" onClick={() => handleViewPDF(invoice)}>
+                          <FileText className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Ver PDF</span>
+                        </Button>
                       )}
                       {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
                         <Button
@@ -286,18 +282,18 @@ export default function Invoices() {
                           size="sm"
                           onClick={() => handleMarkAsPaid(invoice)}
                         >
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Marcar Paga
+                          <CheckCircle className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Marcar Paga</span>
                         </Button>
                       )}
                       <Button variant="ghost" size="sm" onClick={() => handleEdit(invoice)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
+                        <Edit className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Editar</span>
                       </Button>
                       {invoice.status !== 'cancelled' && invoice.status !== 'paid' && (
                         <Button variant="ghost" size="sm" onClick={() => handleCancel(invoice)}>
-                          <XCircle className="h-4 w-4 mr-2" />
-                          Cancelar
+                          <XCircle className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Cancelar</span>
                         </Button>
                       )}
                     </div>

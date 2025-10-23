@@ -312,126 +312,120 @@ export default function Quotes() {
                 <p className="text-sm">Tente ajustar os termos de pesquisa</p>
               </div>
             ) : (
-            filteredQuotes.map((quote) => (
-              <div
-                key={quote.id}
-                className="p-4 sm:p-5 rounded-lg border border-border bg-card hover:shadow-md transition-all"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-primary flex-shrink-0" />
-                        <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">
-                          {quote.clients?.name || 'Cliente não especificado'}
-                        </h3>
-                      </div>
-                      <Badge variant={statusConfig[quote.status as keyof typeof statusConfig]?.variant || 'secondary'}>
-                        {statusConfig[quote.status as keyof typeof statusConfig]?.label || quote.status}
-                      </Badge>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">Criado: {new Date(quote.created_at).toLocaleDateString("pt-PT")}</span>
-                      </div>
-                      {quote.validity_date && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4 flex-shrink-0" />
-                          <span className="truncate">Validade: {new Date(quote.validity_date).toLocaleDateString("pt-PT")}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">Moeda:</span>
-                        <span className="font-medium">{quote.currency || 'AOA'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-2 sm:ml-4 pt-2 sm:pt-0 border-t sm:border-t-0 sm:border-l sm:pl-4">
-                    <div className="sm:text-right">
-                      <div className="text-xl sm:text-2xl font-bold text-foreground whitespace-nowrap">
-                        {Number(quote.total).toFixed(2)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {quote.currency || 'AOA'}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2 w-full sm:w-auto">
-                      {quote.pdf_link ? (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="gap-2"
-                          onClick={() => window.open(quote.pdf_link!, '_blank')}
-                        >
-                          <FileText className="h-4 w-4" />
-                          <span>Ver PDF</span>
-                        </Button>
-                      ) : (
-                        <Badge variant="outline" className="text-xs">
-                          PDF ao salvar
-                        </Badge>
-                      )}
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="gap-2"
-                        onClick={() => handleEdit(quote)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                        <span>Editar</span>
-                      </Button>
-                      {quote.status === 'accepted' && (
-                        <>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="gap-2"
-                            onClick={() => {
-                              navigate('/invoices?from_quote=' + quote.id);
-                            }}
-                          >
-                            <FileText className="h-4 w-4" />
-                            <span>Fatura</span>
-                          </Button>
-                          {!quote.job_id && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button 
-                                  variant="default" 
-                                  size="sm" 
-                                  className="gap-2"
-                                  disabled={createJob.isPending}
-                                >
-                                  <Briefcase className="h-4 w-4" />
-                                  <span>Job</span>
-                                </Button>
-                              </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Converter Orçamento em Job?</AlertDialogTitle>
-                              <AlertDialogDescription className="space-y-3">
-                                <p>Será criado um novo job com os seguintes dados:</p>
-                                <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
-                                  <div><strong>Cliente:</strong> {quote.clients?.name}</div>
-                                  <div><strong>Valor:</strong> {Number(quote.total).toFixed(2)} {quote.currency || 'AOA'}</div>
-                                  <div><strong>Status:</strong> Confirmado</div>
-                                  {quote.items && Array.isArray(quote.items) && quote.items.length > 0 && (
-                                    <div>
-                                      <strong>Itens:</strong>
-                                      <ul className="list-disc list-inside mt-1">
-                                        {quote.items.slice(0, 3).map((item: any, idx: number) => (
-                                          <li key={idx}>{item.description || item.name}</li>
-                                        ))}
-                                        {quote.items.length > 3 && <li>... e mais {quote.items.length - 3} itens</li>}
-                                      </ul>
-                                    </div>
-                                  )}
-                                </div>
-                                <p className="text-muted-foreground">O orçamento ficará vinculado ao job criado.</p>
-                              </AlertDialogDescription>
+             filteredQuotes.map((quote) => (
+               <Card
+                 key={quote.id}
+                 className="p-4 sm:p-5 hover:shadow-md transition-all"
+               >
+                 <div className="flex flex-col gap-4">
+                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                     <div className="flex-1 min-w-0">
+                       <div className="flex items-center gap-2 mb-2">
+                         <FileText className="h-5 w-5 text-primary shrink-0" />
+                         <h3 className="text-base sm:text-lg font-semibold truncate">
+                           {quote.clients?.name || 'Cliente não especificado'}
+                         </h3>
+                         <Badge variant={statusConfig[quote.status as keyof typeof statusConfig]?.variant || 'secondary'}>
+                           {statusConfig[quote.status as keyof typeof statusConfig]?.label || quote.status}
+                         </Badge>
+                       </div>
+                       
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                         <div className="flex items-center gap-2 text-muted-foreground">
+                           <Calendar className="h-4 w-4 shrink-0" />
+                           <span className="truncate">Criado: {new Date(quote.created_at).toLocaleDateString("pt-PT")}</span>
+                         </div>
+                         {quote.validity_date && (
+                           <div className="flex items-center gap-2 text-muted-foreground">
+                             <Clock className="h-4 w-4 shrink-0" />
+                             <span className="truncate">Validade: {new Date(quote.validity_date).toLocaleDateString("pt-PT")}</span>
+                           </div>
+                         )}
+                       </div>
+                     </div>
+                     
+                     <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2">
+                       <div className="text-right">
+                         <div className="text-xl sm:text-2xl font-bold whitespace-nowrap">
+                           {Number(quote.total).toFixed(2)}
+                         </div>
+                         <div className="text-xs text-muted-foreground">
+                           {quote.currency || 'AOA'}
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+
+                   <div className="flex flex-wrap gap-2 pt-2 border-t">
+                     {quote.pdf_link ? (
+                       <Button 
+                         variant="outline" 
+                         size="sm"
+                         onClick={() => window.open(quote.pdf_link!, '_blank')}
+                       >
+                         <FileText className="h-4 w-4 sm:mr-2" />
+                         <span className="hidden sm:inline">Ver PDF</span>
+                       </Button>
+                     ) : (
+                       <Badge variant="outline" className="text-xs">
+                         PDF ao salvar
+                       </Badge>
+                     )}
+                     <Button 
+                       variant="outline" 
+                       size="sm"
+                       onClick={() => handleEdit(quote)}
+                     >
+                       <Pencil className="h-4 w-4 sm:mr-2" />
+                       <span className="hidden sm:inline">Editar</span>
+                     </Button>
+                     {quote.status === 'accepted' && (
+                       <>
+                         <Button 
+                           variant="outline" 
+                           size="sm"
+                           onClick={() => {
+                             navigate('/invoices?from_quote=' + quote.id);
+                           }}
+                         >
+                           <FileText className="h-4 w-4 sm:mr-2" />
+                           <span className="hidden sm:inline">Fatura</span>
+                         </Button>
+                         {!quote.job_id && (
+                           <AlertDialog>
+                             <AlertDialogTrigger asChild>
+                               <Button 
+                                 variant="default" 
+                                 size="sm"
+                                 disabled={createJob.isPending}
+                               >
+                                 <Briefcase className="h-4 w-4 sm:mr-2" />
+                                 <span className="hidden sm:inline">Job</span>
+                               </Button>
+                             </AlertDialogTrigger>
+                         <AlertDialogContent>
+                           <AlertDialogHeader>
+                             <AlertDialogTitle>Converter Orçamento em Job?</AlertDialogTitle>
+                             <AlertDialogDescription className="space-y-3">
+                               <p>Será criado um novo job com os seguintes dados:</p>
+                               <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
+                                 <div><strong>Cliente:</strong> {quote.clients?.name}</div>
+                                 <div><strong>Valor:</strong> {Number(quote.total).toFixed(2)} {quote.currency || 'AOA'}</div>
+                                 <div><strong>Status:</strong> Confirmado</div>
+                                 {quote.items && Array.isArray(quote.items) && quote.items.length > 0 && (
+                                   <div>
+                                     <strong>Itens:</strong>
+                                     <ul className="list-disc list-inside mt-1">
+                                       {quote.items.slice(0, 3).map((item: any, idx: number) => (
+                                         <li key={idx}>{item.description || item.name}</li>
+                                       ))}
+                                       {quote.items.length > 3 && <li>... e mais {quote.items.length - 3} itens</li>}
+                                     </ul>
+                                   </div>
+                                 )}
+                               </div>
+                               <p className="text-muted-foreground">O orçamento ficará vinculado ao job criado.</p>
+                             </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
@@ -441,33 +435,31 @@ export default function Quotes() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                          )}
-                        </>
                       )}
                       {quote.job_id && (
-                        <Badge variant="secondary" className="gap-1">
-                          <Briefcase className="h-3 w-3" />
-                          Job Criado
-                        </Badge>
-                      )}
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="gap-2"
-                        onClick={() => {
-                          setPaymentPlanQuote(quote);
-                          setPaymentPlanDialogOpen(true);
-                        }}
-                      >
-                        <CreditCard className="h-4 w-4" />
-                        <span>Plano</span>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-            )}
+                         <Badge variant="secondary" className="gap-1">
+                           <Briefcase className="h-3 w-3" />
+                           Job Criado
+                         </Badge>
+                       )}
+                       <Button 
+                         variant="outline" 
+                         size="sm"
+                         onClick={() => {
+                           setPaymentPlanQuote(quote);
+                           setPaymentPlanDialogOpen(true);
+                         }}
+                       >
+                         <CreditCard className="h-4 w-4 sm:mr-2" />
+                         <span className="hidden sm:inline">Plano</span>
+                       </Button>
+                     </>
+                   )}
+                 </div>
+               </div>
+             </Card>
+           ))
+           )}
           </div>
         </Card>
       )}

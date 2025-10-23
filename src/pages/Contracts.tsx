@@ -174,57 +174,58 @@ export default function Contracts() {
           <div className="grid gap-4 grid-cols-1">
         {filteredContracts?.map((contract) => (
           <Card key={contract.id} className="p-4 sm:p-5 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-3">
-                  <FileText className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-foreground text-base sm:text-lg">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-start gap-2">
+                <FileText className="h-5 w-5 text-primary shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-base sm:text-lg truncate">
                     {contract.clients?.name || 'Cliente não especificado'}
                   </h3>
-                  <Badge variant={statusConfig[contract.status as keyof typeof statusConfig]?.variant || 'default'}>
-                    {statusConfig[contract.status as keyof typeof statusConfig]?.label || contract.status}
-                  </Badge>
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  {contract.jobs && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Job:</span>
-                      <span className="font-medium">{contract.jobs.title}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Emitido:</span>
-                    <span className="font-medium">
-                      {new Date(contract.issued_at || contract.created_at).toLocaleDateString('pt-PT')}
-                    </span>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    <Badge variant={statusConfig[contract.status as keyof typeof statusConfig]?.variant || 'default'}>
+                      {statusConfig[contract.status as keyof typeof statusConfig]?.label || contract.status}
+                    </Badge>
                   </div>
-                  {contract.signed_at && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Assinado:</span>
-                      <span className="font-medium text-success">
-                        {new Date(contract.signed_at).toLocaleDateString('pt-PT')}
-                      </span>
-                    </div>
-                  )}
-                  {contract.cancellation_fee && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Taxa Cancelamento:</span>
-                      <span className="font-medium">Kz {Number(contract.cancellation_fee).toFixed(2)}</span>
-                    </div>
-                  )}
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                {contract.jobs && (
+                  <div>
+                    <span className="text-muted-foreground">Job:</span>
+                    <p className="font-medium truncate">{contract.jobs.title}</p>
+                  </div>
+                )}
+                <div>
+                  <span className="text-muted-foreground">Emitido:</span>
+                  <p className="font-medium">
+                    {new Date(contract.issued_at || contract.created_at).toLocaleDateString('pt-PT')}
+                  </p>
+                </div>
+                {contract.signed_at && (
+                  <div>
+                    <span className="text-muted-foreground">Assinado:</span>
+                    <p className="font-medium text-success">
+                      {new Date(contract.signed_at).toLocaleDateString('pt-PT')}
+                    </p>
+                  </div>
+                )}
+                {contract.cancellation_fee && (
+                  <div>
+                    <span className="text-muted-foreground">Taxa Cancelamento:</span>
+                    <p className="font-medium">Kz {Number(contract.cancellation_fee).toFixed(2)}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-2 border-t">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleEdit(contract)}
-                  className="gap-2"
                 >
-                  <Edit className="h-3 w-3" />
-                  Editar
+                  <Edit className="h-3 w-3 sm:mr-2" />
+                  <span className="hidden sm:inline">Editar</span>
                 </Button>
                 
                 {!['signed', 'active', 'cancelled'].includes(contract.status) && (
@@ -233,17 +234,17 @@ export default function Contracts() {
                       onClick={() => copySignatureLink(contract)} 
                       variant="outline"
                       size="sm"
-                      title="Copiar link de assinatura"
                     >
-                      <Link2 className="h-3 w-3" />
+                      <Link2 className="h-3 w-3 sm:mr-2" />
+                      <span className="hidden sm:inline">Link</span>
                     </Button>
                     <Button 
                       onClick={() => sendForSignature(contract)} 
                       variant="default"
                       size="sm"
-                      title="Enviar para assinatura"
                     >
-                      <Send className="h-3 w-3" />
+                      <Send className="h-3 w-3 sm:mr-2" />
+                      <span className="hidden sm:inline">Enviar</span>
                     </Button>
                   </>
                 )}

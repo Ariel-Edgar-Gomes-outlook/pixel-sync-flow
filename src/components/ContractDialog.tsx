@@ -316,7 +316,7 @@ Valor total: [Valor acordado]`,
   return (
     <Dialog open={actualOpen} onOpenChange={actualOnOpenChange}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
@@ -348,7 +348,7 @@ Valor total: [Valor acordado]`,
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="basics" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
               <TabsTrigger value="basics">Básico</TabsTrigger>
               <TabsTrigger value="terms">Termos</TabsTrigger>
               <TabsTrigger value="policies">Políticas</TabsTrigger>
@@ -357,7 +357,7 @@ Valor total: [Valor acordado]`,
 
             <TabsContent value="basics" className="space-y-4 mt-4">
               <Card className="p-4 bg-muted/50">
-                <div className="mb-4 flex gap-2">
+                <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <Button
                     type="button"
                     variant="outline"
@@ -365,7 +365,7 @@ Valor total: [Valor acordado]`,
                     onClick={() => applyPhotographyTemplate('wedding')}
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Template Casamento
+                    <span className="hidden sm:inline">Template </span>Casamento
                   </Button>
                   <Button
                     type="button"
@@ -374,7 +374,7 @@ Valor total: [Valor acordado]`,
                     onClick={() => applyPhotographyTemplate('event')}
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Template Evento
+                    <span className="hidden sm:inline">Template </span>Evento
                   </Button>
                   <Button
                     type="button"
@@ -383,11 +383,11 @@ Valor total: [Valor acordado]`,
                     onClick={() => applyPhotographyTemplate('portrait')}
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Template Ensaio
+                    <span className="hidden sm:inline">Template </span>Ensaio
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>Cliente *</Label>
                     <Select

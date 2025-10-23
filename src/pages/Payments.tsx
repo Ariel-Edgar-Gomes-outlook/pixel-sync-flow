@@ -198,73 +198,75 @@ export default function Payments() {
               </div>
             ) : (
             filteredPayments.map((payment) => (
-              <div
+              <Card
                 key={payment.id}
-                className="p-5 rounded-lg border border-border bg-card hover:shadow-md transition-all"
+                className="p-4 sm:p-5 hover:shadow-md transition-all"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <CreditCard className="h-5 w-5 text-primary" />
-                      <h3 className="text-lg font-semibold text-foreground">
-                        {payment.clients?.name || 'Cliente não especificado'}
-                      </h3>
-                      <Badge variant={statusConfig[payment.status as keyof typeof statusConfig]?.variant || 'secondary'}>
-                        {statusConfig[payment.status as keyof typeof statusConfig]?.label || payment.status}
-                      </Badge>
-                      <Badge variant="outline">{payment.type}</Badge>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mt-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          {payment.paid_at 
-                            ? `Pago: ${new Date(payment.paid_at).toLocaleDateString("pt-PT")}`
-                            : `Criado: ${new Date(payment.created_at).toLocaleDateString("pt-PT")}`
-                          }
-                        </span>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CreditCard className="h-5 w-5 text-primary shrink-0" />
+                        <h3 className="text-base sm:text-lg font-semibold truncate">
+                          {payment.clients?.name || 'Cliente não especificado'}
+                        </h3>
                       </div>
-                      {payment.method && (
-                        <div className="text-sm text-muted-foreground">
-                          <span>Método: {payment.method}</span>
-                        </div>
-                      )}
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant={statusConfig[payment.status as keyof typeof statusConfig]?.variant || 'secondary'}>
+                          {statusConfig[payment.status as keyof typeof statusConfig]?.label || payment.status}
+                        </Badge>
+                        <Badge variant="outline">{payment.type}</Badge>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-xl sm:text-2xl font-bold">
+                        Kz {Number(payment.amount).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {payment.currency || 'AOA'}
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="text-right ml-6">
-                    <div className="text-2xl font-bold text-foreground">
-                      Kz {Number(payment.amount).toFixed(2)}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>
+                        {payment.paid_at 
+                          ? `Pago: ${new Date(payment.paid_at).toLocaleDateString("pt-PT")}`
+                          : `Criado: ${new Date(payment.created_at).toLocaleDateString("pt-PT")}`
+                        }
+                      </span>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {payment.currency || 'AOA'}
-                    </div>
-                    <div className="flex gap-2 mt-3">
-                      {payment.receipt_url && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="gap-2"
-                          onClick={() => window.open(payment.receipt_url!, '_blank')}
-                        >
-                          <FileText className="h-4 w-4" />
-                          Ver Recibo
-                        </Button>
-                      )}
+                    {payment.method && (
+                      <div className="text-muted-foreground">
+                        <span>Método: {payment.method}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-2 border-t">
+                    {payment.receipt_url && (
                       <Button 
                         variant="outline" 
-                        size="sm" 
-                        className="gap-2"
-                        onClick={() => handleEdit(payment)}
+                        size="sm"
+                        onClick={() => window.open(payment.receipt_url!, '_blank')}
                       >
-                        <Edit className="h-4 w-4" />
-                        Editar
+                        <FileText className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Ver Recibo</span>
                       </Button>
-                    </div>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEdit(payment)}
+                    >
+                      <Edit className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Editar</span>
+                    </Button>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))
             )}
           </div>
