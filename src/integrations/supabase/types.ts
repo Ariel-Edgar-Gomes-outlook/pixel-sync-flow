@@ -1032,7 +1032,10 @@ export type Database = {
           paid_at: string | null
           payment_plan_id: string | null
           quote_id: string | null
+          receipt_downloads: number | null
+          receipt_generated_at: string | null
           receipt_link: string | null
+          receipt_sent_at: string | null
           receipt_url: string | null
           status: Database["public"]["Enums"]["payment_status"]
           type: string
@@ -1051,7 +1054,10 @@ export type Database = {
           paid_at?: string | null
           payment_plan_id?: string | null
           quote_id?: string | null
+          receipt_downloads?: number | null
+          receipt_generated_at?: string | null
           receipt_link?: string | null
+          receipt_sent_at?: string | null
           receipt_url?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           type: string
@@ -1070,7 +1076,10 @@ export type Database = {
           paid_at?: string | null
           payment_plan_id?: string | null
           quote_id?: string | null
+          receipt_downloads?: number | null
+          receipt_generated_at?: string | null
           receipt_link?: string | null
+          receipt_sent_at?: string | null
           receipt_url?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           type?: string

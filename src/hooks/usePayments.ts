@@ -13,6 +13,9 @@ export interface Payment {
   paid_at: string | null;
   notes: string | null;
   receipt_link: string | null;
+  receipt_generated_at: string | null;
+  receipt_sent_at: string | null;
+  receipt_downloads: number;
   created_at: string;
   updated_at: string;
 }

@@ -276,7 +276,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
         id: quote.id,
         client_name: quote.clients?.name || "Cliente",
         client_email: quote.clients?.email,
-        client_phone: quote.clients?.phone,
+        client_phone: (quote.clients as any)?.phone,
         validity_date: quote.validity_date,
         items: quote.items,
         tax: Number(quote.tax) || 0,

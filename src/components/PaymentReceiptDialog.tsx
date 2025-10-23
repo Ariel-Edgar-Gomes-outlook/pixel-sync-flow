@@ -129,21 +129,35 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
           status: newStatus,
         });
 
-        // Generate receipt PDF
+        // Generate receipt PDF automatically for new payments
         if (!payment) {
           setIsGeneratingReceipt(true);
           try {
-            const receiptUrl = await generateReceiptPDF(savedPayment, selectedInvoice, selectedInvoice.clients);
+            const receiptUrl = await generateReceiptPDF(
+              { ...savedPayment, status: 'paid' },
+              selectedInvoice,
+              selectedInvoice.clients
+            );
+            
             await updatePayment.mutateAsync({ 
               id: savedPayment.id, 
-              receipt_link: receiptUrl 
+              receipt_link: receiptUrl,
+              receipt_generated_at: new Date().toISOString()
             });
-            toast.success('Recibo gerado com sucesso!');
+            
+            toast.success('Pagamento registado e recibo gerado com sucesso!', {
+              description: 'O recibo foi criado automaticamente'
+            });
           } catch (error: any) {
-            toast.error('Erro ao gerar recibo: ' + error.message);
+            console.error('Error generating receipt:', error);
+            toast.error('Pagamento registado mas erro ao gerar recibo', {
+              description: error.message
+            });
           } finally {
             setIsGeneratingReceipt(false);
           }
+        } else {
+          toast.success('Pagamento atualizado com sucesso!');
         }
       }
 

@@ -261,19 +261,40 @@ export default function Payments() {
                   </div>
 
                   <div className="flex flex-wrap gap-2 pt-2 border-t">
-                    {payment.receipt_url && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setSelectedPdfUrl(payment.receipt_url);
-                          setPdfTitle(`Recibo - ${payment.clients?.name || 'Cliente'}`);
-                          setPdfViewerOpen(true);
-                        }}
-                      >
-                        <FileText className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Ver Recibo</span>
-                      </Button>
+                    {payment.receipt_link ? (
+                      <>
+                        <Badge variant="secondary" className="text-xs">
+                          <Receipt className="h-3 w-3 mr-1" />
+                          Recibo Gerado
+                        </Badge>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedPdfUrl(payment.receipt_link);
+                            setPdfTitle(`Recibo - ${payment.clients?.name || 'Cliente'}`);
+                            setPdfViewerOpen(true);
+                          }}
+                        >
+                          <FileText className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Ver Recibo</span>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            window.open(payment.receipt_link!, '_blank');
+                          }}
+                        >
+                          <Download className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Baixar PDF</span>
+                        </Button>
+                      </>
+                    ) : payment.status === 'paid' && (
+                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                        <Receipt className="h-3 w-3 mr-1" />
+                        Sem recibo
+                      </Badge>
                     )}
                     <Button 
                       variant="outline" 
