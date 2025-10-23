@@ -11,10 +11,12 @@ import { useCreateQuote, useUpdateQuote, Quote } from "@/hooks/useQuotes";
 import { useClients } from "@/hooks/useClients";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Plus, X, FileText, Calculator, Percent, Tag, Briefcase, FileDown, Sparkles } from "lucide-react";
+import { Plus, X, FileText, Calculator, Percent, Tag, Briefcase, FileDown, Sparkles, Send } from "lucide-react";
 import { useQuoteTemplates } from "@/hooks/useTemplates";
-import { generateQuotePDF } from "@/lib/pdfGenerator";
+import { generateProfessionalQuotePDF } from "@/lib/pdfGenerator";
 import { useUpdateQuote as useUpdateQuoteMutation } from "@/hooks/useQuotes";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
 
 interface QuoteDialogProps {
   children?: React.ReactNode;
@@ -105,18 +107,55 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.client_id) {
-      toast.error("Selecione um cliente");
+    // Validations with Zod
+    const quoteSchema = z.object({
+      client_id: z.string().min(1, "Selecione um cliente"),
+      items: z.array(z.object({
+        description: z.string().min(3, "Descrição deve ter pelo menos 3 caracteres"),
+        quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
+        price: z.number().min(0.01, "Preço deve ser maior que 0"),
+      })).min(1, "Adicione pelo menos um item"),
+      validity_date: z.string().optional().refine(
+        (date) => !date || new Date(date) > new Date(), 
+        "Data de validade deve ser no futuro"
+      ),
+      total: z.number().min(0.01, "Total deve ser maior que 0"),
+    });
+
+    try {
+      quoteSchema.parse({
+        client_id: formData.client_id,
+        items: formData.items,
+        validity_date: formData.validity_date,
+        total: calculateTotal(),
+      });
+    } catch (error: any) {
+      const firstError = error.errors?.[0];
+      toast.error(firstError?.message || "Erro de validação");
       return;
     }
 
-    if (formData.items.length === 0) {
-      toast.error("Adicione pelo menos um item");
+    // Check if trying to edit accepted quote
+    if (quote && quote.status === 'accepted') {
+      toast.error("Não é possível editar um orçamento aceite");
       return;
+    }
+
+    // Warn about editing sent quote
+    if (quote && quote.status === 'sent') {
+      const confirmed = window.confirm("Este orçamento já foi enviado. Tem certeza que deseja editá-lo?");
+      if (!confirmed) return;
     }
 
     const total = calculateTotal();
-    const quoteData = { ...formData, total };
+    const quoteData = { 
+      ...formData, 
+      total,
+      // Set default validity to +30 days if not set and creating new
+      validity_date: formData.validity_date || (!quote ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : null),
+    };
+
+    const previousStatus = quote?.status;
 
     try {
       setIsGeneratingPDF(true);
@@ -130,25 +169,46 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
         toast.success("Orçamento criado!");
       }
 
-      // Gerar PDF automaticamente
+      // Gerar PDF automaticamente (professional version)
       if (savedQuote) {
         const client = clients?.find(c => c.id === formData.client_id);
-        const pdfUrl = await generateQuotePDF({
+        const pdfUrl = await generateProfessionalQuotePDF({
           id: savedQuote.id,
           client_name: client?.name || "Cliente",
+          client_email: client?.email,
+          client_phone: client?.phone,
           validity_date: savedQuote.validity_date,
           items: savedQuote.items,
           tax: Number(savedQuote.tax) || 0,
           discount: Number(savedQuote.discount) || 0,
           total: Number(savedQuote.total),
           currency: savedQuote.currency || "AOA",
+          status: savedQuote.status,
           created_at: savedQuote.created_at,
+          accepted_at: savedQuote.accepted_at,
         });
 
         await updateQuoteMutation.mutateAsync({
           id: savedQuote.id,
           pdf_link: pdfUrl,
         });
+
+        // Auto-send email if status changed to 'sent'
+        if (savedQuote.status === 'sent' && previousStatus !== 'sent') {
+          try {
+            await supabase.functions.invoke('send-quote-email', {
+              body: { quoteId: savedQuote.id, type: 'send' },
+            });
+            toast.success("Email enviado ao cliente!", {
+              description: "O cliente receberá o orçamento por email.",
+            });
+          } catch (emailError) {
+            console.error('Email error:', emailError);
+            toast.warning("Orçamento salvo, mas erro ao enviar email", {
+              description: "Pode enviar manualmente depois.",
+            });
+          }
+        }
 
         toast.success("PDF gerado automaticamente!", {
           action: {
@@ -212,16 +272,20 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
 
     setIsGeneratingPDF(true);
     try {
-      const pdfUrl = await generateQuotePDF({
+      const pdfUrl = await generateProfessionalQuotePDF({
         id: quote.id,
         client_name: quote.clients?.name || "Cliente",
+        client_email: quote.clients?.email,
+        client_phone: quote.clients?.phone,
         validity_date: quote.validity_date,
         items: quote.items,
         tax: Number(quote.tax) || 0,
         discount: Number(quote.discount) || 0,
         total: Number(quote.total),
         currency: quote.currency || "AOA",
+        status: quote.status,
         created_at: quote.created_at,
+        accepted_at: quote.accepted_at,
       });
 
       await updateQuoteMutation.mutateAsync({
@@ -332,6 +396,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
                 <Select
                   value={formData.status}
                   onValueChange={(value) => setFormData({ ...formData, status: value as Quote['status'] })}
+                  disabled={quote?.status === 'accepted'}
                 >
                   <SelectTrigger className="bg-background">
                     <SelectValue />
@@ -343,6 +408,16 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
                     <SelectItem value="rejected">❌ Rejeitado</SelectItem>
                   </SelectContent>
                 </Select>
+                {quote?.accepted_at && (
+                  <p className="text-xs text-success">
+                    Aceite em {new Date(quote.accepted_at).toLocaleDateString('pt-PT')}
+                  </p>
+                )}
+                {quote?.status === 'accepted' && (
+                  <p className="text-xs text-muted-foreground">
+                    Orçamentos aceites não podem ser editados
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">

@@ -24,6 +24,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ClientGallery from "./pages/ClientGallery";
 import ContractSign from "./pages/ContractSign";
+import QuoteReview from "./pages/QuoteReview";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
             {/* Public Routes */}
             <Route path="/gallery/:token" element={<ClientGallery />} />
             <Route path="/contract/sign/:token" element={<ContractSign />} />
+            <Route path="/quote/review/:quoteId" element={<QuoteReview />} />
             
             {/* Protected Routes */}
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
