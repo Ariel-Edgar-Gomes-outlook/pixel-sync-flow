@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,17 @@ export default function Payments() {
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
   const [pdfTitle, setPdfTitle] = useState<string>('');
   const { data: payments, isLoading } = usePayments();
+
+  useEffect(() => {
+    const handleOpenPDFViewer = (event: any) => {
+      setSelectedPdfUrl(event.detail.url);
+      setPdfTitle(event.detail.title);
+      setPdfViewerOpen(true);
+    };
+
+    window.addEventListener('openPDFViewer', handleOpenPDFViewer);
+    return () => window.removeEventListener('openPDFViewer', handleOpenPDFViewer);
+  }, []);
 
   const handleEdit = (payment: Payment) => {
     setSelectedPayment(payment);
