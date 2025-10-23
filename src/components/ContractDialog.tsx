@@ -11,7 +11,8 @@ import { useCreateContract, useUpdateContract } from "@/hooks/useContracts";
 import { useClients } from "@/hooks/useClients";
 import { useJobs } from "@/hooks/useJobs";
 import { useContractTemplates } from "@/hooks/useTemplates";
-import { generateContractPDF } from "@/lib/pdfGenerator";
+import { generateProfessionalContractPDF } from "@/lib/pdfGenerator";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileText, Sparkles, Send, Copy, FileSignature, FileDown } from "lucide-react";
 import { z } from "zod";
@@ -20,7 +21,7 @@ const contractSchema = z.object({
   client_id: z.string().min(1, "Cliente é obrigatório"),
   job_id: z.string().nullable(),
   status: z.enum(['draft', 'sent', 'pending_signature', 'signed', 'active', 'cancelled']),
-  terms_text: z.string().max(10000, "Termos não podem exceder 10000 caracteres"),
+  terms_text: z.string().min(50, "Termos devem ter pelo menos 50 caracteres").max(10000, "Termos não podem exceder 10000 caracteres"),
   usage_rights_text: z.string().max(5000, "Texto muito longo").optional(),
   cancellation_policy_text: z.string().max(5000, "Texto muito longo").optional(),
   late_delivery_clause: z.string().max(2000, "Texto muito longo").optional(),
@@ -28,7 +29,18 @@ const contractSchema = z.object({
   reschedule_policy: z.string().max(2000, "Texto muito longo").optional(),
   revision_policy: z.string().max(2000, "Texto muito longo").optional(),
   cancellation_fee: z.number().min(0).max(1000000),
-});
+}).refine(
+  (data) => {
+    if (data.cancellation_fee > 0 && (!data.cancellation_policy_text || data.cancellation_policy_text.length < 20)) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Política de cancelamento é obrigatória quando há taxa de cancelamento",
+    path: ["cancellation_policy_text"],
+  }
+);
 
 interface Contract {
   id: string;
@@ -43,6 +55,7 @@ interface Contract {
   reschedule_policy?: string;
   revision_policy?: string;
   signature_token?: string;
+  signature_url?: string;
   pdf_url?: string;
   issued_at?: string;
   signed_at?: string | null;
@@ -220,13 +233,22 @@ Valor total: [Valor acordado]`,
       const client = clients?.find(c => c.id === contract.client_id);
       const job = jobs?.find(j => j.id === contract.job_id);
       
-      const pdfUrl = await generateContractPDF({
+      const pdfUrl = await generateProfessionalContractPDF({
         id: contract.id,
         client_name: client?.name || "Cliente",
+        client_email: client?.email,
         job_title: job?.title,
         terms_text: contract.terms_text || "",
+        usage_rights_text: contract.usage_rights_text,
+        cancellation_policy_text: contract.cancellation_policy_text,
+        late_delivery_clause: contract.late_delivery_clause,
+        copyright_notice: contract.copyright_notice,
+        reschedule_policy: contract.reschedule_policy,
+        revision_policy: contract.revision_policy,
+        cancellation_fee: contract.cancellation_fee,
         issued_at: contract.issued_at || new Date().toISOString(),
         signed_at: contract.signed_at || null,
+        signature_url: contract.signature_url,
       });
 
       await updateContract.mutateAsync({
@@ -234,7 +256,7 @@ Valor total: [Valor acordado]`,
         pdf_url: pdfUrl,
       });
 
-      toast.success("PDF gerado com sucesso!", {
+      toast.success("PDF profissional gerado!", {
         action: {
           label: "Ver PDF",
           onClick: () => {
@@ -253,32 +275,90 @@ Valor total: [Valor acordado]`,
     }
   };
 
+  const sendContractForSignature = async (contractId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await supabase.functions.invoke('send-contract-email', {
+        body: {
+          contractId,
+          type: 'signature_request',
+        },
+      });
+
+      if (response.error) throw response.error;
+
+      toast.success("Email de assinatura enviado!", {
+        description: response.data.emailSent 
+          ? "Cliente receberá o link por email" 
+          : "Copie o link de assinatura e envie manualmente"
+      });
+
+      return response.data.signatureUrl;
+    } catch (error: any) {
+      console.error('Failed to send contract:', error);
+      toast.error("Erro ao enviar contrato", {
+        description: error.message
+      });
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validar se contrato assinado não pode ser editado
+    if (contract && (contract.status === 'signed' || contract.status === 'active')) {
+      toast.error("Não é possível editar contratos assinados ou ativos");
+      return;
+    }
+
+    // Confirmar edição de contrato enviado
+    if (contract && contract.status === 'sent') {
+      const confirmed = window.confirm(
+        "Este contrato já foi enviado para assinatura. Ao editar, pode ser necessário reenviar. Deseja continuar?"
+      );
+      if (!confirmed) return;
+    }
     
     try {
       setIsGeneratingPDF(true);
       const validatedData = contractSchema.parse(formData);
       
+      // Gerar signature_token se novo contrato
+      const dataToSave = {
+        ...validatedData,
+        issued_at: contract?.issued_at || new Date().toISOString(),
+      };
+
       let savedContract;
       if (contract) {
-        savedContract = await updateContract.mutateAsync({ id: contract.id, ...validatedData });
+        savedContract = await updateContract.mutateAsync({ id: contract.id, ...dataToSave });
         toast.success("Contrato atualizado!");
       } else {
-        savedContract = await createContract.mutateAsync(validatedData);
+        savedContract = await createContract.mutateAsync(dataToSave);
         toast.success("Contrato criado!");
       }
 
-      // Gerar PDF automaticamente
+      // Gerar PDF profissional automaticamente
       if (savedContract) {
         const client = clients?.find(c => c.id === formData.client_id);
         const job = jobs?.find(j => j.id === formData.job_id);
         
-        const pdfUrl = await generateContractPDF({
+        const pdfUrl = await generateProfessionalContractPDF({
           id: savedContract.id,
           client_name: client?.name || "Cliente",
+          client_email: client?.email,
           job_title: job?.title,
           terms_text: savedContract.terms_text || "",
+          usage_rights_text: savedContract.usage_rights_text,
+          cancellation_policy_text: savedContract.cancellation_policy_text,
+          late_delivery_clause: savedContract.late_delivery_clause,
+          copyright_notice: savedContract.copyright_notice,
+          reschedule_policy: savedContract.reschedule_policy,
+          revision_policy: savedContract.revision_policy,
+          cancellation_fee: savedContract.cancellation_fee,
           issued_at: savedContract.issued_at || new Date().toISOString(),
           signed_at: savedContract.signed_at || null,
         });
@@ -299,6 +379,11 @@ Valor total: [Valor acordado]`,
             }
           }
         });
+
+        // Se status for 'sent', enviar email automaticamente
+        if (formData.status === 'sent') {
+          await sendContractForSignature(savedContract.id);
+        }
       }
 
       actualOnOpenChange(false);

@@ -3,9 +3,11 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, CheckCircle2 } from "lucide-react";
+import { FileText, CheckCircle2, Eye, Loader2 } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
+import { generateProfessionalContractPDF } from "@/lib/pdfGenerator";
 
 interface ContractData {
   id: string;
@@ -15,6 +17,7 @@ interface ContractData {
   cancellation_policy_text: string | null;
   revision_policy: string | null;
   clauses: any;
+  pdf_url: string | null;
   clients: {
     name: string;
     email: string;
@@ -33,6 +36,8 @@ export default function ContractSign() {
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
   const [signed, setSigned] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
 
   useEffect(() => {
     loadContract();
@@ -69,6 +74,15 @@ export default function ContractSign() {
   };
 
   const handleSign = async () => {
+    if (!agreed) {
+      toast({
+        variant: "destructive",
+        title: "Confirmação Necessária",
+        description: "Você deve concordar com os termos antes de assinar",
+      });
+      return;
+    }
+
     if (!signatureRef.current || signatureRef.current.isEmpty()) {
       toast({
         variant: "destructive",
@@ -80,22 +94,84 @@ export default function ContractSign() {
 
     setSigning(true);
     try {
-      const signatureData = signatureRef.current.toDataURL();
+      const signatureDataUrl = signatureRef.current.toDataURL();
       
-      // Atualizar status do contrato
-      const { error } = await supabase
+      // Upload signature to storage
+      const signatureBlob = await fetch(signatureDataUrl).then(r => r.blob());
+      const signaturePath = `signatures/${contract!.id}_${Date.now()}.png`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('contracts')
+        .upload(signaturePath, signatureBlob, {
+          contentType: 'image/png',
+          cacheControl: '3600',
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('contracts')
+        .getPublicUrl(uploadData.path);
+      
+      // Update contract with signature
+      const { error: updateError } = await supabase
         .from('contracts')
         .update({
           status: 'signed',
-          signature_url: signatureData,
+          signature_url: publicUrl,
           signed_at: new Date().toISOString(),
         })
         .eq('id', contract!.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      // TODO: Gerar PDF com assinatura e enviar email
-      // Isso requer edge function para gerar PDF e enviar email via Resend
+      // Regenerate PDF with signature
+      try {
+        const { data: contractData } = await supabase
+          .from('contracts')
+          .select(`
+            *,
+            clients (name, email),
+            jobs (title)
+          `)
+          .eq('id', contract!.id)
+          .single();
+
+        if (contractData) {
+          const pdfUrl = await generateProfessionalContractPDF({
+            id: contractData.id,
+            client_name: contractData.clients.name,
+            client_email: contractData.clients.email,
+            job_title: contractData.jobs?.title,
+            terms_text: contractData.terms_text || "",
+            usage_rights_text: contractData.usage_rights_text,
+            cancellation_policy_text: contractData.cancellation_policy_text,
+            late_delivery_clause: contractData.late_delivery_clause,
+            copyright_notice: contractData.copyright_notice,
+            reschedule_policy: contractData.reschedule_policy,
+            revision_policy: contractData.revision_policy,
+            cancellation_fee: contractData.cancellation_fee,
+            issued_at: contractData.issued_at,
+            signed_at: contractData.signed_at,
+            signature_url: publicUrl,
+          });
+
+          await supabase
+            .from('contracts')
+            .update({ pdf_url: pdfUrl })
+            .eq('id', contract!.id);
+
+          // Send signed copy email
+          await supabase.functions.invoke('send-contract-email', {
+            body: {
+              contractId: contract!.id,
+              type: 'signed_copy',
+            },
+          });
+        }
+      } catch (pdfError) {
+        console.error('Failed to regenerate PDF:', pdfError);
+      }
       
       setSigned(true);
       toast({
@@ -103,10 +179,11 @@ export default function ContractSign() {
         description: "O contrato foi assinado digitalmente com sucesso",
       });
     } catch (error: any) {
+      console.error('Sign error:', error);
       toast({
         variant: "destructive",
         title: "Erro",
-        description: error.message,
+        description: error.message || "Erro ao assinar contrato",
       });
     } finally {
       setSigning(false);
@@ -145,6 +222,16 @@ export default function ContractSign() {
           <p className="text-muted-foreground mb-4">
             O contrato foi assinado com sucesso. Uma cópia foi enviada para o seu email.
           </p>
+          {contract?.pdf_url && (
+            <Button
+              variant="outline"
+              onClick={() => window.open(contract.pdf_url, '_blank')}
+              className="mb-4"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Baixar Contrato Assinado
+            </Button>
+          )}
           <p className="text-sm text-muted-foreground">
             Você pode fechar esta página.
           </p>
@@ -167,30 +254,45 @@ export default function ContractSign() {
             </div>
           </div>
 
+          {contract.pdf_url && (
+            <div className="mb-6">
+              <Button
+                variant="outline"
+                onClick={() => window.open(contract.pdf_url, '_blank')}
+                className="w-full"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Ver Contrato Completo em PDF
+              </Button>
+            </div>
+          )}
+
           <div className="prose max-w-none mb-8">
             <h2>Termos e Condições</h2>
             {contract.terms_text && (
-              <div className="whitespace-pre-wrap mb-4">{contract.terms_text}</div>
+              <div className="whitespace-pre-wrap mb-4 p-4 bg-muted/30 rounded-lg">
+                {contract.terms_text}
+              </div>
             )}
 
             {contract.usage_rights_text && (
               <>
                 <h3>Direitos de Uso de Imagem</h3>
-                <p>{contract.usage_rights_text}</p>
+                <p className="p-4 bg-muted/30 rounded-lg">{contract.usage_rights_text}</p>
               </>
             )}
 
             {contract.cancellation_policy_text && (
               <>
                 <h3>Política de Cancelamento</h3>
-                <p>{contract.cancellation_policy_text}</p>
+                <p className="p-4 bg-muted/30 rounded-lg">{contract.cancellation_policy_text}</p>
               </>
             )}
 
             {contract.revision_policy && (
               <>
                 <h3>Política de Revisões</h3>
-                <p>{contract.revision_policy}</p>
+                <p className="p-4 bg-muted/30 rounded-lg">{contract.revision_policy}</p>
               </>
             )}
 
@@ -207,6 +309,20 @@ export default function ContractSign() {
           </div>
 
           <div className="border-t pt-6">
+            <div className="mb-6 flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
+              <Checkbox
+                id="agree"
+                checked={agreed}
+                onCheckedChange={(checked) => setAgreed(checked as boolean)}
+              />
+              <label
+                htmlFor="agree"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                Li e concordo com todos os termos e condições deste contrato. Estou ciente de que a assinatura digital tem a mesma validade jurídica que a assinatura física.
+              </label>
+            </div>
+
             <h3 className="text-lg font-semibold mb-4">Assinatura Digital</h3>
             <div className="border-2 border-dashed rounded-lg bg-white mb-4">
               <SignatureCanvas
@@ -220,14 +336,22 @@ export default function ContractSign() {
               <Button
                 variant="outline"
                 onClick={clearSignature}
+                disabled={signing}
               >
                 Limpar
               </Button>
               <Button
                 onClick={handleSign}
-                disabled={signing}
+                disabled={signing || !agreed}
               >
-                {signing ? "Processando..." : "Assinar Contrato"}
+                {signing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  "Assinar Contrato"
+                )}
               </Button>
             </div>
           </div>
