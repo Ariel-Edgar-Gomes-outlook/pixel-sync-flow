@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Edit, FileText, FileSignature, Shield, CheckCircle2, Link2, Send } from "lucide-react";
+import { Search, Plus, Edit, FileText, FileSignature, Shield, CheckCircle2, Link2, Send, Eye } from "lucide-react";
 import { useContracts } from "@/hooks/useContracts";
 import { ContractDialog } from "@/components/ContractDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
@@ -293,6 +293,19 @@ export default function Contracts() {
       )}
         </>
       )}
+
+      <ContractDialog
+        contract={selectedContract}
+        open={dialogOpen}
+        onOpenChange={handleOpenChange}
+      />
+
+      <PDFViewerDialog
+        open={pdfViewerOpen}
+        onOpenChange={setPdfViewerOpen}
+        pdfUrl={selectedPdfUrl}
+        title={pdfTitle}
+      />
     </div>
   );
 }
