@@ -155,8 +155,17 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
 
       const pdfUrl = await generateInvoicePDF(invoiceData, client, businessSettings);
       
-      toast.success('PDF gerado com sucesso!');
-      window.open(pdfUrl, '_blank');
+      toast.success('PDF gerado com sucesso!', {
+        action: {
+          label: "Ver PDF",
+          onClick: () => {
+            const event = new CustomEvent('openPDFViewer', { 
+              detail: { url: pdfUrl, title: `Fatura ${invoiceData.invoice_number}` } 
+            });
+            window.dispatchEvent(event);
+          }
+        }
+      });
       
       return pdfUrl;
     } catch (error: any) {

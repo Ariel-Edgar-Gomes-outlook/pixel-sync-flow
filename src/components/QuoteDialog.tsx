@@ -153,7 +153,12 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
         toast.success("PDF gerado automaticamente!", {
           action: {
             label: "Abrir PDF",
-            onClick: () => window.open(pdfUrl, '_blank')
+            onClick: () => {
+              const event = new CustomEvent('openPDFViewer', { 
+                detail: { url: pdfUrl, title: `Orçamento - ${client?.name || 'Cliente'}` } 
+              });
+              window.dispatchEvent(event);
+            }
           }
         });
       }
@@ -224,7 +229,10 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
         pdf_link: pdfUrl,
       });
 
-      window.open(pdfUrl, '_blank');
+      const event = new CustomEvent('openPDFViewer', { 
+        detail: { url: pdfUrl, title: `Orçamento - ${quote.clients?.name || 'Cliente'}` } 
+      });
+      window.dispatchEvent(event);
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);

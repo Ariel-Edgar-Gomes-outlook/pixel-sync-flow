@@ -291,7 +291,12 @@ Valor total: [Valor acordado]`,
         toast.success("PDF gerado automaticamente!", {
           action: {
             label: "Abrir PDF",
-            onClick: () => window.open(pdfUrl, '_blank')
+            onClick: () => {
+              const event = new CustomEvent('openPDFViewer', { 
+                detail: { url: pdfUrl, title: `Contrato - ${client?.name || job?.title || 'Cliente'}` } 
+              });
+              window.dispatchEvent(event);
+            }
           }
         });
       }

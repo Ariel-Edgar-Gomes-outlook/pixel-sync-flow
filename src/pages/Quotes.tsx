@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,17 @@ export default function Quotes() {
   const createInvoice = useCreateInvoice();
   const { user } = useAuth();
   const { data: businessSettings } = useBusinessSettings(user?.id);
+
+  useEffect(() => {
+    const handleOpenPDFViewer = (event: any) => {
+      setSelectedPdfUrl(event.detail.url);
+      setPdfTitle(event.detail.title);
+      setPdfViewerOpen(true);
+    };
+
+    window.addEventListener('openPDFViewer', handleOpenPDFViewer);
+    return () => window.removeEventListener('openPDFViewer', handleOpenPDFViewer);
+  }, []);
 
   const handleEdit = (quote: any) => {
     setSelectedQuote(quote);

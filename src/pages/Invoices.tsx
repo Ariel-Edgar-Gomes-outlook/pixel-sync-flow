@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +48,17 @@ export default function Invoices() {
   const { data: invoices, isLoading } = useInvoices();
   const { data: stats } = useInvoiceStats();
   const updateInvoice = useUpdateInvoice();
+
+  useEffect(() => {
+    const handleOpenPDFViewer = (event: any) => {
+      setSelectedPdfUrl(event.detail.url);
+      setPdfTitle(event.detail.title);
+      setPdfViewerOpen(true);
+    };
+
+    window.addEventListener('openPDFViewer', handleOpenPDFViewer);
+    return () => window.removeEventListener('openPDFViewer', handleOpenPDFViewer);
+  }, []);
 
   const handleEdit = (invoice: any) => {
     setSelectedInvoice(invoice);
