@@ -16,6 +16,7 @@ import { useCreateInvoice } from '@/hooks/useInvoices';
 import { generateInvoicePDF } from '@/lib/professionalPdfGenerator';
 import { QuoteDialog } from "@/components/QuoteDialog";
 import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
+import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { exportToExcel, formatQuotesForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -35,6 +36,9 @@ export default function Quotes() {
   const [sortBy, setSortBy] = useState<"date" | "value">("date");
   const [paymentPlanQuote, setPaymentPlanQuote] = useState<any>(null);
   const [paymentPlanDialogOpen, setPaymentPlanDialogOpen] = useState(false);
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
+  const [pdfTitle, setPdfTitle] = useState<string>('');
   
   const { data: quotes, isLoading } = useQuotes();
   const createJob = useCreateJob();
@@ -357,20 +361,24 @@ export default function Quotes() {
                    </div>
 
                    <div className="flex flex-wrap gap-2 pt-2 border-t">
-                     {quote.pdf_link ? (
-                       <Button 
-                         variant="outline" 
-                         size="sm"
-                         onClick={() => window.open(quote.pdf_link!, '_blank')}
-                       >
-                         <FileText className="h-4 w-4 sm:mr-2" />
-                         <span className="hidden sm:inline">Ver PDF</span>
-                       </Button>
-                     ) : (
-                       <Badge variant="outline" className="text-xs">
-                         PDF ao salvar
-                       </Badge>
-                     )}
+                      {quote.pdf_link ? (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedPdfUrl(quote.pdf_link);
+                            setPdfTitle(`Orçamento - ${quote.clients?.name || 'Cliente'}`);
+                            setPdfViewerOpen(true);
+                          }}
+                        >
+                          <FileText className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Ver PDF</span>
+                        </Button>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">
+                          PDF ao salvar
+                        </Badge>
+                      )}
                      <Button 
                        variant="outline" 
                        size="sm"
@@ -475,6 +483,13 @@ export default function Quotes() {
         totalAmount={paymentPlanQuote?.total || 0}
         open={paymentPlanDialogOpen}
         onOpenChange={setPaymentPlanDialogOpen}
+      />
+
+      <PDFViewerDialog
+        open={pdfViewerOpen}
+        onOpenChange={setPdfViewerOpen}
+        pdfUrl={selectedPdfUrl}
+        title={pdfTitle}
       />
     </div>
   );

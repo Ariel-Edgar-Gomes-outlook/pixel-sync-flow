@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { InvoiceDialog } from '@/components/InvoiceDialog';
+import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { useInvoices, useInvoiceStats, useUpdateInvoice } from '@/hooks/useInvoices';
 import {
   Plus,
@@ -40,6 +41,9 @@ export default function Invoices() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
+  const [pdfTitle, setPdfTitle] = useState<string>('');
 
   const { data: invoices, isLoading } = useInvoices();
   const { data: stats } = useInvoiceStats();
@@ -73,7 +77,9 @@ export default function Invoices() {
 
   const handleViewPDF = (invoice: any) => {
     if (invoice.pdf_url) {
-      window.open(invoice.pdf_url, '_blank');
+      setSelectedPdfUrl(invoice.pdf_url);
+      setPdfTitle(`Fatura ${invoice.invoice_number}`);
+      setPdfViewerOpen(true);
     } else {
       toast.error('PDF não disponível');
     }
@@ -306,6 +312,13 @@ export default function Invoices() {
       )}
 
       <InvoiceDialog invoice={selectedInvoice} open={dialogOpen} onOpenChange={handleDialogClose} />
+
+      <PDFViewerDialog
+        open={pdfViewerOpen}
+        onOpenChange={setPdfViewerOpen}
+        pdfUrl={selectedPdfUrl}
+        title={pdfTitle}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Plus, Edit, FileText, FileSignature, Shield, CheckCircle2, Link2, Send } from "lucide-react";
 import { useContracts } from "@/hooks/useContracts";
 import { ContractDialog } from "@/components/ContractDialog";
+import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -22,8 +23,22 @@ export default function Contracts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContract, setSelectedContract] = useState<any>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
+  const [pdfTitle, setPdfTitle] = useState<string>('');
   const { data: contracts, isLoading } = useContracts();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const handleOpenPDFViewer = (event: any) => {
+      setSelectedPdfUrl(event.detail.url);
+      setPdfTitle(event.detail.title);
+      setPdfViewerOpen(true);
+    };
+
+    window.addEventListener('openPDFViewer', handleOpenPDFViewer);
+    return () => window.removeEventListener('openPDFViewer', handleOpenPDFViewer);
+  }, []);
 
   const handleEdit = (contract: any) => {
     setSelectedContract(contract);
@@ -219,6 +234,21 @@ export default function Contracts() {
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2 border-t">
+                {contract.pdf_url && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setSelectedPdfUrl(contract.pdf_url);
+                      setPdfTitle(`Contrato - ${contract.clients?.name || 'Cliente'}`);
+                      setPdfViewerOpen(true);
+                    }}
+                  >
+                    <FileText className="h-3 w-3 sm:mr-2" />
+                    <span className="hidden sm:inline">Ver PDF</span>
+                  </Button>
+                )}
+                
                 <Button
                   variant="outline"
                   size="sm"

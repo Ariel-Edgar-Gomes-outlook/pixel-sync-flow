@@ -7,6 +7,7 @@ import { Plus, Search, DollarSign, Calendar, CreditCard, Edit, TrendingUp, Walle
 import { usePayments, type Payment } from "@/hooks/usePayments";
 import PaymentDialog from "@/components/PaymentDialog";
 import { PaymentReceiptDialog } from "@/components/PaymentReceiptDialog";
+import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { exportToExcel, formatPaymentsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -22,6 +23,9 @@ export default function Payments() {
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
+  const [pdfTitle, setPdfTitle] = useState<string>('');
   const { data: payments, isLoading } = usePayments();
 
   const handleEdit = (payment: Payment) => {
@@ -250,7 +254,11 @@ export default function Payments() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => window.open(payment.receipt_url!, '_blank')}
+                        onClick={() => {
+                          setSelectedPdfUrl(payment.receipt_url);
+                          setPdfTitle(`Recibo - ${payment.clients?.name || 'Cliente'}`);
+                          setPdfViewerOpen(true);
+                        }}
                       >
                         <FileText className="h-4 w-4 sm:mr-2" />
                         <span className="hidden sm:inline">Ver Recibo</span>
@@ -283,6 +291,18 @@ export default function Payments() {
       <PaymentReceiptDialog
         open={isReceiptDialogOpen}
         onOpenChange={setIsReceiptDialogOpen}
+        payment={selectedPayment}
+      />
+
+      <PDFViewerDialog
+        open={pdfViewerOpen}
+        onOpenChange={setPdfViewerOpen}
+        pdfUrl={selectedPdfUrl}
+        title={pdfTitle}
+      />
+    </div>
+  );
+}
       />
     </div>
   );

@@ -234,11 +234,15 @@ Valor total: [Valor acordado]`,
         pdf_url: pdfUrl,
       });
 
-      window.open(pdfUrl, '_blank');
       toast.success("PDF gerado com sucesso!", {
         action: {
-          label: "Abrir PDF",
-          onClick: () => window.open(pdfUrl, '_blank')
+          label: "Ver PDF",
+          onClick: () => {
+            const event = new CustomEvent('openPDFViewer', { 
+              detail: { url: pdfUrl, title: `Contrato - ${contract.clients?.name || 'Cliente'}` } 
+            });
+            window.dispatchEvent(event);
+          }
         }
       });
     } catch (error) {
