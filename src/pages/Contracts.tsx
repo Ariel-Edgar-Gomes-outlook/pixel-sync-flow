@@ -1,25 +1,14 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Edit, FileText, FileSignature, Shield, CheckCircle2, Link2, Send, Eye, Users, Briefcase } from "lucide-react";
+import { Search, Plus, FileText, FileSignature, Shield, CheckCircle2 } from "lucide-react";
 import { useContracts } from "@/hooks/useContracts";
 import { ContractDialog } from "@/components/ContractDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
-import { EntityQuickLinks } from "@/components/EntityQuickLinks";
-import { useSmartBadges } from "@/hooks/useSmartBadges";
+import { ContractCard } from "@/components/ContractCard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
-const statusConfig = {
-  draft: { label: "Rascunho", variant: "secondary" as const },
-  sent: { label: "Enviado", variant: "default" as const },
-  pending_signature: { label: "Aguardando Assinatura", variant: "warning" as const },
-  signed: { label: "Assinado", variant: "success" as const },
-  active: { label: "Ativo", variant: "success" as const },
-  cancelled: { label: "Cancelado", variant: "destructive" as const },
-};
 
 export default function Contracts() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,6 +80,15 @@ export default function Contracts() {
         description: error.message,
       });
     }
+  };
+
+  const handleViewPDF = (contract: any) => {
+    setSelectedPdfSource({
+      type: 'local',
+      entityType: 'contract',
+      entityId: contract.id
+    });
+    setPdfViewerOpen(true);
   };
 
   const filteredContracts = contracts?.filter((contract) => {
@@ -191,128 +189,25 @@ export default function Contracts() {
           </div>
 
           <div className="grid gap-4 grid-cols-1">
-        {filteredContracts?.map((contract) => {
-          const smartBadges = useSmartBadges({ entityType: 'contract', entity: contract });
-          
-          return (
-          <Card key={contract.id} className="p-4 sm:p-5 hover:shadow-md transition-shadow">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-start gap-2">
-                <FileText className="h-5 w-5 text-primary shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-base sm:text-lg truncate">
-                    {contract.clients?.name || 'Cliente não especificado'}
-                  </h3>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    <Badge variant={statusConfig[contract.status as keyof typeof statusConfig]?.variant || 'default'}>
-                      {statusConfig[contract.status as keyof typeof statusConfig]?.label || contract.status}
-                    </Badge>
-                    {smartBadges.map((badge) => (
-                      <Badge 
-                        key={badge.id} 
-                        variant={badge.variant}
-                        className="text-xs"
-                        title={badge.tooltip}
-                      >
-                        {badge.label}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            {filteredContracts?.map((contract) => (
+              <ContractCard
+                key={contract.id}
+                contract={contract}
+                onEdit={handleEdit}
+                onCopyLink={copySignatureLink}
+                onSendForSignature={sendForSignature}
+                onViewPDF={handleViewPDF}
+              />
+            ))}
+          </div>
 
-              <div className="space-y-3">
-                <EntityQuickLinks 
-                  links={[
-                    { type: 'client', id: contract.client_id, name: contract.clients?.name || 'Cliente' },
-                    ...(contract.job_id ? [{ type: 'job' as const, id: contract.job_id, name: contract.jobs?.title || 'Job' }] : []),
-                  ]}
-                />
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Emitido:</span>
-                    <p className="font-medium">
-                      {new Date(contract.issued_at || contract.created_at).toLocaleDateString('pt-PT')}
-                    </p>
-                  </div>
-                  {contract.signed_at && (
-                    <div>
-                      <span className="text-muted-foreground">Assinado:</span>
-                      <p className="font-medium text-success">
-                        {new Date(contract.signed_at).toLocaleDateString('pt-PT')}
-                      </p>
-                    </div>
-                  )}
-                  {contract.cancellation_fee && (
-                    <div>
-                      <span className="text-muted-foreground">Taxa Cancelamento:</span>
-                      <p className="font-medium">Kz {Number(contract.cancellation_fee).toFixed(2)}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2 pt-2 border-t">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => {
-                    setSelectedPdfSource({
-                      type: 'local',
-                      entityType: 'contract',
-                      entityId: contract.id
-                    });
-                    setPdfViewerOpen(true);
-                  }}
-                >
-                  <FileText className="h-3 w-3 sm:mr-2" />
-                  <span className="hidden sm:inline">Ver PDF</span>
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(contract)}
-                >
-                  <Edit className="h-3 w-3 sm:mr-2" />
-                  <span className="hidden sm:inline">Editar</span>
-                </Button>
-                
-                {!['signed', 'active', 'cancelled'].includes(contract.status) && (
-                  <>
-                    <Button 
-                      onClick={() => copySignatureLink(contract)} 
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Link2 className="h-3 w-3 sm:mr-2" />
-                      <span className="hidden sm:inline">Link</span>
-                    </Button>
-                    <Button 
-                      onClick={() => sendForSignature(contract)} 
-                      variant="default"
-                      size="sm"
-                    >
-                      <Send className="h-3 w-3 sm:mr-2" />
-                      <span className="hidden sm:inline">Enviar</span>
-                    </Button>
-                  </>
-                )}
-              </div>
+          {filteredContracts?.length === 0 && (
+            <div className="text-center text-muted-foreground py-8">
+              <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="font-medium mb-1">Nenhum contrato encontrado</p>
+              <p className="text-sm">Tente ajustar os termos de pesquisa</p>
             </div>
-          </Card>
-          );
-        })}
-      </div>
-
-      {filteredContracts?.length === 0 && (
-        <div className="text-center text-muted-foreground py-8">
-          <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p className="font-medium mb-1">Nenhum contrato encontrado</p>
-          <p className="text-sm">Tente ajustar os termos de pesquisa</p>
-        </div>
-      )}
+          )}
         </>
       )}
 

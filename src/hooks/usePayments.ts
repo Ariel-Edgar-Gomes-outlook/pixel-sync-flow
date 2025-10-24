@@ -12,10 +12,10 @@ export interface Payment {
   currency: string | null;
   paid_at: string | null;
   notes: string | null;
-  receipt_link: string | null;
-  receipt_generated_at: string | null;
   receipt_sent_at: string | null;
-  receipt_downloads: number;
+  invoice_id: string | null;
+  payment_plan_id: string | null;
+  due_date: string | null;
   created_at: string;
   updated_at: string;
 }
