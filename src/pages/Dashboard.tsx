@@ -19,6 +19,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CustomizableDashboard } from "@/components/CustomizableDashboard";
 import { GalleriesWidget } from "@/components/GalleriesWidget";
 import { PaymentAlertsWidget } from "@/components/PaymentAlertsWidget";
+import { ActionableAlerts } from "@/components/ActionableAlerts";
+import { useActionableAlerts } from "@/hooks/useActionableAlerts";
+import { useQuotes } from "@/hooks/useQuotes";
+import { useContracts } from "@/hooks/useContracts";
+import { useInvoices } from "@/hooks/useInvoices";
 
 
 const statusColors = {
@@ -34,9 +39,22 @@ export default function Dashboard() {
   const { data: leads, isLoading: leadsLoading } = useLeads();
   const { data: clients, isLoading: clientsLoading } = useClients();
   const { data: payments, isLoading: paymentsLoading } = usePayments();
+  const { data: quotes, isLoading: quotesLoading } = useQuotes();
+  const { data: contracts, isLoading: contractsLoading } = useContracts();
+  const { data: invoices, isLoading: invoicesLoading } = useInvoices();
   
   // Initialize notification automation
   useNotificationAutomation();
+
+  // Get actionable alerts
+  const alerts = useActionableAlerts({
+    quotes,
+    invoices,
+    payments,
+    contracts,
+    jobs,
+    leads
+  });
 
   const upcomingJobs = jobs?.filter(j => j.status === 'confirmed' || j.status === 'scheduled').slice(0, 3) || [];
   const displayedLeads = leads?.slice(0, 3) || [];
@@ -140,7 +158,7 @@ export default function Dashboard() {
     },
   ];
 
-  if (jobsLoading || leadsLoading || clientsLoading || paymentsLoading) {
+  if (jobsLoading || leadsLoading || clientsLoading || paymentsLoading || quotesLoading || contractsLoading || invoicesLoading) {
     return <div className="space-y-6">Carregando...</div>;
   }
 
@@ -158,6 +176,9 @@ export default function Dashboard() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-6">
+          {/* Actionable Alerts */}
+          <ActionableAlerts alerts={alerts} />
+
           {/* Smart Notifications */}
           <SmartNotificationPanel />
 
