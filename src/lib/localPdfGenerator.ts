@@ -847,11 +847,12 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
 
   // Calculations
   const finalY = (doc as any).lastAutoTable.finalY || yPos;
-  const subtotal = items.reduce((sum: number, item: any) => sum + ((item.quantity || 1) * (item.price || 0)), 0);
-  const taxRate = typeof quote.tax === 'number' ? quote.tax : Number(quote.tax) || 0;
+  const subtotal = Number(items.reduce((sum: number, item: any) => sum + ((item.quantity || 1) * (item.price || 0)), 0));
+  const taxRate = Number(quote.tax) || 0;
   const taxAmount = subtotal * (taxRate / 100);
   const discountAmount = Number(quote.discount) || 0;
   const currency = String(quote.currency);
+  const total = Number(quote.total) || 0;
 
   let calcY = finalY + 15;
 
@@ -881,7 +882,7 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('TOTAL:', 130, calcY);
-  doc.text(`${quote.currency} ${(typeof quote.total === 'number' ? quote.total : Number(quote.total)).toFixed(2)}`, 185, calcY, { align: 'right' });
+  doc.text(`${currency} ${total.toFixed(2)}`, 185, calcY, { align: 'right' });
 
   // Payment Terms
   if (businessSettings.payment_terms) {
