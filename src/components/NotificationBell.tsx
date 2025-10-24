@@ -8,6 +8,40 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useNotifications, useUnreadNotificationsCount, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from "@/hooks/useNotifications";
+import { format } from "date-fns";
+import { pt } from "date-fns/locale";
+
+// Helper functions for notification display
+const getNotificationTitle = (notification: any) => {
+  const typeMap: Record<string, string> = {
+    payment_overdue: '💳 Pagamento Vencido',
+    invoice_overdue: '🧾 Fatura Vencida',
+    job_reminder: '📸 Lembrete de Job',
+    contract_pending: '📝 Contrato Pendente',
+    quote_sent: '💼 Orçamento Enviado',
+    delivery_ready: '📦 Entrega Pronta',
+  };
+  
+  return typeMap[notification.type] || notification.type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+};
+
+const getNotificationMessage = (notification: any) => {
+  if (notification.payload?.message) {
+    return notification.payload.message;
+  }
+  
+  // Default messages based on type
+  const messageMap: Record<string, string> = {
+    payment_overdue: 'Um pagamento está vencido e requer atenção',
+    invoice_overdue: 'Uma fatura está vencida',
+    job_reminder: 'Você tem um job agendado em breve',
+    contract_pending: 'Um contrato aguarda assinatura',
+    quote_sent: 'Um orçamento foi enviado ao cliente',
+    delivery_ready: 'Arquivos prontos para entrega',
+  };
+  
+  return messageMap[notification.type] || 'Nova notificação';
+};
 
 export function NotificationBell() {
   const { data: notifications } = useNotifications();
@@ -68,22 +102,15 @@ export function NotificationBell() {
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
-                        {notification.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </p>
-                      {notification.payload && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {JSON.stringify(notification.payload).slice(0, 80)}...
-                        </p>
-                      )}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">
+                      {getNotificationTitle(notification)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {getNotificationMessage(notification)}
+                    </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(notification.created_at).toLocaleDateString('pt-PT', {
-                          day: 'numeric',
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {format(new Date(notification.created_at), "dd 'de' MMM 'às' HH:mm", { locale: pt })}
                       </p>
                     </div>
                     {!notification.read && (

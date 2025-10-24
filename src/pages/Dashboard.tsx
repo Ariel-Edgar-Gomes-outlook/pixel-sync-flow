@@ -13,6 +13,7 @@ import { pt } from "date-fns/locale";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SmartNotificationPanel } from "@/components/SmartNotificationPanel";
 import { useNotificationAutomation } from "@/hooks/useNotificationAutomation";
+import { useWorkflowAutomation } from "@/hooks/useWorkflowAutomation";
 import { RevenueChart } from "@/components/RevenueChart";
 import { JobStatusChart } from "@/components/JobStatusChart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,6 +46,9 @@ export default function Dashboard() {
   
   // Initialize notification automation
   useNotificationAutomation();
+  
+  // Initialize workflow automation
+  useWorkflowAutomation();
 
   // Get actionable alerts
   const alerts = useActionableAlerts({
