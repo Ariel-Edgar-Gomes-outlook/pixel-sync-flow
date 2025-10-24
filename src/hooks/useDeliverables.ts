@@ -22,6 +22,18 @@ export function useDeliverables(jobId: string) {
   return useQuery({
     queryKey: ['deliverables', jobId],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: job } = await supabase
+        .from('jobs')
+        .select('id')
+        .eq('id', jobId)
+        .eq('created_by', user.id)
+        .single();
+
+      if (!job) throw new Error('Job not found or access denied');
+
       const { data, error } = await supabase
         .from('deliverables')
         .select('*')

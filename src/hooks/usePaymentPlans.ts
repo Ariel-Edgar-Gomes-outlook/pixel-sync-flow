@@ -25,9 +25,19 @@ export function usePaymentPlans(jobId?: string, quoteId?: string) {
   return useQuery({
     queryKey: ['payment-plans', jobId, quoteId],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       let query = supabase
         .from('payment_plans')
-        .select('*')
+        .select(`
+          *,
+          quotes!inner(
+            id,
+            created_by
+          )
+        `)
+        .eq('quotes.created_by', user.id)
         .order('created_at', { ascending: false });
 
       if (jobId) {

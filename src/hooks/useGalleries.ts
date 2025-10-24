@@ -45,16 +45,33 @@ export function useGalleries(jobId?: string) {
   return useQuery({
     queryKey: ['galleries', jobId],
     queryFn: async () => {
-      let query = supabase
-        .from('client_galleries')
-        .select('*, gallery_photos(count)')
-        .order('created_at', { ascending: false });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      let jobQuery = supabase
+        .from('jobs')
+        .select('id')
+        .eq('created_by', user.id);
 
       if (jobId) {
-        query = query.eq('job_id', jobId);
+        jobQuery = jobQuery.eq('id', jobId);
       }
 
-      const { data, error } = await query;
+      const { data: userJobs, error: jobsError } = await jobQuery;
+      if (jobsError) throw jobsError;
+
+      const userJobIds = userJobs?.map(j => j.id) || [];
+      
+      if (userJobIds.length === 0) {
+        return [];
+      }
+
+      const { data, error } = await supabase
+        .from('client_galleries')
+        .select('*, gallery_photos(count)')
+        .in('job_id', userJobIds)
+        .order('created_at', { ascending: false });
+
       if (error) throw error;
       return data;
     },
