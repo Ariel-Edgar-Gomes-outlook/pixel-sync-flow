@@ -28,29 +28,41 @@ import { toast } from 'sonner';
 
 const businessSettingsSchema = z.object({
   business_name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').max(100),
-  trade_name: z.string().optional(),
-  nif: z.string().regex(/^\d{10}$/, 'NIF deve ter 10 dígitos').optional().or(z.literal('')),
+  trade_name: z.string().optional().or(z.literal('')),
+  nif: z.string().optional().or(z.literal(''))
+    .refine((val) => !val || /^\d{10}$/.test(val), {
+      message: 'NIF deve ter 10 dígitos numéricos'
+    }),
   email: z.string().email('Email inválido'),
-  phone: z.string().regex(/^\+244\s?\d{9}$/, 'Formato: +244 923456789').optional().or(z.literal('')),
-  whatsapp: z.string().optional(),
-  website: z.string().url('URL inválida').optional().or(z.literal('')),
-  address_line1: z.string().optional(),
-  address_line2: z.string().optional(),
-  city: z.string().optional(),
-  province: z.string().optional(),
-  country: z.string().optional(),
-  postal_code: z.string().optional(),
-  bank_name: z.string().optional(),
-  iban: z.string().regex(/^AO\d{2}\.?\d{4}\.?\d{4}\.?\d{11}\.?\d$/, 'IBAN angolano inválido (ex: AO06.0006.0000.1234.5678.9012.3)').optional().or(z.literal('')),
-  account_holder: z.string().optional(),
-  primary_color: z.string().optional(),
-  secondary_color: z.string().optional(),
-  legal_representative_name: z.string().optional(),
-  legal_representative_title: z.string().optional(),
-  invoice_prefix: z.string().max(5, 'Máximo 5 caracteres').optional(),
-  proforma_prefix: z.string().max(5, 'Máximo 5 caracteres').optional(),
-  terms_footer: z.string().optional(),
-  payment_terms: z.string().optional(),
+  phone: z.string().optional().or(z.literal(''))
+    .refine((val) => !val || /^\+244\s?\d{9}$/.test(val), {
+      message: 'Formato: +244 923456789'
+    }),
+  whatsapp: z.string().optional().or(z.literal('')),
+  website: z.string().optional().or(z.literal(''))
+    .refine((val) => !val || val.startsWith('http://') || val.startsWith('https://'), {
+      message: 'URL deve começar com http:// ou https://'
+    }),
+  address_line1: z.string().optional().or(z.literal('')),
+  address_line2: z.string().optional().or(z.literal('')),
+  city: z.string().optional().or(z.literal('')),
+  province: z.string().optional().or(z.literal('')),
+  country: z.string().optional().or(z.literal('')),
+  postal_code: z.string().optional().or(z.literal('')),
+  bank_name: z.string().optional().or(z.literal('')),
+  iban: z.string().optional().or(z.literal(''))
+    .refine((val) => !val || /^AO\d{2}\.?\d{4}\.?\d{4}\.?\d{11}\.?\d$/.test(val), {
+      message: 'IBAN angolano inválido (ex: AO06.0006.0000.1234.5678.9012.3)'
+    }),
+  account_holder: z.string().optional().or(z.literal('')),
+  primary_color: z.string().optional().or(z.literal('')),
+  secondary_color: z.string().optional().or(z.literal('')),
+  legal_representative_name: z.string().optional().or(z.literal('')),
+  legal_representative_title: z.string().optional().or(z.literal('')),
+  invoice_prefix: z.string().max(5, 'Máximo 5 caracteres').optional().or(z.literal('')),
+  proforma_prefix: z.string().max(5, 'Máximo 5 caracteres').optional().or(z.literal('')),
+  terms_footer: z.string().optional().or(z.literal('')),
+  payment_terms: z.string().optional().or(z.literal('')),
 });
 
 type FormData = z.infer<typeof businessSettingsSchema>;
@@ -116,20 +128,46 @@ export function BusinessSettingsForm() {
   }, [settings, form]);
 
   const handleFileUpload = async (file: File, type: 'logo' | 'signature') => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      toast.error('Sessão inválida. Por favor, faça login novamente.');
+      return;
+    }
+
+    // Validate file size
+    const maxSize = type === 'logo' ? 2 * 1024 * 1024 : 1 * 1024 * 1024; // 2MB for logo, 1MB for signature
+    if (file.size > maxSize) {
+      toast.error(`Ficheiro muito grande. Máximo ${type === 'logo' ? '2MB' : '1MB'}.`);
+      return;
+    }
+
+    // Validate file type
+    const validTypes = type === 'logo' 
+      ? ['image/png', 'image/jpeg', 'image/jpg', 'image/webp']
+      : ['image/png'];
+    
+    if (!validTypes.includes(file.type)) {
+      toast.error(type === 'logo' 
+        ? 'Formato inválido. Use PNG, JPG ou WEBP.'
+        : 'Formato inválido. Use PNG com fundo transparente.');
+      return;
+    }
 
     try {
+      toast.info(`A carregar ${type === 'logo' ? 'logo' : 'assinatura'}...`);
       const url = await uploadFile.mutateAsync({ file, userId: user.id, type });
       
       if (type === 'logo') {
         setLogoPreview(url);
         await handleUpdateSettings({ logo_url: url });
+        toast.success('Logo carregado com sucesso!');
       } else {
         setSignaturePreview(url);
         await handleUpdateSettings({ signature_url: url });
+        toast.success('Assinatura carregada com sucesso!');
       }
     } catch (error) {
       console.error('Upload error:', error);
+      toast.error(`Erro ao carregar ${type === 'logo' ? 'logo' : 'assinatura'}`);
     }
   };
 
@@ -150,7 +188,10 @@ export function BusinessSettingsForm() {
   };
 
   const onSubmit = async (data: FormData) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      toast.error('Sessão inválida. Por favor, faça login novamente.');
+      return;
+    }
     
     // Ensure required fields are present
     if (!data.business_name || !data.email) {
@@ -158,16 +199,23 @@ export function BusinessSettingsForm() {
       return;
     }
 
-    if (settings) {
-      await updateSettings.mutateAsync({ userId: user.id, ...data });
-    } else {
-      // Type assertion for create since we've validated required fields
-      await createSettings.mutateAsync({ 
-        user_id: user.id,
-        business_name: data.business_name,
-        email: data.email,
-        ...data 
-      } as any);
+    try {
+      console.log('Submitting business settings:', data);
+      
+      if (settings) {
+        await updateSettings.mutateAsync({ userId: user.id, ...data });
+      } else {
+        // Type assertion for create since we've validated required fields
+        await createSettings.mutateAsync({ 
+          user_id: user.id,
+          business_name: data.business_name,
+          email: data.email,
+          ...data 
+        } as any);
+      }
+    } catch (error) {
+      console.error('Error saving business settings:', error);
+      toast.error('Erro ao guardar configurações. Tente novamente.');
     }
   };
 
@@ -734,15 +782,47 @@ export function BusinessSettingsForm() {
 
         <div className="flex justify-end gap-4">
           <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              form.reset();
+              if (settings) {
+                toast.info('Formulário restaurado aos valores guardados');
+              }
+            }}
+            disabled={createSettings.isPending || updateSettings.isPending}
+          >
+            Cancelar
+          </Button>
+          <Button
             type="submit"
             disabled={createSettings.isPending || updateSettings.isPending}
+            className="min-w-[200px]"
           >
             {(createSettings.isPending || updateSettings.isPending) && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-            Guardar Configurações
+            {settings ? 'Atualizar Configurações' : 'Guardar Configurações'}
           </Button>
         </div>
+        
+        {/* Mostrar erros de validação */}
+        {Object.keys(form.formState.errors).length > 0 && (
+          <Card className="border-destructive bg-destructive/5">
+            <CardContent className="pt-6">
+              <p className="text-sm font-medium text-destructive mb-2">
+                Por favor corrija os seguintes erros:
+              </p>
+              <ul className="list-disc list-inside text-sm text-destructive space-y-1">
+                {Object.entries(form.formState.errors).map(([key, error]) => (
+                  <li key={key}>
+                    <strong>{key}:</strong> {error.message}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
       </form>
     </Form>
   );
