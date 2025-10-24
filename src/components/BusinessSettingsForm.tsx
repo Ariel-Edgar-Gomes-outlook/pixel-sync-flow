@@ -35,13 +35,17 @@ const businessSettingsSchema = z.object({
     }),
   email: z.string().email('Email inválido'),
   phone: z.string().optional().or(z.literal(''))
-    .refine((val) => !val || /^\+244\s?\d{9}$/.test(val), {
-      message: 'Formato: +244 923456789'
+    .refine((val) => !val || /^\+?244\s?\d{9}$/.test(val), {
+      message: 'Formato: +244 923456789 ou 244923456789'
     }),
   whatsapp: z.string().optional().or(z.literal('')),
   website: z.string().optional().or(z.literal(''))
-    .refine((val) => !val || val.startsWith('http://') || val.startsWith('https://'), {
-      message: 'URL deve começar com http:// ou https://'
+    .transform((val) => {
+      // Auto-add https:// if missing and not empty
+      if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+        return `https://${val}`;
+      }
+      return val;
     }),
   address_line1: z.string().optional().or(z.literal('')),
   address_line2: z.string().optional().or(z.literal('')),
@@ -51,8 +55,14 @@ const businessSettingsSchema = z.object({
   postal_code: z.string().optional().or(z.literal('')),
   bank_name: z.string().optional().or(z.literal('')),
   iban: z.string().optional().or(z.literal(''))
-    .refine((val) => !val || /^AO\d{2}\.?\d{4}\.?\d{4}\.?\d{11}\.?\d$/.test(val), {
-      message: 'IBAN angolano inválido (ex: AO06.0006.0000.1234.5678.9012.3)'
+    .refine((val) => {
+      if (!val) return true; // Empty is valid
+      // Remove all dots and spaces for validation
+      const cleaned = val.replace(/[\s.]/g, '');
+      // Check if starts with AO and has 25 total characters (AO + 23 digits)
+      return /^AO\d{23}$/.test(cleaned);
+    }, {
+      message: 'IBAN angolano deve começar com AO seguido de 23 dígitos'
     }),
   account_holder: z.string().optional().or(z.literal('')),
   primary_color: z.string().optional().or(z.literal('')),
@@ -171,16 +181,15 @@ export function BusinessSettingsForm() {
       toast.info(`A carregar ${type === 'logo' ? 'logo' : 'assinatura'}...`);
       const url = await uploadFile.mutateAsync({ file, userId: user.id, type });
       
-      // Get current form values to preserve them
-      const currentValues = form.getValues();
-      
       if (type === 'logo') {
         setLogoPreview(url);
-        await handleUpdateSettings({ ...currentValues, logo_url: url });
+        // Only update the logo_url field, don't send all form data
+        await handleUpdateSettings({ logo_url: url });
         toast.success('Logo carregado com sucesso!');
       } else {
         setSignaturePreview(url);
-        await handleUpdateSettings({ ...currentValues, signature_url: url });
+        // Only update the signature_url field, don't send all form data
+        await handleUpdateSettings({ signature_url: url });
         toast.success('Assinatura carregada com sucesso!');
       }
     } catch (error) {
@@ -505,9 +514,13 @@ export function BusinessSettingsForm() {
                 <FormItem>
                   <FormLabel>IBAN</FormLabel>
                   <FormControl>
-                    <Input placeholder="AO06.0006.0000.1234.5678.9012.3" {...field} />
+                    <Input 
+                      placeholder="AO06000012345678901234567" 
+                      {...field} 
+                      maxLength={32}
+                    />
                   </FormControl>
-                  <FormDescription>Formato angolano: AO + 23 dígitos</FormDescription>
+                  <FormDescription>Formato: AO + 23 dígitos (pontos opcionais)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
