@@ -58,3 +58,27 @@ export interface Workflow {
   description: string;
   steps: WorkflowStep[];
 }
+
+// Workflow templates
+export type WorkflowTemplate = 
+  | 'quote_to_job'
+  | 'job_to_invoice'
+  | 'payment_to_receipt'
+  | 'lead_to_quote'
+  | 'job_complete_flow';
+
+export interface WorkflowData {
+  template: WorkflowTemplate;
+  sourceId: string;
+  sourceType: 'quote' | 'job' | 'payment' | 'lead' | 'contract';
+  context?: Record<string, any>;
+}
+
+export interface WorkflowResult {
+  success: boolean;
+  createdEntities: {
+    type: string;
+    id: string;
+  }[];
+  error?: string;
+}

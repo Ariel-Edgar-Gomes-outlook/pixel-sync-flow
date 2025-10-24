@@ -19,6 +19,7 @@ import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
 import { useSmartBadges } from "@/hooks/useSmartBadges";
+import { WorkflowWizard } from "@/components/WorkflowWizard";
 import { exportToExcel, formatQuotesForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -41,6 +42,8 @@ export default function Quotes() {
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
   const [pdfTitle, setPdfTitle] = useState<string>('');
+  const [workflowQuote, setWorkflowQuote] = useState<any>(null);
+  const [workflowWizardOpen, setWorkflowWizardOpen] = useState(false);
   
   const { data: quotes, isLoading } = useQuotes();
   const createJob = useCreateJob();
@@ -423,69 +426,38 @@ export default function Quotes() {
                        <Pencil className="h-4 w-4 sm:mr-2" />
                        <span className="hidden sm:inline">Editar</span>
                      </Button>
-                     {quote.status === 'accepted' && (
-                       <>
-                         <Button 
-                           variant="outline" 
-                           size="sm"
-                           onClick={() => {
-                             navigate('/invoices?from_quote=' + quote.id);
-                           }}
-                         >
-                           <FileText className="h-4 w-4 sm:mr-2" />
-                           <span className="hidden sm:inline">Fatura</span>
-                         </Button>
-                         {!quote.job_id && (
-                           <AlertDialog>
-                             <AlertDialogTrigger asChild>
-                               <Button 
-                                 variant="default" 
-                                 size="sm"
-                                 disabled={createJob.isPending}
-                               >
-                                 <Briefcase className="h-4 w-4 sm:mr-2" />
-                                 <span className="hidden sm:inline">Job</span>
-                               </Button>
-                             </AlertDialogTrigger>
-                         <AlertDialogContent>
-                           <AlertDialogHeader>
-                             <AlertDialogTitle>Converter Orçamento em Job?</AlertDialogTitle>
-                             <AlertDialogDescription className="space-y-3">
-                               <p>Será criado um novo job com os seguintes dados:</p>
-                               <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
-                                 <div><strong>Cliente:</strong> {quote.clients?.name}</div>
-                                 <div><strong>Valor:</strong> {Number(quote.total).toFixed(2)} {quote.currency || 'AOA'}</div>
-                                 <div><strong>Status:</strong> Confirmado</div>
-                                 {quote.items && Array.isArray(quote.items) && quote.items.length > 0 && (
-                                   <div>
-                                     <strong>Itens:</strong>
-                                     <ul className="list-disc list-inside mt-1">
-                                       {quote.items.slice(0, 3).map((item: any, idx: number) => (
-                                         <li key={idx}>{item.description || item.name}</li>
-                                       ))}
-                                       {quote.items.length > 3 && <li>... e mais {quote.items.length - 3} itens</li>}
-                                     </ul>
-                                   </div>
-                                 )}
-                               </div>
-                               <p className="text-muted-foreground">O orçamento ficará vinculado ao job criado.</p>
-                             </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleConvertToJob(quote)}>
-                                Confirmar Conversão
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
-                      {quote.job_id && (
-                         <Badge variant="secondary" className="gap-1">
-                           <Briefcase className="h-3 w-3" />
-                           Job Criado
-                         </Badge>
-                       )}
+                      {quote.status === 'accepted' && (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              navigate('/invoices?from_quote=' + quote.id);
+                            }}
+                          >
+                            <FileText className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Fatura</span>
+                          </Button>
+                          {!quote.job_id && (
+                            <Button 
+                              variant="default" 
+                              size="sm"
+                              onClick={() => {
+                                setWorkflowQuote(quote);
+                                setWorkflowWizardOpen(true);
+                              }}
+                              className="gap-2"
+                            >
+                              <Briefcase className="h-4 w-4" />
+                              <span className="hidden sm:inline">Criar Job</span>
+                            </Button>
+                          )}
+                          {quote.job_id && (
+                            <Badge variant="secondary" className="gap-1">
+                              <Briefcase className="h-3 w-3" />
+                              Job Criado
+                            </Badge>
+                          )}
                        <Button 
                          variant="outline" 
                          size="sm"
@@ -529,6 +501,20 @@ export default function Quotes() {
         pdfUrl={selectedPdfUrl}
         title={pdfTitle}
       />
+
+      {workflowQuote && (
+        <WorkflowWizard
+          open={workflowWizardOpen}
+          onOpenChange={setWorkflowWizardOpen}
+          template="quote_to_job"
+          sourceId={workflowQuote.id}
+          sourceData={workflowQuote}
+          onComplete={() => {
+            setWorkflowWizardOpen(false);
+            setWorkflowQuote(null);
+          }}
+        />
+      )}
     </div>
   );
 }
