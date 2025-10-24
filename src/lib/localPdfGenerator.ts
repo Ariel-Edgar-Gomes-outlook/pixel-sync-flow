@@ -4,6 +4,33 @@ import { supabase } from '@/integrations/supabase/client';
 import type { BusinessSettings } from '@/hooks/useBusinessSettings';
 
 // ============================================
+// IMAGE CACHE FOR PERFORMANCE
+// ============================================
+const imageCache = new Map<string, string>();
+
+async function loadImageWithCache(url: string): Promise<string> {
+  if (imageCache.has(url)) {
+    return imageCache.get(url)!;
+  }
+  
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+    imageCache.set(url, dataUrl);
+    return dataUrl;
+  } catch (error) {
+    console.error('Error loading image:', error);
+    return '';
+  }
+}
+
+// ============================================
 // INTERFACES
 // ============================================
 
@@ -134,19 +161,7 @@ export class ProfessionalPDFGenerator {
   }
 
   private async loadImage(url: string): Promise<string> {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    } catch (error) {
-      console.error('Error loading image:', error);
-      return '';
-    }
+    return loadImageWithCache(url);
   }
 
   private async addHeader(invoiceData: InvoiceData) {
@@ -467,107 +482,177 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
     throw new Error('Configurações de negócio não encontradas. Configure em Configurações > Negócio.');
   }
 
-  // 4. Generate PDF with jsPDF
+  // 4. Generate PDF with jsPDF & Modern Design
   const doc = new jsPDF();
-  let yPos = 20;
-
-  // Header with logo
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  
+  // Parse colors
+  const hexToRgb = (hex: string): [number, number, number] => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+      : [59, 130, 246];
+  };
+  
+  const primaryColor = hexToRgb(businessSettings.primary_color || '#3B82F6');
+  const secondaryColor = hexToRgb(businessSettings.secondary_color || '#1E40AF');
+  
+  let yPos = 15;
+  
+  // === MODERN HEADER WITH COLOR BAR ===
+  doc.setFillColor(...primaryColor);
+  doc.rect(0, 0, pageWidth, 12, 'F');
+  
+  yPos = 25;
+  
+  // Logo (larger and better positioned)
   if (businessSettings.logo_url) {
     try {
-      const response = await fetch(businessSettings.logo_url);
-      const blob = await response.blob();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-      doc.addImage(dataUrl, 'PNG', 20, yPos, 40, 20);
+      const logoData = await loadImageWithCache(businessSettings.logo_url);
+      if (logoData) {
+        doc.addImage(logoData, 'PNG', margin, yPos, 50, 25);
+      }
     } catch (e) {
       console.warn('Failed to load logo');
     }
   }
-
-  // Company info (right side)
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
+  
+  // Company info (right side, styled)
   const companyName = businessSettings.business_name || businessSettings.trade_name || 'Empresa';
-  doc.text(companyName, 200, yPos + 5, { align: 'right' });
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...primaryColor);
+  doc.text(companyName, pageWidth - margin, yPos + 5, { align: 'right' });
   
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
+  doc.setFontSize(9);
+  doc.setTextColor(80, 80, 80);
+  let infoY = yPos + 12;
+  
   if (businessSettings.nif) {
-    doc.text(`NIF: ${businessSettings.nif}`, 200, yPos + 10, { align: 'right' });
+    doc.text(`NIF: ${businessSettings.nif}`, pageWidth - margin, infoY, { align: 'right' });
+    infoY += 5;
   }
   if (businessSettings.email) {
-    doc.text(businessSettings.email, 200, yPos + 14, { align: 'right' });
+    doc.text(businessSettings.email, pageWidth - margin, infoY, { align: 'right' });
+    infoY += 5;
   }
   if (businessSettings.phone) {
-    doc.text(businessSettings.phone, 200, yPos + 18, { align: 'right' });
+    doc.text(businessSettings.phone, pageWidth - margin, infoY, { align: 'right' });
   }
-
-  yPos = 50;
-
-  // Title
-  doc.setFontSize(16);
+  
+  yPos = 60;
+  
+  // === TITLE SECTION (MODERN) ===
+  doc.setFillColor(245, 247, 250);
+  doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 32, 3, 3, 'F');
+  
+  doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
-  doc.text('CONTRATO DE PRESTAÇÃO DE SERVIÇOS', 105, yPos, { align: 'center' });
+  doc.setTextColor(...primaryColor);
+  doc.text('CONTRATO DE PRESTAÇÃO DE SERVIÇOS', pageWidth / 2, yPos + 12, { align: 'center' });
   
-  yPos += 8;
-  doc.setFontSize(10);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
-  const contractNumber = `CONT-${contract.id.substring(0, 8).toUpperCase()}`;
-  doc.text(`Nº ${contractNumber}`, 105, yPos, { align: 'center' });
-  
-  yPos += 5;
-  doc.text(`Emitido em: ${new Date(contract.issued_at).toLocaleDateString('pt-AO')}`, 105, yPos, { align: 'center' });
-  
-  if (contract.signed_at) {
-    yPos += 5;
-    doc.text(`Assinado em: ${new Date(contract.signed_at).toLocaleDateString('pt-AO')}`, 105, yPos, { align: 'center' });
-  }
-
-  yPos += 15;
-
-  // Client and Job Info Box
-  doc.setFillColor(240, 240, 240);
-  doc.rect(20, yPos, 170, 20, 'F');
+  doc.setTextColor(100, 100, 100);
+  const contractNumber = `N.º CONT-${contract.id.substring(0, 8).toUpperCase()}`;
+  doc.text(contractNumber, pageWidth / 2, yPos + 20, { align: 'center' });
   
   doc.setFontSize(9);
+  const issueDate = `Emitido em ${new Date(contract.issued_at).toLocaleDateString('pt-PT')}`;
+  doc.text(issueDate, pageWidth / 2, yPos + 26, { align: 'center' });
+  
+  yPos += 42;
+  
+  // === CLIENT & JOB INFO (STYLED BOXES) ===
+  const boxHeight = 35;
+  const boxWidth = (pageWidth - 3 * margin) / 2;
+  
+  // Client box
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(...primaryColor);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(margin, yPos, boxWidth, boxHeight, 2, 2, 'FD');
+  
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text('CONTRATANTE:', 25, yPos + 6);
+  doc.setTextColor(...primaryColor);
+  doc.text('📋 CONTRATANTE', margin + 5, yPos + 8);
+  
   doc.setFont('helvetica', 'normal');
-  doc.text(contract.clients.name, 25, yPos + 11);
+  doc.setFontSize(9);
+  doc.setTextColor(60, 60, 60);
+  let clientY = yPos + 16;
+  doc.text(contract.clients.name, margin + 5, clientY);
+  clientY += 5;
+  
   if (contract.clients.email) {
-    doc.text(contract.clients.email, 25, yPos + 16);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`✉ ${contract.clients.email}`, margin + 5, clientY);
+    clientY += 5;
   }
-
+  if (contract.clients.phone) {
+    doc.text(`📞 ${contract.clients.phone}`, margin + 5, clientY);
+  }
+  
+  // Job/Service box
   if (contract.jobs?.title) {
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(...secondaryColor);
+    doc.roundedRect(margin + boxWidth + margin / 2, yPos, boxWidth, boxHeight, 2, 2, 'FD');
+    
     doc.setFont('helvetica', 'bold');
-    doc.text('SERVIÇO:', 120, yPos + 6);
+    doc.setTextColor(...secondaryColor);
+    doc.text('🎯 SERVIÇO', margin + boxWidth + margin / 2 + 5, yPos + 8);
+    
     doc.setFont('helvetica', 'normal');
-    doc.text(contract.jobs.title, 120, yPos + 11);
+    doc.setFontSize(9);
+    doc.setTextColor(60, 60, 60);
+    const jobLines = doc.splitTextToSize(contract.jobs.title, boxWidth - 10);
+    doc.text(jobLines, margin + boxWidth + margin / 2 + 5, yPos + 16);
   }
+  
+  // Status badge if signed
+  if (contract.signed_at) {
+    doc.setFillColor(34, 197, 94);
+    doc.roundedRect(pageWidth - margin - 60, yPos + boxHeight - 15, 60, 10, 2, 2, 'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('✓ ASSINADO', pageWidth - margin - 30, yPos + boxHeight - 7.5, { align: 'center' });
+  }
+  
+  yPos += boxHeight + 20;
 
-  yPos += 30;
-
-  // Add all contract sections
+  // === CONTRACT SECTIONS (MODERN STYLING) ===
   const addSection = (title: string, content: string) => {
-    if (yPos > 260) {
+    if (yPos > 240) {
       doc.addPage();
-      yPos = 20;
+      // Add header bar on new page
+      doc.setFillColor(...primaryColor);
+      doc.rect(0, 0, pageWidth, 12, 'F');
+      yPos = 25;
     }
 
+    // Section title with accent bar
+    doc.setFillColor(...primaryColor);
+    doc.rect(margin, yPos, 4, 6, 'F');
+    
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text(title, 20, yPos);
-    yPos += 6;
+    doc.setTextColor(...primaryColor);
+    doc.text(title, margin + 7, yPos + 4);
+    yPos += 10;
 
+    // Section content
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    const lines = doc.splitTextToSize(content, 170);
-    doc.text(lines, 20, yPos);
-    yPos += lines.length * 4 + 8;
+    doc.setTextColor(60, 60, 60);
+    const lines = doc.splitTextToSize(content, pageWidth - 2 * margin - 5);
+    doc.text(lines, margin + 3, yPos);
+    yPos += lines.length * 4.5 + 10;
   };
 
   // Main sections
@@ -604,71 +689,110 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
     );
   }
 
-  // Signature section
-  if (yPos > 220) {
+  // === SIGNATURE SECTION (ELEGANT) ===
+  if (yPos > 200) {
     doc.addPage();
-    yPos = 20;
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, pageWidth, 12, 'F');
+    yPos = 30;
+  } else {
+    yPos += 10;
   }
 
-  yPos += 15;
-  doc.setFontSize(11);
+  // Signature title
+  doc.setFillColor(245, 247, 250);
+  doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 12, 2, 2, 'F');
+  doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
-  doc.text('ASSINATURAS', 105, yPos, { align: 'center' });
-  yPos += 10;
+  doc.setTextColor(...primaryColor);
+  doc.text('✍️ ASSINATURAS', pageWidth / 2, yPos + 8, { align: 'center' });
+  yPos += 22;
 
-  // Client signature
-  doc.setFont('helvetica', 'normal');
+  const sigWidth = (pageWidth - 3 * margin) / 2;
+  
+  // Client signature box
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin, yPos, sigWidth, 50, 2, 2, 'S');
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...primaryColor);
+  doc.text('CONTRATANTE', margin + sigWidth / 2, yPos + 6, { align: 'center' });
+  
   if (contract.signature_url && contract.signed_at) {
     try {
-      const response = await fetch(contract.signature_url);
-      const blob = await response.blob();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-      doc.addImage(dataUrl, 'PNG', 20, yPos, 70, 25);
+      const sigData = await loadImageWithCache(contract.signature_url);
+      if (sigData) {
+        doc.addImage(sigData, 'PNG', margin + 10, yPos + 10, sigWidth - 20, 20);
+      }
     } catch (e) {
-      console.warn('Failed to load signature');
+      console.warn('Failed to load client signature');
     }
   }
   
-  doc.line(20, yPos + 30, 90, yPos + 30);
-  doc.setFontSize(9);
-  doc.text('Assinatura do Contratante', 55, yPos + 35, { align: 'center' });
-  doc.text(contract.clients.name, 55, yPos + 40, { align: 'center' });
+  doc.setDrawColor(...primaryColor);
+  doc.setLineWidth(0.5);
+  doc.line(margin + 10, yPos + 35, margin + sigWidth - 10, yPos + 35);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 80);
+  doc.setFontSize(8);
+  doc.text(contract.clients.name, margin + sigWidth / 2, yPos + 40, { align: 'center' });
+  if (contract.signed_at) {
+    doc.setTextColor(120, 120, 120);
+    doc.text(new Date(contract.signed_at).toLocaleDateString('pt-PT'), margin + sigWidth / 2, yPos + 45, { align: 'center' });
+  }
 
-  // Professional signature
+  // Business signature box
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin + sigWidth + margin / 2, yPos, sigWidth, 50, 2, 2, 'S');
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...secondaryColor);
+  doc.text('PRESTADOR', margin + sigWidth + margin / 2 + sigWidth / 2, yPos + 6, { align: 'center' });
+  
   if (businessSettings.signature_url) {
     try {
-      const response = await fetch(businessSettings.signature_url);
-      const blob = await response.blob();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-      doc.addImage(dataUrl, 'PNG', 120, yPos, 70, 25);
+      const bizSigData = await loadImageWithCache(businessSettings.signature_url);
+      if (bizSigData) {
+        doc.addImage(bizSigData, 'PNG', margin + sigWidth + margin / 2 + 10, yPos + 10, sigWidth - 20, 20);
+      }
     } catch (e) {
       console.warn('Failed to load business signature');
     }
   }
   
-  doc.line(120, yPos + 30, 190, yPos + 30);
-  doc.text('Assinatura do Prestador', 155, yPos + 35, { align: 'center' });
-  doc.text(companyName, 155, yPos + 40, { align: 'center' });
+  doc.setDrawColor(...secondaryColor);
+  doc.setLineWidth(0.5);
+  doc.line(margin + sigWidth + margin / 2 + 10, yPos + 35, pageWidth - margin - 10, yPos + 35);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 80);
+  doc.setFontSize(8);
+  doc.text(companyName, margin + sigWidth + margin / 2 + sigWidth / 2, yPos + 40, { align: 'center' });
+  doc.setTextColor(120, 120, 120);
+  doc.text(new Date(contract.issued_at).toLocaleDateString('pt-PT'), margin + sigWidth + margin / 2 + sigWidth / 2, yPos + 45, { align: 'center' });
 
-  // Footer on all pages
+  // === MODERN FOOTER ON ALL PAGES ===
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
+    
+    // Footer color bar
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, pageHeight - 15, pageWidth, 15, 'F');
+    
+    // Footer text
     doc.setFontSize(7);
-    doc.setTextColor(128, 128, 128);
-    const footerText = businessSettings.terms_footer || 'Este documento é regido pelas leis de Angola.';
-    doc.text(footerText, 105, 285, { align: 'center' });
-    doc.text(`Página ${i} de ${pageCount}`, 200, 285, { align: 'right' });
+    doc.setTextColor(255, 255, 255);
+    const footerText = businessSettings.terms_footer || 'Este documento é regido pelas leis aplicáveis.';
+    const footerLines = doc.splitTextToSize(footerText, pageWidth - 2 * margin);
+    doc.text(footerLines[0], pageWidth / 2, pageHeight - 9, { align: 'center' });
+    
+    doc.setFontSize(6);
+    doc.text(`Página ${i} de ${pageCount}`, pageWidth - margin, pageHeight - 5, { align: 'right' });
+    doc.text(`${companyName}`, margin, pageHeight - 5);
   }
 
   // 5. Return Blob directly (NO UPLOAD)
@@ -711,18 +835,13 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
   const doc = new jsPDF();
   let yPos = 20;
 
-  // Header with logo
+  // Header with logo (using cache)
   if (businessSettings.logo_url) {
     try {
-      const response = await fetch(businessSettings.logo_url);
-      const blob = await response.blob();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-      doc.addImage(dataUrl, 'PNG', 20, yPos, 40, 20);
+      const logoData = await loadImageWithCache(businessSettings.logo_url);
+      if (logoData) {
+        doc.addImage(logoData, 'PNG', 20, yPos, 40, 20);
+      }
     } catch (e) {
       console.warn('Failed to load logo');
     }
@@ -1019,19 +1138,14 @@ export async function generateReceiptPDFLocal(paymentId: string): Promise<Blob> 
   
   let yPos = 20;
   
-  // Logo and business header
+  // Logo and business header (using cache)
   if (settings.logo_url) {
     try {
-      const response = await fetch(settings.logo_url);
-      const blob = await response.blob();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-      doc.addImage(dataUrl, 'PNG', 20, yPos, 30, 30);
-      yPos += 35;
+      const logoData = await loadImageWithCache(settings.logo_url);
+      if (logoData) {
+        doc.addImage(logoData, 'PNG', 20, yPos, 30, 30);
+        yPos += 35;
+      }
     } catch (error) {
       console.error('Error loading logo:', error);
       yPos += 5;
