@@ -47,8 +47,7 @@ export default function Invoices() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
-  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
-  const [pdfTitle, setPdfTitle] = useState<string>('');
+  const [selectedPdfSource, setSelectedPdfSource] = useState<any>(null);
 
   const { data: invoices, isLoading } = useInvoices();
   const { data: stats } = useInvoiceStats();
@@ -56,8 +55,11 @@ export default function Invoices() {
 
   useEffect(() => {
     const handleOpenPDFViewer = (event: any) => {
-      setSelectedPdfUrl(event.detail.url);
-      setPdfTitle(event.detail.title);
+      if (event.detail.pdfSource) {
+        setSelectedPdfSource(event.detail.pdfSource);
+      } else if (event.detail.url) {
+        setSelectedPdfSource({ type: 'url', url: event.detail.url });
+      }
       setPdfViewerOpen(true);
     };
 
@@ -92,13 +94,12 @@ export default function Invoices() {
   };
 
   const handleViewPDF = (invoice: any) => {
-    if (invoice.pdf_url) {
-      setSelectedPdfUrl(invoice.pdf_url);
-      setPdfTitle(`Fatura ${invoice.invoice_number}`);
-      setPdfViewerOpen(true);
-    } else {
-      toast.error('PDF não disponível');
-    }
+    setSelectedPdfSource({
+      type: 'local',
+      entityType: 'invoice',
+      entityId: invoice.id
+    });
+    setPdfViewerOpen(true);
   };
 
   const filteredInvoices = invoices?.filter((invoice: any) => {
@@ -309,12 +310,10 @@ export default function Invoices() {
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 pt-2 border-t">
-                      {invoice.pdf_url && (
-                        <Button variant="outline" size="sm" onClick={() => handleViewPDF(invoice)}>
-                          <FileText className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Ver PDF</span>
-                        </Button>
-                      )}
+                      <Button variant="outline" size="sm" onClick={() => handleViewPDF(invoice)}>
+                        <FileText className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Ver PDF</span>
+                      </Button>
                       {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
                         <Button
                           variant="outline"
@@ -349,8 +348,7 @@ export default function Invoices() {
       <PDFViewerDialog
         open={pdfViewerOpen}
         onOpenChange={setPdfViewerOpen}
-        pdfUrl={selectedPdfUrl}
-        title={pdfTitle}
+        pdfSource={selectedPdfSource}
       />
     </div>
   );

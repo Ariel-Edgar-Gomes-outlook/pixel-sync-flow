@@ -40,8 +40,7 @@ export default function Quotes() {
   const [paymentPlanQuote, setPaymentPlanQuote] = useState<any>(null);
   const [paymentPlanDialogOpen, setPaymentPlanDialogOpen] = useState(false);
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
-  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
-  const [pdfTitle, setPdfTitle] = useState<string>('');
+  const [selectedPdfSource, setSelectedPdfSource] = useState<any>(null);
   const [workflowQuote, setWorkflowQuote] = useState<any>(null);
   const [workflowWizardOpen, setWorkflowWizardOpen] = useState(false);
   
@@ -54,8 +53,11 @@ export default function Quotes() {
 
   useEffect(() => {
     const handleOpenPDFViewer = (event: any) => {
-      setSelectedPdfUrl(event.detail.url);
-      setPdfTitle(event.detail.title);
+      if (event.detail.pdfSource) {
+        setSelectedPdfSource(event.detail.pdfSource);
+      } else if (event.detail.url) {
+        setSelectedPdfSource({ type: 'url', url: event.detail.url });
+      }
       setPdfViewerOpen(true);
     };
 
@@ -400,24 +402,21 @@ export default function Quotes() {
                     </div>
                     
                     <div className="flex flex-wrap gap-2 pt-2 border-t">
-                        {quote.pdf_url ? (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedPdfUrl(quote.pdf_url);
-                            setPdfTitle(`Orçamento - ${quote.clients?.name || 'Cliente'}`);
-                            setPdfViewerOpen(true);
-                          }}
-                        >
-                          <FileText className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Ver PDF</span>
-                        </Button>
-                      ) : (
-                        <Badge variant="outline" className="text-xs">
-                          PDF ao salvar
-                        </Badge>
-                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPdfSource({
+                            type: 'local',
+                            entityType: 'quote',
+                            entityId: quote.id
+                          });
+                          setPdfViewerOpen(true);
+                        }}
+                      >
+                        <FileText className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Ver PDF</span>
+                      </Button>
                      <Button 
                        variant="outline" 
                        size="sm"
@@ -498,8 +497,7 @@ export default function Quotes() {
       <PDFViewerDialog
         open={pdfViewerOpen}
         onOpenChange={setPdfViewerOpen}
-        pdfUrl={selectedPdfUrl}
-        title={pdfTitle}
+        pdfSource={selectedPdfSource}
       />
 
       {workflowQuote && (

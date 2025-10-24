@@ -26,15 +26,17 @@ export default function Contracts() {
   const [selectedContract, setSelectedContract] = useState<any>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
-  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
-  const [pdfTitle, setPdfTitle] = useState<string>('');
+  const [selectedPdfSource, setSelectedPdfSource] = useState<any>(null);
   const { data: contracts, isLoading } = useContracts();
   const { toast } = useToast();
 
   useEffect(() => {
     const handleOpenPDFViewer = (event: any) => {
-      setSelectedPdfUrl(event.detail.url);
-      setPdfTitle(event.detail.title);
+      if (event.detail.pdfSource) {
+        setSelectedPdfSource(event.detail.pdfSource);
+      } else if (event.detail.url) {
+        setSelectedPdfSource({ type: 'url', url: event.detail.url });
+      }
       setPdfViewerOpen(true);
     };
 
@@ -252,20 +254,21 @@ export default function Contracts() {
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2 border-t">
-                {contract.pdf_url && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => {
-                      setSelectedPdfUrl(contract.pdf_url);
-                      setPdfTitle(`Contrato - ${contract.clients?.name || 'Cliente'}`);
-                      setPdfViewerOpen(true);
-                    }}
-                  >
-                    <FileText className="h-3 w-3 sm:mr-2" />
-                    <span className="hidden sm:inline">Ver PDF</span>
-                  </Button>
-                )}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setSelectedPdfSource({
+                      type: 'local',
+                      entityType: 'contract',
+                      entityId: contract.id
+                    });
+                    setPdfViewerOpen(true);
+                  }}
+                >
+                  <FileText className="h-3 w-3 sm:mr-2" />
+                  <span className="hidden sm:inline">Ver PDF</span>
+                </Button>
                 
                 <Button
                   variant="outline"
@@ -322,8 +325,7 @@ export default function Contracts() {
       <PDFViewerDialog
         open={pdfViewerOpen}
         onOpenChange={setPdfViewerOpen}
-        pdfUrl={selectedPdfUrl}
-        title={pdfTitle}
+        pdfSource={selectedPdfSource}
       />
     </div>
   );

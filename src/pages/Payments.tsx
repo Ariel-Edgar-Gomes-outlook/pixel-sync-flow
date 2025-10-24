@@ -26,14 +26,16 @@ export default function Payments() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
-  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
-  const [pdfTitle, setPdfTitle] = useState<string>('');
+  const [selectedPdfSource, setSelectedPdfSource] = useState<any>(null);
   const { data: payments, isLoading } = usePayments();
 
   useEffect(() => {
     const handleOpenPDFViewer = (event: any) => {
-      setSelectedPdfUrl(event.detail.url);
-      setPdfTitle(event.detail.title);
+      if (event.detail.pdfSource) {
+        setSelectedPdfSource(event.detail.pdfSource);
+      } else if (event.detail.url) {
+        setSelectedPdfSource({ type: 'url', url: event.detail.url });
+      }
       setPdfViewerOpen(true);
     };
 
@@ -283,40 +285,22 @@ export default function Payments() {
                   </div>
 
                   <div className="flex flex-wrap gap-2 pt-2 border-t">
-                    {payment.receipt_link ? (
-                      <>
-                        <Badge variant="secondary" className="text-xs">
-                          <Receipt className="h-3 w-3 mr-1" />
-                          Recibo Gerado
-                        </Badge>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedPdfUrl(payment.receipt_link);
-                            setPdfTitle(`Recibo - ${payment.clients?.name || 'Cliente'}`);
-                            setPdfViewerOpen(true);
-                          }}
-                        >
-                          <FileText className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Ver Recibo</span>
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            window.open(payment.receipt_link!, '_blank');
-                          }}
-                        >
-                          <Download className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Baixar PDF</span>
-                        </Button>
-                      </>
-                    ) : payment.status === 'paid' && (
-                      <Badge variant="outline" className="text-xs text-muted-foreground">
-                        <Receipt className="h-3 w-3 mr-1" />
-                        Sem recibo
-                      </Badge>
+                    {payment.status === 'paid' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPdfSource({
+                            type: 'local',
+                            entityType: 'receipt',
+                            entityId: payment.id
+                          });
+                          setPdfViewerOpen(true);
+                        }}
+                      >
+                        <Receipt className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Ver Recibo</span>
+                      </Button>
                     )}
                     <Button 
                       variant="outline" 
@@ -352,8 +336,7 @@ export default function Payments() {
       <PDFViewerDialog
         open={pdfViewerOpen}
         onOpenChange={setPdfViewerOpen}
-        pdfUrl={selectedPdfUrl}
-        title={pdfTitle}
+        pdfSource={selectedPdfSource}
       />
     </div>
   );
