@@ -81,12 +81,25 @@ export function BusinessSettingsForm() {
     resolver: zodResolver(businessSettingsSchema),
     defaultValues: {
       business_name: '',
+      trade_name: '',
+      nif: '',
       email: user?.email || '',
+      phone: '',
+      whatsapp: '',
+      website: '',
+      address_line1: '',
+      address_line2: '',
       city: 'Luanda',
       province: 'Luanda',
       country: 'Angola',
+      postal_code: '',
+      bank_name: '',
+      iban: '',
+      account_holder: '',
       primary_color: '#3B82F6',
       secondary_color: '#1E40AF',
+      legal_representative_name: '',
+      legal_representative_title: '',
       invoice_prefix: 'FT',
       proforma_prefix: 'PF',
       terms_footer: 'Este documento é regido pelas leis de Angola.',
@@ -94,13 +107,14 @@ export function BusinessSettingsForm() {
     },
   });
 
+  // Only reset form when settings first loads, not on every update
   useEffect(() => {
-    if (settings) {
-      form.reset({
-        business_name: settings.business_name,
+    if (settings && !form.formState.isDirty) {
+      const formData = {
+        business_name: settings.business_name || '',
         trade_name: settings.trade_name || '',
         nif: settings.nif || '',
-        email: settings.email,
+        email: settings.email || '',
         phone: settings.phone || '',
         whatsapp: settings.whatsapp || '',
         website: settings.website || '',
@@ -121,11 +135,12 @@ export function BusinessSettingsForm() {
         proforma_prefix: settings.proforma_prefix || 'PF',
         terms_footer: settings.terms_footer || 'Este documento é regido pelas leis de Angola.',
         payment_terms: settings.payment_terms || 'Pagamento em 30 dias após emissão.',
-      });
-      setLogoPreview(settings.logo_url);
-      setSignaturePreview(settings.signature_url);
+      };
+      form.reset(formData);
+      setLogoPreview(settings.logo_url || null);
+      setSignaturePreview(settings.signature_url || null);
     }
-  }, [settings, form]);
+  }, [settings]);
 
   const handleFileUpload = async (file: File, type: 'logo' | 'signature') => {
     if (!user?.id) {
@@ -156,13 +171,16 @@ export function BusinessSettingsForm() {
       toast.info(`A carregar ${type === 'logo' ? 'logo' : 'assinatura'}...`);
       const url = await uploadFile.mutateAsync({ file, userId: user.id, type });
       
+      // Get current form values to preserve them
+      const currentValues = form.getValues();
+      
       if (type === 'logo') {
         setLogoPreview(url);
-        await handleUpdateSettings({ logo_url: url });
+        await handleUpdateSettings({ ...currentValues, logo_url: url });
         toast.success('Logo carregado com sucesso!');
       } else {
         setSignaturePreview(url);
-        await handleUpdateSettings({ signature_url: url });
+        await handleUpdateSettings({ ...currentValues, signature_url: url });
         toast.success('Assinatura carregada com sucesso!');
       }
     } catch (error) {
