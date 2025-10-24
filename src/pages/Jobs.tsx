@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase, Download, CreditCard, Sparkles, FileText, Package, Wrench } from "lucide-react";
+import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase, Download, CreditCard, Sparkles, FileText, Package, Wrench, Eye } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobs } from "@/hooks/useJobs";
 import { JobDialog } from "@/components/JobDialog";
+import { JobDetailsDialog } from "@/components/JobDetailsDialog";
 import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
 import { QuickStartWizard } from "@/components/QuickStartWizard";
 import { JobRelationsPanel } from "@/components/JobRelationsPanel";
@@ -31,6 +32,8 @@ export default function Jobs() {
   const [paymentPlanJob, setPaymentPlanJob] = useState<any>(null);
   const [paymentPlanDialogOpen, setPaymentPlanDialogOpen] = useState(false);
   const [quickStartOpen, setQuickStartOpen] = useState(false);
+  const [detailsJobId, setDetailsJobId] = useState<string | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const { data: jobs, isLoading } = useJobs();
 
   const handleExport = () => {
@@ -265,6 +268,18 @@ export default function Jobs() {
                               <div className="text-xl sm:text-2xl font-bold text-foreground">Kz {Number(job.estimated_revenue).toFixed(0)}</div>
                             )}
                             <div className="flex flex-col gap-2">
+                              <Button 
+                                variant="default" 
+                                size="sm" 
+                                className="gap-2 text-xs sm:text-sm"
+                                onClick={() => {
+                                  setDetailsJobId(job.id);
+                                  setDetailsDialogOpen(true);
+                                }}
+                              >
+                                <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                                Ver Detalhes
+                              </Button>
                               <JobDialog job={job}>
                                 <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm">
                                   <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -299,6 +314,14 @@ export default function Jobs() {
             </Card>
           </TabsContent>
         </Tabs>
+      )}
+      
+      {detailsJobId && (
+        <JobDetailsDialog
+          jobId={detailsJobId}
+          open={detailsDialogOpen}
+          onOpenChange={setDetailsDialogOpen}
+        />
       )}
       
       <PaymentPlanDialog
