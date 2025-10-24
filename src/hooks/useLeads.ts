@@ -17,16 +17,20 @@ export function useLeads() {
   return useQuery({
     queryKey: ['leads'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('leads')
         .select(`
           *,
-          clients (
+          clients!inner (
             id,
             name,
             email
           )
         `)
+        .eq('clients.created_by', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

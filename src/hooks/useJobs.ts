@@ -27,6 +27,9 @@ export function useJobs() {
   return useQuery({
     queryKey: ['jobs'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('jobs')
         .select(`
@@ -37,6 +40,7 @@ export function useJobs() {
             email
           )
         `)
+        .eq('created_by', user.id)
         .order('start_datetime', { ascending: true });
 
       if (error) throw error;
@@ -45,10 +49,15 @@ export function useJobs() {
   });
 }
 
-export function useJob(id: string) {
+export function useJob(id: string | undefined) {
   return useQuery({
-    queryKey: ['jobs', id],
+    queryKey: ['job', id],
     queryFn: async () => {
+      if (!id) return null;
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('jobs')
         .select(`
@@ -70,11 +79,13 @@ export function useJob(id: string) {
           )
         `)
         .eq('id', id)
+        .eq('created_by', user.id)
         .single();
 
       if (error) throw error;
       return data;
     },
+    enabled: !!id,
   });
 }
 
@@ -83,9 +94,12 @@ export function useCreateJob() {
 
   return useMutation({
     mutationFn: async (job: any) => {
-      const { data, error} = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
         .from('jobs')
-        .insert([job])
+        .insert({ ...job, created_by: user.id })
         .select()
         .single();
 

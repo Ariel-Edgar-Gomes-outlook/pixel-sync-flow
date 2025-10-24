@@ -20,9 +20,13 @@ export function useClients() {
   return useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('clients')
         .select('*')
+        .eq('created_by', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -36,9 +40,12 @@ export function useCreateClient() {
 
   return useMutation({
     mutationFn: async (client: any) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase
         .from('clients')
-        .insert([client])
+        .insert([{ ...client, created_by: user.id }])
         .select()
         .single();
 

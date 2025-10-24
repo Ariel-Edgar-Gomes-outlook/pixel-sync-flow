@@ -28,11 +28,14 @@ export function useContracts() {
   return useQuery({
     queryKey: ['contracts'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('contracts')
         .select(`
           *,
-          clients (
+          clients!inner (
             id,
             name,
             email
@@ -43,6 +46,7 @@ export function useContracts() {
             type
           )
         `)
+        .eq('clients.created_by', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

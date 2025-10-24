@@ -17,9 +17,13 @@ export function useResources() {
   return useQuery({
     queryKey: ['resources'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('resources')
         .select('*')
+        .eq('created_by', user.id)
         .order('name', { ascending: true });
 
       if (error) throw error;
@@ -33,6 +37,9 @@ export function useCreateResource() {
 
   return useMutation({
     mutationFn: async (resource: Partial<Resource>) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase
         .from('resources')
         .insert({
@@ -41,7 +48,8 @@ export function useCreateResource() {
           status: resource.status,
           location: resource.location,
           manual_link: resource.manual_link,
-          next_maintenance_date: resource.next_maintenance_date
+          next_maintenance_date: resource.next_maintenance_date,
+          created_by: user.id
         })
         .select()
         .single();

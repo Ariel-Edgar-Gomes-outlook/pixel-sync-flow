@@ -32,6 +32,9 @@ export function useInvoices() {
   return useQuery({
     queryKey: ['invoices'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('invoices')
         .select(`
@@ -51,6 +54,7 @@ export function useInvoices() {
             title
           )
         `)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -65,6 +69,9 @@ export function useInvoice(id: string | undefined) {
     queryFn: async () => {
       if (!id) return null;
       
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('invoices')
         .select(`
@@ -78,6 +85,7 @@ export function useInvoice(id: string | undefined) {
           )
         `)
         .eq('id', id)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -92,9 +100,12 @@ export function useCreateInvoice() {
 
   return useMutation({
     mutationFn: async (invoice: any) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase
         .from('invoices')
-        .insert([invoice])
+        .insert([{ ...invoice, user_id: user.id }])
         .select()
         .single();
 
@@ -162,9 +173,13 @@ export function useInvoiceStats() {
   return useQuery({
     queryKey: ['invoice-stats'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('invoices')
-        .select('status, total, amount_paid');
+        .select('status, total, amount_paid')
+        .eq('user_id', user.id);
 
       if (error) throw error;
 

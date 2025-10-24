@@ -21,6 +21,9 @@ export function useQuotes() {
   return useQuery({
     queryKey: ['quotes'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('quotes')
         .select(`
@@ -31,6 +34,7 @@ export function useQuotes() {
             email
           )
         `)
+        .eq('created_by', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -44,9 +48,12 @@ export function useCreateQuote() {
 
   return useMutation({
     mutationFn: async (quote: any) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase
         .from('quotes')
-        .insert([quote])
+        .insert([{ ...quote, created_by: user.id }])
         .select()
         .single();
 

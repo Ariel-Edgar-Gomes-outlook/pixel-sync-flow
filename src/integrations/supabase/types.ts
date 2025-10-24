@@ -1066,6 +1066,7 @@ export type Database = {
           amount: number
           client_id: string
           created_at: string
+          created_by: string | null
           currency: string | null
           due_date: string | null
           id: string
@@ -1084,6 +1085,7 @@ export type Database = {
           amount: number
           client_id: string
           created_at?: string
+          created_by?: string | null
           currency?: string | null
           due_date?: string | null
           id?: string
@@ -1102,6 +1104,7 @@ export type Database = {
           amount?: number
           client_id?: string
           created_at?: string
+          created_by?: string | null
           currency?: string | null
           due_date?: string | null
           id?: string
@@ -1231,6 +1234,7 @@ export type Database = {
           client_id: string
           converted_to_job_at: string | null
           created_at: string
+          created_by: string | null
           currency: string | null
           discount: number | null
           id: string
@@ -1247,6 +1251,7 @@ export type Database = {
           client_id: string
           converted_to_job_at?: string | null
           created_at?: string
+          created_by?: string | null
           currency?: string | null
           discount?: number | null
           id?: string
@@ -1263,6 +1268,7 @@ export type Database = {
           client_id?: string
           converted_to_job_at?: string | null
           created_at?: string
+          created_by?: string | null
           currency?: string | null
           discount?: number | null
           id?: string
@@ -1294,6 +1300,7 @@ export type Database = {
       resources: {
         Row: {
           created_at: string
+          created_by: string | null
           id: string
           location: string | null
           manual_link: string | null
@@ -1305,6 +1312,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           id?: string
           location?: string | null
           manual_link?: string | null
@@ -1316,6 +1324,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           id?: string
           location?: string | null
           manual_link?: string | null

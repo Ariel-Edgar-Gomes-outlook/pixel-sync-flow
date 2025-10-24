@@ -24,6 +24,9 @@ export function usePayments() {
   return useQuery({
     queryKey: ['payments'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('payments')
         .select(`
@@ -34,6 +37,7 @@ export function usePayments() {
             email
           )
         `)
+        .eq('created_by', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -47,9 +51,12 @@ export function useCreatePayment() {
 
   return useMutation({
     mutationFn: async (payment: any) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase
         .from('payments')
-        .insert([payment])
+        .insert([{ ...payment, created_by: user.id }])
         .select()
         .single();
 

@@ -16,9 +16,13 @@ export function useTeamMembers() {
   return useQuery({
     queryKey: ['team_members'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('team_members')
         .select('*')
+        .eq('created_by', user.id)
         .order('name');
       
       if (error) throw error;
@@ -39,6 +43,7 @@ export function useCreateTeamMember() {
       notes?: string;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       
       const { data, error } = await supabase
         .from('team_members')
@@ -48,7 +53,7 @@ export function useCreateTeamMember() {
           phone: member.phone || null,
           type: member.type,
           notes: member.notes || null,
-          created_by: user?.id,
+          created_by: user.id,
         })
         .select()
         .single();

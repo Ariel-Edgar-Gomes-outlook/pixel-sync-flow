@@ -43,9 +43,13 @@ export function useQuoteTemplates() {
   return useQuery({
     queryKey: ['quote-templates'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('quote_templates')
         .select('*')
+        .eq('created_by', user.id)
         .order('name');
 
       if (error) throw error;
@@ -60,10 +64,11 @@ export function useCreateQuoteTemplate() {
   return useMutation({
     mutationFn: async (template: Omit<QuoteTemplate, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       
       const { data, error } = await supabase
         .from('quote_templates')
-        .insert({ ...template, created_by: user?.id })
+        .insert({ ...template, created_by: user.id })
         .select()
         .single();
 
@@ -132,9 +137,13 @@ export function useChecklistTemplates() {
   return useQuery({
     queryKey: ['checklist-templates'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('checklist_templates')
         .select('*')
+        .eq('created_by', user.id)
         .order('name');
 
       if (error) throw error;
@@ -149,10 +158,11 @@ export function useCreateChecklistTemplate() {
   return useMutation({
     mutationFn: async (template: Omit<ChecklistTemplate, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       
       const { data, error } = await supabase
         .from('checklist_templates')
-        .insert({ ...template, created_by: user?.id })
+        .insert({ ...template, created_by: user.id })
         .select()
         .single();
 
@@ -196,9 +206,13 @@ export function useContractTemplates() {
   return useQuery({
     queryKey: ['contract-templates'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('contract_templates')
         .select('*')
+        .eq('created_by', user.id)
         .order('name');
 
       if (error) throw error;
@@ -213,10 +227,11 @@ export function useCreateContractTemplate() {
   return useMutation({
     mutationFn: async (template: Omit<ContractTemplate, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       
       const { data, error } = await supabase
         .from('contract_templates')
-        .insert({ ...template, created_by: user?.id })
+        .insert({ ...template, created_by: user.id })
         .select()
         .single();
 
