@@ -22,7 +22,6 @@ export interface Invoice {
   currency: string;
   status: 'issued' | 'paid' | 'overdue' | 'cancelled' | 'partial';
   amount_paid: number;
-  pdf_url: string | null;
   notes: string | null;
   payment_instructions: string | null;
   created_at: string;

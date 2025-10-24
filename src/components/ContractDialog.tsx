@@ -55,7 +55,6 @@ interface Contract {
   revision_policy?: string;
   signature_token?: string;
   signature_url?: string;
-  pdf_url?: string;
   issued_at?: string;
   signed_at?: string | null;
   cancellation_fee?: number;

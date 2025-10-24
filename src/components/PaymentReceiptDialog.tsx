@@ -39,7 +39,6 @@ const paymentSchema = z.object({
   method: z.string().optional(),
   paid_at: z.string(),
   notes: z.string().optional(),
-  receipt_url: z.string().optional(),
 });
 
 type PaymentFormValues = z.infer<typeof paymentSchema>;
@@ -67,7 +66,6 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
       method: '',
       paid_at: new Date().toISOString().split('T')[0],
       notes: '',
-      receipt_url: '',
     },
   });
 
@@ -84,7 +82,6 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
         method: payment.method || '',
         paid_at: payment.paid_at ? payment.paid_at.split('T')[0] : new Date().toISOString().split('T')[0],
         notes: payment.notes || '',
-        receipt_url: payment.receipt_url || '',
       });
     }
   }, [payment, form]);

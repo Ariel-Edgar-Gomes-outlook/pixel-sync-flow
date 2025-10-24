@@ -196,11 +196,10 @@ export function useWorkflowExecution() {
     try {
       setProgress(50);
 
-      // Update payment with receipt generation timestamp
+      // Update payment status to paid
       const { error: updateError } = await supabase
         .from('payments')
         .update({ 
-          receipt_generated_at: new Date().toISOString(),
           status: 'paid'
         })
         .eq('id', paymentId);

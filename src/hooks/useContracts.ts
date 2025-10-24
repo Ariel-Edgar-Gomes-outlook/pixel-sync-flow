@@ -14,7 +14,6 @@ export interface Contract {
   reschedule_policy?: string | null;
   revision_policy?: string | null;
   signature_url?: string | null;
-  pdf_url?: string | null;
   signature_token?: string | null;
   clauses: any;
   attachments_links: any;

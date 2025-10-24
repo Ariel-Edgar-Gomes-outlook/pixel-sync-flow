@@ -107,26 +107,6 @@ export function useActionableAlerts({
       });
     }
 
-    // PAID PAYMENTS WITHOUT RECEIPT
-    const paymentsWithoutReceipt = payments.filter(pay => 
-      pay.status === 'paid' && !pay.receipt_generated_at
-    );
-    if (paymentsWithoutReceipt.length > 0) {
-      result.push({
-        id: 'payments-without-receipt',
-        title: 'Recibos Pendentes',
-        description: `${paymentsWithoutReceipt.length} pagamento(s) sem recibo gerado`,
-        priority: 'attention',
-        entityType: 'payment',
-        entityId: 'multiple',
-        count: paymentsWithoutReceipt.length,
-        action: {
-          label: 'Gerar Recibos',
-          path: '/payments'
-        }
-      });
-    }
-
     // UPCOMING JOBS (next 3 days)
     const upcomingJobs = jobs.filter(job => {
       const start = new Date(job.start_datetime);

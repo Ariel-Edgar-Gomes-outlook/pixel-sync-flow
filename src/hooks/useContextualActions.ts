@@ -86,23 +86,8 @@ export function useContextualActions({ entityType, entity }: UseContextualAction
       }
     }
 
-    // PAYMENT ACTIONS
+    // PAYMENT OVERDUE CHECK
     if (entityType === 'payment') {
-      if (entity.status === 'paid' && !entity.receipt_generated_at) {
-        result.push({
-          id: `payment-${entity.id}-generate-receipt`,
-          label: 'Gerar Recibo',
-          type: 'generate_receipt',
-          priority: 'attention',
-          entityId: entity.id,
-          entityType: 'payment',
-          icon: 'file-text',
-          onClick: () => {
-            console.log('Generate receipt for payment', entity.id);
-          }
-        });
-      }
-
       const isOverdue = entity.due_date && new Date(entity.due_date) < new Date() && entity.status !== 'paid';
       
       if (isOverdue) {
