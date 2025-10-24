@@ -217,12 +217,27 @@ export function PDFViewerDialog({
         filename = `${pdfSource.entityType}_${pdfSource.entityId.substring(0, 8)}.pdf`;
       }
       
-      const link = document.createElement('a');
-      link.href = currentPdfUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // For blob URLs, we need to fetch and download properly
+      if (currentPdfUrl.startsWith('blob:')) {
+        const response = await fetch(currentPdfUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        const link = document.createElement('a');
+        link.href = currentPdfUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      
       toast.success('Download concluído com sucesso');
     } catch (error) {
       console.error('Download error:', error);
@@ -237,21 +252,47 @@ export function PDFViewerDialog({
     }
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!currentPdfUrl) return;
     
     try {
-      // Open in new window for printing (avoids CORS issues)
-      const printWindow = window.open(currentPdfUrl, '_blank');
-      if (printWindow) {
-        printWindow.onload = () => {
+      // For blob URLs, we need to create a proper iframe to print
+      if (currentPdfUrl.startsWith('blob:')) {
+        const response = await fetch(currentPdfUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        
+        iframe.onload = () => {
           setTimeout(() => {
-            printWindow.print();
+            if (iframe.contentWindow) {
+              iframe.contentWindow.print();
+            }
+            // Clean up after printing
+            setTimeout(() => {
+              document.body.removeChild(iframe);
+              window.URL.revokeObjectURL(url);
+            }, 1000);
           }, 500);
         };
-        toast.success('Abrindo janela de impressão');
+        
+        toast.success('Preparando impressão...');
       } else {
-        toast.error('Por favor, permita pop-ups para imprimir');
+        const printWindow = window.open(currentPdfUrl, '_blank');
+        if (printWindow) {
+          printWindow.onload = () => {
+            setTimeout(() => {
+              printWindow.print();
+            }, 500);
+          };
+          toast.success('Abrindo janela de impressão');
+        } else {
+          toast.error('Por favor, permita pop-ups para imprimir');
+        }
       }
     } catch (error) {
       console.error('Print error:', error);
