@@ -5,6 +5,12 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Download, Printer, ZoomIn, ZoomOut, X, ExternalLink, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
+import {
+  generateContractPDFLocal,
+  generateQuotePDFLocal,
+  generateInvoicePDFLocal,
+  generateReceiptPDFLocal,
+} from '@/lib/localPdfGenerator';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -15,41 +21,145 @@ try {
   console.error('Failed to load PDF.js worker:', error);
 }
 
+// PDF Source types
+type PDFSource = 
+  | { type: 'url'; url: string }
+  | { type: 'local'; entityType: 'contract' | 'quote' | 'invoice' | 'receipt'; entityId: string }
+  | { type: 'blob'; blob: Blob; filename?: string }
+  | null;
+
 interface PDFViewerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  pdfUrl: string | null;
+  pdfUrl?: string | null; // Legacy prop for backwards compatibility
+  pdfSource?: PDFSource; // New prop for dynamic generation
   title?: string;
 }
 
-export function PDFViewerDialog({ open, onOpenChange, pdfUrl, title = "Visualizar PDF" }: PDFViewerDialogProps) {
+export function PDFViewerDialog({ 
+  open, 
+  onOpenChange, 
+  pdfUrl, 
+  pdfSource, 
+  title = "Visualizar PDF" 
+}: PDFViewerDialogProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [loadTimeout, setLoadTimeout] = useState<boolean>(false);
+  const [currentPdfUrl, setCurrentPdfUrl] = useState<string | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
-  // Reset state when dialog opens/closes or URL changes
+  // Generate PDF from local data or use provided URL/Blob
   useEffect(() => {
-    if (open && pdfUrl) {
-      setIsLoading(true);
-      setError(null);
-      setLoadTimeout(false);
-      setPageNumber(1);
-      setScale(1.0);
-
-      // Set timeout for loading (15 seconds)
-      const timeoutId = setTimeout(() => {
-        if (isLoading) {
-          setLoadTimeout(true);
-          setError('O PDF está demorando muito para carregar. Tente abrir em nova aba ou fazer download.');
-        }
-      }, 15000);
-
-      return () => clearTimeout(timeoutId);
+    if (!open) {
+      // Clean up blob URL when dialog closes
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+        setBlobUrl(null);
+      }
+      setCurrentPdfUrl(null);
+      return;
     }
-  }, [open, pdfUrl]);
+
+    const generatePDF = async () => {
+      try {
+        setIsGenerating(true);
+        setIsLoading(true);
+        setError(null);
+        setLoadTimeout(false);
+        setPageNumber(1);
+        setScale(1.0);
+
+        // Clean up previous blob URL
+        if (blobUrl) {
+          URL.revokeObjectURL(blobUrl);
+          setBlobUrl(null);
+        }
+
+        // Determine PDF source (prioritize pdfSource over legacy pdfUrl)
+        const source: PDFSource = pdfSource || (pdfUrl ? { type: 'url', url: pdfUrl } : null);
+
+        if (!source) {
+          setCurrentPdfUrl(null);
+          setIsGenerating(false);
+          return;
+        }
+
+        let url: string;
+
+        if (source.type === 'url') {
+          // Use existing URL
+          url = source.url;
+          setCurrentPdfUrl(url);
+        } else if (source.type === 'blob') {
+          // Convert blob to URL
+          const objectUrl = URL.createObjectURL(source.blob);
+          setBlobUrl(objectUrl);
+          url = objectUrl;
+          setCurrentPdfUrl(url);
+        } else if (source.type === 'local') {
+          // Generate PDF locally from database
+          let blob: Blob;
+
+          switch (source.entityType) {
+            case 'contract':
+              blob = await generateContractPDFLocal(source.entityId);
+              break;
+            case 'quote':
+              blob = await generateQuotePDFLocal(source.entityId);
+              break;
+            case 'invoice':
+              blob = await generateInvoicePDFLocal(source.entityId);
+              break;
+            case 'receipt':
+              blob = await generateReceiptPDFLocal(source.entityId);
+              break;
+            default:
+              throw new Error('Tipo de entidade desconhecido');
+          }
+
+          const objectUrl = URL.createObjectURL(blob);
+          setBlobUrl(objectUrl);
+          url = objectUrl;
+          setCurrentPdfUrl(url);
+        }
+
+        setIsGenerating(false);
+
+        // Set timeout for loading (15 seconds)
+        const timeoutId = setTimeout(() => {
+          if (isLoading) {
+            setLoadTimeout(true);
+            setError('O PDF está demorando muito para carregar. Tente abrir em nova aba ou fazer download.');
+          }
+        }, 15000);
+
+        return () => clearTimeout(timeoutId);
+      } catch (err) {
+        console.error('Erro ao gerar PDF:', err);
+        setIsGenerating(false);
+        setIsLoading(false);
+        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao gerar PDF';
+        setError(errorMessage);
+        toast.error(errorMessage);
+      }
+    };
+
+    generatePDF();
+  }, [open, pdfUrl, pdfSource]);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+      }
+    };
+  }, [blobUrl]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -96,14 +206,25 @@ export function PDFViewerDialog({ open, onOpenChange, pdfUrl, title = "Visualiza
   };
 
   const handleDownload = async () => {
-    if (pdfUrl) {
+    if (currentPdfUrl) {
       try {
-        const response = await fetch(pdfUrl);
+        const response = await fetch(currentPdfUrl);
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = pdfUrl.split('/').pop() || 'documento.pdf';
+        
+        // Determine filename
+        let filename = 'documento.pdf';
+        if (pdfSource?.type === 'blob' && pdfSource.filename) {
+          filename = pdfSource.filename;
+        } else if (pdfSource?.type === 'local') {
+          filename = `${pdfSource.entityType}_${pdfSource.entityId.substring(0, 8)}.pdf`;
+        } else if (currentPdfUrl) {
+          filename = currentPdfUrl.split('/').pop() || 'documento.pdf';
+        }
+        
+        link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -113,9 +234,9 @@ export function PDFViewerDialog({ open, onOpenChange, pdfUrl, title = "Visualiza
         console.error('Download error:', error);
         // Fallback to direct link
         const link = document.createElement('a');
-        link.href = pdfUrl;
+        link.href = currentPdfUrl;
         link.target = '_blank';
-        link.download = pdfUrl.split('/').pop() || 'documento.pdf';
+        link.download = 'documento.pdf';
         link.click();
         toast.info('Abrindo PDF em nova aba');
       }
@@ -123,17 +244,17 @@ export function PDFViewerDialog({ open, onOpenChange, pdfUrl, title = "Visualiza
   };
 
   const handleOpenInNewTab = () => {
-    if (pdfUrl) {
-      window.open(pdfUrl, '_blank');
+    if (currentPdfUrl) {
+      window.open(currentPdfUrl, '_blank');
       toast.success('PDF aberto em nova aba');
     }
   };
 
   const handlePrint = () => {
-    if (pdfUrl) {
+    if (currentPdfUrl) {
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
-      iframe.src = pdfUrl;
+      iframe.src = currentPdfUrl;
       document.body.appendChild(iframe);
       iframe.onload = () => {
         iframe.contentWindow?.print();
@@ -217,7 +338,13 @@ export function PDFViewerDialog({ open, onOpenChange, pdfUrl, title = "Visualiza
 
         {/* PDF Viewer */}
         <div className="flex-1 overflow-auto bg-muted/10 flex flex-col items-center justify-center p-6">
-          {!pdfUrl ? (
+          {isGenerating ? (
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-sm text-muted-foreground">Gerando PDF...</p>
+              <p className="text-xs text-muted-foreground mt-2">Buscando dados e criando documento</p>
+            </div>
+          ) : !currentPdfUrl ? (
             <div className="text-center text-muted-foreground">
               <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Nenhum PDF selecionado</p>
@@ -256,7 +383,7 @@ export function PDFViewerDialog({ open, onOpenChange, pdfUrl, title = "Visualiza
           ) : (
             <div className="bg-white shadow-lg">
               <Document
-                file={pdfUrl}
+                file={currentPdfUrl}
                 onLoadSuccess={onDocumentLoadSuccess}
                 onLoadError={onDocumentLoadError}
                 loading={
