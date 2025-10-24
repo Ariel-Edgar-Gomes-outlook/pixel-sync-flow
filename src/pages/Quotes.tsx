@@ -18,6 +18,7 @@ import { QuoteDialog } from "@/components/QuoteDialog";
 import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
+import { useSmartBadges } from "@/hooks/useSmartBadges";
 import { exportToExcel, formatQuotesForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -327,24 +328,37 @@ export default function Quotes() {
                 <p className="font-medium mb-1">Nenhum orçamento encontrado</p>
                 <p className="text-sm">Tente ajustar os termos de pesquisa</p>
               </div>
-            ) : (
-             filteredQuotes.map((quote) => (
-               <Card
-                 key={quote.id}
-                 className="p-4 sm:p-5 hover:shadow-md transition-all"
-               >
-                 <div className="flex flex-col gap-4">
-                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                     <div className="flex-1 min-w-0">
-                       <div className="flex items-center gap-2 mb-2">
-                         <FileText className="h-5 w-5 text-primary shrink-0" />
-                         <h3 className="text-base sm:text-lg font-semibold truncate">
-                           {quote.clients?.name || 'Cliente não especificado'}
-                         </h3>
-                         <Badge variant={statusConfig[quote.status as keyof typeof statusConfig]?.variant || 'secondary'}>
-                           {statusConfig[quote.status as keyof typeof statusConfig]?.label || quote.status}
-                         </Badge>
-                       </div>
+             ) : (
+              filteredQuotes.map((quote) => {
+                const smartBadges = useSmartBadges({ entityType: 'quote', entity: quote });
+                
+                return (
+                <Card
+                  key={quote.id}
+                  className="p-4 sm:p-5 hover:shadow-md transition-all"
+                >
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <FileText className="h-5 w-5 text-primary shrink-0" />
+                          <h3 className="text-base sm:text-lg font-semibold truncate">
+                            {quote.clients?.name || 'Cliente não especificado'}
+                          </h3>
+                          <Badge variant={statusConfig[quote.status as keyof typeof statusConfig]?.variant || 'secondary'}>
+                            {statusConfig[quote.status as keyof typeof statusConfig]?.label || quote.status}
+                          </Badge>
+                          {smartBadges.map((badge) => (
+                            <Badge 
+                              key={badge.id} 
+                              variant={badge.variant}
+                              className="text-xs"
+                              title={badge.tooltip}
+                            >
+                              {badge.label}
+                            </Badge>
+                          ))}
+                        </div>
                        
                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                          <div className="flex items-center gap-2 text-muted-foreground">
@@ -489,8 +503,9 @@ export default function Quotes() {
                   </div>
                   </div>
                 </Card>
-           ))
-           )}
+                );
+              })
+            )}
           </div>
         </Card>
       )}

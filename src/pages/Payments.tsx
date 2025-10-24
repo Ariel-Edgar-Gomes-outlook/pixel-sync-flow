@@ -9,6 +9,7 @@ import PaymentDialog from "@/components/PaymentDialog";
 import { PaymentReceiptDialog } from "@/components/PaymentReceiptDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
+import { useSmartBadges } from "@/hooks/useSmartBadges";
 import { exportToExcel, formatPaymentsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -213,7 +214,10 @@ export default function Payments() {
                 <p className="text-sm">Tente ajustar os termos de pesquisa</p>
               </div>
             ) : (
-            filteredPayments.map((payment) => (
+            filteredPayments.map((payment) => {
+              const smartBadges = useSmartBadges({ entityType: 'payment', entity: payment });
+              
+              return (
               <Card
                 key={payment.id}
                 className="p-4 sm:p-5 hover:shadow-md transition-all"
@@ -232,6 +236,16 @@ export default function Payments() {
                           {statusConfig[payment.status as keyof typeof statusConfig]?.label || payment.status}
                         </Badge>
                         <Badge variant="outline">{payment.type}</Badge>
+                        {smartBadges.map((badge) => (
+                          <Badge 
+                            key={badge.id} 
+                            variant={badge.variant}
+                            className="text-xs"
+                            title={badge.tooltip}
+                          >
+                            {badge.label}
+                          </Badge>
+                        ))}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
@@ -315,7 +329,8 @@ export default function Payments() {
                   </div>
                 </div>
               </Card>
-            ))
+              );
+            })
             )}
           </div>
         </Card>

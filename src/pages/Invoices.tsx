@@ -14,6 +14,7 @@ import {
 import { InvoiceDialog } from '@/components/InvoiceDialog';
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { EntityQuickLinks } from '@/components/EntityQuickLinks';
+import { useSmartBadges } from '@/hooks/useSmartBadges';
 import { useInvoices, useInvoiceStats, useUpdateInvoice } from '@/hooks/useInvoices';
 import {
   Plus,
@@ -234,6 +235,7 @@ export default function Invoices() {
           {filteredInvoices.map((invoice: any) => {
             const status = statusConfig[invoice.status as keyof typeof statusConfig];
             const StatusIcon = status.icon;
+            const smartBadges = useSmartBadges({ entityType: 'invoice', entity: invoice });
 
             return (
               <Card key={invoice.id} className="hover:shadow-md transition-shadow">
@@ -246,6 +248,16 @@ export default function Invoices() {
                         {status.label}
                       </Badge>
                       {invoice.is_proforma && <Badge variant="outline">Pro-Forma</Badge>}
+                      {smartBadges.map((badge) => (
+                        <Badge 
+                          key={badge.id} 
+                          variant={badge.variant}
+                          className="text-xs"
+                          title={badge.tooltip}
+                        >
+                          {badge.label}
+                        </Badge>
+                      ))}
                     </div>
 
                     <div className="space-y-3">

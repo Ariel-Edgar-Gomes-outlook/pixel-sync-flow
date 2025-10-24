@@ -8,6 +8,7 @@ import { useContracts } from "@/hooks/useContracts";
 import { ContractDialog } from "@/components/ContractDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
+import { useSmartBadges } from "@/hooks/useSmartBadges";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -188,7 +189,10 @@ export default function Contracts() {
           </div>
 
           <div className="grid gap-4 grid-cols-1">
-        {filteredContracts?.map((contract) => (
+        {filteredContracts?.map((contract) => {
+          const smartBadges = useSmartBadges({ entityType: 'contract', entity: contract });
+          
+          return (
           <Card key={contract.id} className="p-4 sm:p-5 hover:shadow-md transition-shadow">
             <div className="flex flex-col gap-3">
               <div className="flex items-start gap-2">
@@ -201,6 +205,16 @@ export default function Contracts() {
                     <Badge variant={statusConfig[contract.status as keyof typeof statusConfig]?.variant || 'default'}>
                       {statusConfig[contract.status as keyof typeof statusConfig]?.label || contract.status}
                     </Badge>
+                    {smartBadges.map((badge) => (
+                      <Badge 
+                        key={badge.id} 
+                        variant={badge.variant}
+                        className="text-xs"
+                        title={badge.tooltip}
+                      >
+                        {badge.label}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -285,7 +299,8 @@ export default function Contracts() {
               </div>
             </div>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {filteredContracts?.length === 0 && (
