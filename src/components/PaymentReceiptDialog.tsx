@@ -28,7 +28,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useCreatePayment, useUpdatePayment } from '@/hooks/usePayments';
 import { useInvoices, useUpdateInvoice } from '@/hooks/useInvoices';
-import { generateReceiptPDF } from '@/lib/receiptPdfGenerator';
 import { toast } from 'sonner';
 import { Receipt } from 'lucide-react';
 
@@ -129,33 +128,11 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
           status: newStatus,
         });
 
-        // Generate receipt PDF automatically for new payments
+        // Success message
         if (!payment) {
-          setIsGeneratingReceipt(true);
-          try {
-            const receiptUrl = await generateReceiptPDF(
-              { ...savedPayment, status: 'paid' },
-              selectedInvoice,
-              selectedInvoice.clients
-            );
-            
-            await updatePayment.mutateAsync({ 
-              id: savedPayment.id, 
-              receipt_link: receiptUrl,
-              receipt_generated_at: new Date().toISOString()
-            });
-            
-            toast.success('Pagamento registado e recibo gerado com sucesso!', {
-              description: 'O recibo foi criado automaticamente'
-            });
-          } catch (error: any) {
-            console.error('Error generating receipt:', error);
-            toast.error('Pagamento registado mas erro ao gerar recibo', {
-              description: error.message
-            });
-          } finally {
-            setIsGeneratingReceipt(false);
-          }
+          toast.success('Pagamento registado com sucesso!', {
+            description: 'Use o botão "Ver Recibo" para gerar o recibo em PDF'
+          });
         } else {
           toast.success('Pagamento atualizado com sucesso!');
         }

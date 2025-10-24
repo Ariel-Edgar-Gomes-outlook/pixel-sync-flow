@@ -30,7 +30,6 @@ import { useClients } from '@/hooks/useClients';
 import { useCreateInvoice, useUpdateInvoice } from '@/hooks/useInvoices';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAuth } from '@/contexts/AuthContext';
-import { generateInvoicePDF } from '@/lib/professionalPdfGenerator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Trash2, FileText } from 'lucide-react';
@@ -145,35 +144,21 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
     return `${prefix}${year}${String(nextNumber).padStart(3, '0')}`;
   };
 
-  const handleGeneratePDF = async (invoiceData: any) => {
-    if (!businessSettings || !user) return;
+  const handleGeneratePDF = (invoiceData: any) => {
+    if (!invoiceData) return;
 
-    setIsGeneratingPDF(true);
-    try {
-      const client = clients?.find(c => c.id === invoiceData.client_id);
-      if (!client) throw new Error('Cliente não encontrado');
-
-      const pdfUrl = await generateInvoicePDF(invoiceData, client, businessSettings);
-      
-      toast.success('PDF gerado com sucesso!', {
-        action: {
-          label: "Ver PDF",
-          onClick: () => {
-            const event = new CustomEvent('openPDFViewer', { 
-              detail: { url: pdfUrl, title: `Fatura ${invoiceData.invoice_number}` } 
-            });
-            window.dispatchEvent(event);
-          }
-        }
-      });
-      
-      return pdfUrl;
-    } catch (error: any) {
-      toast.error('Erro ao gerar PDF: ' + error.message);
-      return null;
-    } finally {
-      setIsGeneratingPDF(false);
-    }
+    // Dispatch event to open PDFViewerDialog with local generation
+    const event = new CustomEvent('openPDFViewer', { 
+      detail: { 
+        pdfSource: {
+          type: 'local',
+          entityType: 'invoice',
+          entityId: invoiceData.id
+        },
+        title: `Fatura ${invoiceData.invoice_number}` 
+      } 
+    });
+    window.dispatchEvent(event);
   };
 
   const onSubmit = async (data: InvoiceFormValues) => {
@@ -220,13 +205,6 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
             .from('business_settings')
             .update({ [field]: nextNumber })
             .eq('user_id', user.id);
-        }
-        
-        // Generate PDF after creating
-        const pdfUrl = await handleGeneratePDF({ ...newInvoice, ...invoiceData });
-        
-        if (pdfUrl) {
-          await updateInvoice.mutateAsync({ id: newInvoice.id, pdf_url: pdfUrl });
         }
       }
 
@@ -524,25 +502,10 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
               <Button
                 type="button"
                 variant="outline"
-                disabled={isGeneratingPDF}
-                onClick={async () => {
-                  setIsGeneratingPDF(true);
-                  try {
-                    const pdfUrl = await handleGeneratePDF(invoice);
-                    if (pdfUrl) {
-                      await updateInvoice.mutateAsync({ id: invoice.id, pdf_url: pdfUrl });
-                      toast.success('PDF regenerado com sucesso!');
-                    }
-                  } catch (error) {
-                    console.error('Error regenerating PDF:', error);
-                    toast.error('Erro ao regenerar PDF');
-                  } finally {
-                    setIsGeneratingPDF(false);
-                  }
-                }}
+                onClick={() => handleGeneratePDF(invoice)}
               >
                 <FileText className="h-4 w-4 mr-2" />
-                Regenerar PDF
+                Ver PDF
               </Button>
               )}
               <Button

@@ -11,7 +11,6 @@ import { useCreateContract, useUpdateContract } from "@/hooks/useContracts";
 import { useClients } from "@/hooks/useClients";
 import { useJobs } from "@/hooks/useJobs";
 import { useContractTemplates } from "@/hooks/useTemplates";
-import { generateProfessionalContractPDF } from "@/lib/pdfGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileText, Sparkles, Send, Copy, FileSignature, FileDown } from "lucide-react";
@@ -225,54 +224,21 @@ Valor total: [Valor acordado]`,
     toast.success(`Template de ${type === 'wedding' ? 'Casamento' : type === 'event' ? 'Evento' : 'Ensaio'} aplicado!`);
   };
 
-  const handleGeneratePDF = async () => {
+  const handleGeneratePDF = () => {
     if (!contract) return;
     
-    setIsGeneratingPDF(true);
-    try {
-      const client = clients?.find(c => c.id === contract.client_id);
-      const job = jobs?.find(j => j.id === contract.job_id);
-      
-      const pdfUrl = await generateProfessionalContractPDF({
-        id: contract.id,
-        client_name: client?.name || "Cliente",
-        client_email: client?.email,
-        job_title: job?.title,
-        terms_text: contract.terms_text || "",
-        usage_rights_text: contract.usage_rights_text,
-        cancellation_policy_text: contract.cancellation_policy_text,
-        late_delivery_clause: contract.late_delivery_clause,
-        copyright_notice: contract.copyright_notice,
-        reschedule_policy: contract.reschedule_policy,
-        revision_policy: contract.revision_policy,
-        cancellation_fee: contract.cancellation_fee,
-        issued_at: contract.issued_at || new Date().toISOString(),
-        signed_at: contract.signed_at || null,
-        signature_url: contract.signature_url,
-      });
-
-      await updateContract.mutateAsync({
-        id: contract.id,
-        pdf_url: pdfUrl,
-      });
-
-      toast.success("PDF profissional gerado!", {
-        action: {
-          label: "Ver PDF",
-          onClick: () => {
-            const event = new CustomEvent('openPDFViewer', { 
-              detail: { url: pdfUrl, title: `Contrato - ${contract.clients?.name || 'Cliente'}` } 
-            });
-            window.dispatchEvent(event);
-          }
-        }
-      });
-    } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      toast.error("Erro ao gerar PDF");
-    } finally {
-      setIsGeneratingPDF(false);
-    }
+    // Dispatch event to open PDFViewerDialog with local generation
+    const event = new CustomEvent('openPDFViewer', { 
+      detail: { 
+        pdfSource: {
+          type: 'local',
+          entityType: 'contract',
+          entityId: contract.id
+        },
+        title: `Contrato - ${clients?.find(c => c.id === contract.client_id)?.name || 'Cliente'}` 
+      } 
+    });
+    window.dispatchEvent(event);
   };
 
   const sendContractForSignature = async (contractId: string) => {
@@ -341,43 +307,9 @@ Valor total: [Valor acordado]`,
         toast.success("Contrato criado!");
       }
 
-      // Gerar PDF profissional automaticamente
+      // Success - contract saved
       if (savedContract) {
-        const client = clients?.find(c => c.id === formData.client_id);
-        const job = jobs?.find(j => j.id === formData.job_id);
-        
-        const pdfUrl = await generateProfessionalContractPDF({
-          id: savedContract.id,
-          client_name: client?.name || "Cliente",
-          client_email: client?.email,
-          job_title: job?.title,
-          terms_text: savedContract.terms_text || "",
-          usage_rights_text: savedContract.usage_rights_text,
-          cancellation_policy_text: savedContract.cancellation_policy_text,
-          late_delivery_clause: savedContract.late_delivery_clause,
-          copyright_notice: savedContract.copyright_notice,
-          reschedule_policy: savedContract.reschedule_policy,
-          revision_policy: savedContract.revision_policy,
-          cancellation_fee: savedContract.cancellation_fee,
-          issued_at: savedContract.issued_at || new Date().toISOString(),
-          signed_at: savedContract.signed_at || null,
-        });
-
-        await updateContract.mutateAsync({
-          id: savedContract.id,
-          pdf_url: pdfUrl,
-        });
-
-        toast.success("PDF gerado automaticamente!", {
-          action: {
-            label: "Abrir PDF",
-            onClick: () => {
-              const event = new CustomEvent('openPDFViewer', { 
-                detail: { url: pdfUrl, title: `Contrato - ${client?.name || job?.title || 'Cliente'}` } 
-              });
-              window.dispatchEvent(event);
-            }
-          }
+        toast.success("Contrato salvo! Use o botão 'Ver PDF' para visualizar.", {
         });
 
         // Se status for 'sent', enviar email automaticamente

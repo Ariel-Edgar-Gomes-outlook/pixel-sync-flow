@@ -13,7 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Plus, X, FileText, Calculator, Percent, Tag, Briefcase, FileDown, Sparkles, Send } from "lucide-react";
 import { useQuoteTemplates } from "@/hooks/useTemplates";
-import { generateProfessionalQuotePDF } from "@/lib/pdfGenerator";
 import { useUpdateQuote as useUpdateQuoteMutation } from "@/hooks/useQuotes";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -169,30 +168,8 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
         toast.success("Orçamento criado!");
       }
 
-      // Gerar PDF automaticamente (professional version)
+      // Success - quote saved
       if (savedQuote) {
-        const client = clients?.find(c => c.id === formData.client_id);
-        const pdfUrl = await generateProfessionalQuotePDF({
-          id: savedQuote.id,
-          client_name: client?.name || "Cliente",
-          client_email: client?.email,
-          client_phone: client?.phone,
-          validity_date: savedQuote.validity_date,
-          items: savedQuote.items,
-          tax: Number(savedQuote.tax) || 0,
-          discount: Number(savedQuote.discount) || 0,
-          total: Number(savedQuote.total),
-          currency: savedQuote.currency || "AOA",
-          status: savedQuote.status,
-          created_at: savedQuote.created_at,
-          accepted_at: savedQuote.accepted_at,
-        });
-
-        await updateQuoteMutation.mutateAsync({
-          id: savedQuote.id,
-          pdf_url: pdfUrl,
-        });
-
         // Auto-send email if status changed to 'sent'
         if (savedQuote.status === 'sent' && previousStatus !== 'sent') {
           try {
@@ -209,18 +186,6 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
             });
           }
         }
-
-        toast.success("PDF gerado automaticamente!", {
-          action: {
-            label: "Abrir PDF",
-            onClick: () => {
-              const event = new CustomEvent('openPDFViewer', { 
-                detail: { url: pdfUrl, title: `Orçamento - ${client?.name || 'Cliente'}` } 
-              });
-              window.dispatchEvent(event);
-            }
-          }
-        });
       }
 
       actualOnOpenChange(false);
@@ -267,43 +232,21 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
     toast.success("Template aplicado!");
   };
 
-  const handleGeneratePDF = async () => {
+  const handleGeneratePDF = () => {
     if (!quote) return;
 
-    setIsGeneratingPDF(true);
-    try {
-      const pdfUrl = await generateProfessionalQuotePDF({
-        id: quote.id,
-        client_name: quote.clients?.name || "Cliente",
-        client_email: quote.clients?.email,
-        client_phone: (quote.clients as any)?.phone,
-        validity_date: quote.validity_date,
-        items: quote.items,
-        tax: Number(quote.tax) || 0,
-        discount: Number(quote.discount) || 0,
-        total: Number(quote.total),
-        currency: quote.currency || "AOA",
-        status: quote.status,
-        created_at: quote.created_at,
-        accepted_at: quote.accepted_at,
-      });
-
-      await updateQuoteMutation.mutateAsync({
-        id: quote.id,
-        pdf_url: pdfUrl,
-      });
-
-      const event = new CustomEvent('openPDFViewer', { 
-        detail: { url: pdfUrl, title: `Orçamento - ${quote.clients?.name || 'Cliente'}` } 
-      });
-      window.dispatchEvent(event);
-      toast.success("PDF gerado com sucesso!");
-    } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      toast.error("Erro ao gerar PDF");
-    } finally {
-      setIsGeneratingPDF(false);
-    }
+    // Dispatch event to open PDFViewerDialog with local generation
+    const event = new CustomEvent('openPDFViewer', { 
+      detail: { 
+        pdfSource: {
+          type: 'local',
+          entityType: 'quote',
+          entityId: quote.id
+        },
+        title: `Orçamento - ${quote.clients?.name || 'Cliente'}` 
+      } 
+    });
+    window.dispatchEvent(event);
   };
 
   return (
