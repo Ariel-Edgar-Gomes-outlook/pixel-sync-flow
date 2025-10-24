@@ -507,89 +507,107 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   
   yPos = 25;
   
-  // Logo (larger and better positioned)
+  // Logo (much larger and professionally positioned)
   if (businessSettings.logo_url) {
     try {
       const logoData = await loadImageWithCache(businessSettings.logo_url);
       if (logoData) {
-        doc.addImage(logoData, 'PNG', margin, yPos, 50, 25);
+        // Much larger logo: 60x30
+        doc.addImage(logoData, 'PNG', margin, yPos - 2, 60, 30);
       }
     } catch (e) {
       console.warn('Failed to load logo');
     }
   }
   
-  // Company info (right side, styled)
+  // Company info (right side, elegant box)
   const companyName = businessSettings.business_name || businessSettings.trade_name || 'Empresa';
-  doc.setFontSize(14);
+  
+  // Company info box with subtle background
+  const infoBoxWidth = 70;
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(pageWidth - margin - infoBoxWidth, yPos - 2, infoBoxWidth, 32, 2, 2, 'F');
+  
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...primaryColor);
-  doc.text(companyName, pageWidth - margin, yPos + 5, { align: 'right' });
+  doc.text(companyName, pageWidth - margin - infoBoxWidth / 2, yPos + 4, { align: 'center' });
   
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setTextColor(80, 80, 80);
-  let infoY = yPos + 12;
+  let infoY = yPos + 10;
   
-  if (businessSettings.nif) {
-    doc.text(`NIF: ${businessSettings.nif}`, pageWidth - margin, infoY, { align: 'right' });
-    infoY += 5;
-  }
   if (businessSettings.email) {
-    doc.text(businessSettings.email, pageWidth - margin, infoY, { align: 'right' });
-    infoY += 5;
+    doc.text(businessSettings.email, pageWidth - margin - infoBoxWidth / 2, infoY, { align: 'center' });
+    infoY += 4.5;
   }
   if (businessSettings.phone) {
-    doc.text(businessSettings.phone, pageWidth - margin, infoY, { align: 'right' });
+    doc.text(businessSettings.phone, pageWidth - margin - infoBoxWidth / 2, infoY, { align: 'center' });
+    infoY += 4.5;
+  }
+  if (businessSettings.nif) {
+    doc.setTextColor(100, 100, 100);
+    doc.text(`NIF: ${businessSettings.nif}`, pageWidth - margin - infoBoxWidth / 2, infoY, { align: 'center' });
   }
   
-  yPos = 60;
+  yPos = 65;
   
-  // === TITLE SECTION (MODERN) ===
-  doc.setFillColor(245, 247, 250);
-  doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 32, 3, 3, 'F');
+  // === TITLE SECTION (PREMIUM DESIGN) ===
+  // Gradient effect with overlapping rectangles
+  doc.setFillColor(...primaryColor);
+  doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 38, 4, 4, 'F');
   
-  doc.setFontSize(20);
+  doc.setFillColor(255, 255, 255, 0.1);
+  doc.roundedRect(margin + 2, yPos + 2, pageWidth - 2 * margin - 4, 34, 3, 3, 'F');
+  
+  doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...primaryColor);
-  doc.text('CONTRATO DE PRESTAÇÃO DE SERVIÇOS', pageWidth / 2, yPos + 12, { align: 'center' });
+  doc.setTextColor(255, 255, 255);
+  doc.text('CONTRATO DE PRESTAÇÃO DE SERVIÇOS', pageWidth / 2, yPos + 14, { align: 'center' });
   
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 100, 100);
   const contractNumber = `N.º CONT-${contract.id.substring(0, 8).toUpperCase()}`;
-  doc.text(contractNumber, pageWidth / 2, yPos + 20, { align: 'center' });
+  doc.text(contractNumber, pageWidth / 2, yPos + 23, { align: 'center' });
   
   doc.setFontSize(9);
   const issueDate = `Emitido em ${new Date(contract.issued_at).toLocaleDateString('pt-PT')}`;
-  doc.text(issueDate, pageWidth / 2, yPos + 26, { align: 'center' });
+  doc.text(issueDate, pageWidth / 2, yPos + 30, { align: 'center' });
   
-  yPos += 42;
+  yPos += 48;
   
-  // === CLIENT & JOB INFO (STYLED BOXES) ===
-  const boxHeight = 35;
+  // === CLIENT & JOB INFO (PREMIUM CARDS) ===
+  const boxHeight = 42;
   const boxWidth = (pageWidth - 3 * margin) / 2;
   
-  // Client box
+  // Client card with shadow effect
   doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(...primaryColor);
-  doc.setLineWidth(0.5);
-  doc.roundedRect(margin, yPos, boxWidth, boxHeight, 2, 2, 'FD');
+  doc.setDrawColor(230, 230, 230);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin, yPos, boxWidth, boxHeight, 3, 3, 'FD');
   
-  doc.setFontSize(10);
+  // Client header with accent
+  doc.setFillColor(...primaryColor);
+  doc.roundedRect(margin, yPos, boxWidth, 10, 3, 3, 'F');
+  doc.rect(margin, yPos + 5, boxWidth, 5, 'F');
+  
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...primaryColor);
-  doc.text('📋 CONTRATANTE', margin + 5, yPos + 8);
+  doc.setTextColor(255, 255, 255);
+  doc.text('📋 CONTRATANTE', margin + boxWidth / 2, yPos + 7, { align: 'center' });
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(40, 40, 40);
+  let clientY = yPos + 18;
+  doc.text(contract.clients.name, margin + 5, clientY);
+  clientY += 7;
   
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(60, 60, 60);
-  let clientY = yPos + 16;
-  doc.text(contract.clients.name, margin + 5, clientY);
-  clientY += 5;
-  
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
   if (contract.clients.email) {
-    doc.setTextColor(100, 100, 100);
     doc.text(`✉ ${contract.clients.email}`, margin + 5, clientY);
     clientY += 5;
   }
@@ -597,62 +615,73 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
     doc.text(`📞 ${contract.clients.phone}`, margin + 5, clientY);
   }
   
-  // Job/Service box
+  // Job/Service card
   if (contract.jobs?.title) {
     doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(...secondaryColor);
-    doc.roundedRect(margin + boxWidth + margin / 2, yPos, boxWidth, boxHeight, 2, 2, 'FD');
+    doc.setDrawColor(230, 230, 230);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(margin + boxWidth + margin / 2, yPos, boxWidth, boxHeight, 3, 3, 'FD');
+    
+    // Service header with accent
+    doc.setFillColor(...secondaryColor);
+    doc.roundedRect(margin + boxWidth + margin / 2, yPos, boxWidth, 10, 3, 3, 'F');
+    doc.rect(margin + boxWidth + margin / 2, yPos + 5, boxWidth, 5, 'F');
     
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...secondaryColor);
-    doc.text('🎯 SERVIÇO', margin + boxWidth + margin / 2 + 5, yPos + 8);
-    
-    doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.setTextColor(60, 60, 60);
+    doc.setTextColor(255, 255, 255);
+    doc.text('🎯 SERVIÇO', margin + boxWidth + margin / 2 + boxWidth / 2, yPos + 7, { align: 'center' });
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(40, 40, 40);
     const jobLines = doc.splitTextToSize(contract.jobs.title, boxWidth - 10);
-    doc.text(jobLines, margin + boxWidth + margin / 2 + 5, yPos + 16);
+    doc.text(jobLines, margin + boxWidth + margin / 2 + 5, yPos + 18);
   }
   
-  // Status badge if signed
+  // Prominent status badge if signed
   if (contract.signed_at) {
     doc.setFillColor(34, 197, 94);
-    doc.roundedRect(pageWidth - margin - 60, yPos + boxHeight - 15, 60, 10, 2, 2, 'F');
-    doc.setFontSize(8);
+    doc.roundedRect(pageWidth - margin - 65, yPos + boxHeight - 12, 65, 12, 3, 3, 'F');
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(255, 255, 255);
-    doc.text('✓ ASSINADO', pageWidth - margin - 30, yPos + boxHeight - 7.5, { align: 'center' });
+    doc.text('✓ ASSINADO', pageWidth - margin - 32.5, yPos + boxHeight - 4.5, { align: 'center' });
   }
   
-  yPos += boxHeight + 20;
+  yPos += boxHeight + 18;
 
-  // === CONTRACT SECTIONS (MODERN STYLING) ===
+  // === CONTRACT SECTIONS (PREMIUM STYLING) ===
   const addSection = (title: string, content: string) => {
-    if (yPos > 240) {
+    if (yPos > 235) {
       doc.addPage();
       // Add header bar on new page
       doc.setFillColor(...primaryColor);
       doc.rect(0, 0, pageWidth, 12, 'F');
-      yPos = 25;
+      yPos = 28;
     }
 
-    // Section title with accent bar
+    // Section title with elegant background
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 10, 2, 2, 'F');
+    
     doc.setFillColor(...primaryColor);
-    doc.rect(margin, yPos, 4, 6, 'F');
+    doc.roundedRect(margin, yPos, 5, 10, 2, 2, 'F');
     
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...primaryColor);
-    doc.text(title, margin + 7, yPos + 4);
-    yPos += 10;
+    doc.text(title, margin + 8, yPos + 7);
+    yPos += 15;
 
-    // Section content
+    // Section content with better spacing
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(60, 60, 60);
-    const lines = doc.splitTextToSize(content, pageWidth - 2 * margin - 5);
-    doc.text(lines, margin + 3, yPos);
-    yPos += lines.length * 4.5 + 10;
+    doc.setTextColor(50, 50, 50);
+    doc.setLineHeightFactor(1.4);
+    const lines = doc.splitTextToSize(content, pageWidth - 2 * margin - 8);
+    doc.text(lines, margin + 4, yPos);
+    yPos += lines.length * 5 + 12;
   };
 
   // Main sections
@@ -689,42 +718,49 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
     );
   }
 
-  // === SIGNATURE SECTION (ELEGANT) ===
-  if (yPos > 200) {
+  // === SIGNATURE SECTION (PREMIUM) ===
+  if (yPos > 195) {
     doc.addPage();
     doc.setFillColor(...primaryColor);
     doc.rect(0, 0, pageWidth, 12, 'F');
-    yPos = 30;
+    yPos = 32;
   } else {
-    yPos += 10;
+    yPos += 12;
   }
 
-  // Signature title
-  doc.setFillColor(245, 247, 250);
-  doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 12, 2, 2, 'F');
-  doc.setFontSize(13);
+  // Signature title with elegant styling
+  doc.setFillColor(...primaryColor);
+  doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 14, 3, 3, 'F');
+  
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...primaryColor);
-  doc.text('✍️ ASSINATURAS', pageWidth / 2, yPos + 8, { align: 'center' });
-  yPos += 22;
+  doc.setTextColor(255, 255, 255);
+  doc.text('✍️ ASSINATURAS', pageWidth / 2, yPos + 9.5, { align: 'center' });
+  yPos += 24;
 
   const sigWidth = (pageWidth - 3 * margin) / 2;
   
-  // Client signature box
-  doc.setDrawColor(200, 200, 200);
+  // Client signature card with shadow
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(220, 220, 220);
   doc.setLineWidth(0.3);
-  doc.roundedRect(margin, yPos, sigWidth, 50, 2, 2, 'S');
+  doc.roundedRect(margin, yPos, sigWidth, 55, 3, 3, 'FD');
+  
+  // Header
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(margin, yPos, sigWidth, 10, 3, 3, 'F');
+  doc.rect(margin, yPos + 5, sigWidth, 5, 'F');
   
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(...primaryColor);
-  doc.text('CONTRATANTE', margin + sigWidth / 2, yPos + 6, { align: 'center' });
+  doc.text('CONTRATANTE', margin + sigWidth / 2, yPos + 7, { align: 'center' });
   
   if (contract.signature_url && contract.signed_at) {
     try {
       const sigData = await loadImageWithCache(contract.signature_url);
       if (sigData) {
-        doc.addImage(sigData, 'PNG', margin + 10, yPos + 10, sigWidth - 20, 20);
+        doc.addImage(sigData, 'PNG', margin + 10, yPos + 14, sigWidth - 20, 22);
       }
     } catch (e) {
       console.warn('Failed to load client signature');
@@ -732,32 +768,40 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   }
   
   doc.setDrawColor(...primaryColor);
-  doc.setLineWidth(0.5);
-  doc.line(margin + 10, yPos + 35, margin + sigWidth - 10, yPos + 35);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(80, 80, 80);
-  doc.setFontSize(8);
-  doc.text(contract.clients.name, margin + sigWidth / 2, yPos + 40, { align: 'center' });
+  doc.setLineWidth(0.6);
+  doc.line(margin + 10, yPos + 40, margin + sigWidth - 10, yPos + 40);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(60, 60, 60);
+  doc.setFontSize(8.5);
+  doc.text(contract.clients.name, margin + sigWidth / 2, yPos + 46, { align: 'center' });
   if (contract.signed_at) {
+    doc.setFont('helvetica', 'normal');
     doc.setTextColor(120, 120, 120);
-    doc.text(new Date(contract.signed_at).toLocaleDateString('pt-PT'), margin + sigWidth / 2, yPos + 45, { align: 'center' });
+    doc.setFontSize(7.5);
+    doc.text(new Date(contract.signed_at).toLocaleDateString('pt-PT'), margin + sigWidth / 2, yPos + 51, { align: 'center' });
   }
 
-  // Business signature box
-  doc.setDrawColor(200, 200, 200);
+  // Business signature card
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(220, 220, 220);
   doc.setLineWidth(0.3);
-  doc.roundedRect(margin + sigWidth + margin / 2, yPos, sigWidth, 50, 2, 2, 'S');
+  doc.roundedRect(margin + sigWidth + margin / 2, yPos, sigWidth, 55, 3, 3, 'FD');
+  
+  // Header
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(margin + sigWidth + margin / 2, yPos, sigWidth, 10, 3, 3, 'F');
+  doc.rect(margin + sigWidth + margin / 2, yPos + 5, sigWidth, 5, 'F');
   
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(...secondaryColor);
-  doc.text('PRESTADOR', margin + sigWidth + margin / 2 + sigWidth / 2, yPos + 6, { align: 'center' });
+  doc.text('PRESTADOR', margin + sigWidth + margin / 2 + sigWidth / 2, yPos + 7, { align: 'center' });
   
   if (businessSettings.signature_url) {
     try {
       const bizSigData = await loadImageWithCache(businessSettings.signature_url);
       if (bizSigData) {
-        doc.addImage(bizSigData, 'PNG', margin + sigWidth + margin / 2 + 10, yPos + 10, sigWidth - 20, 20);
+        doc.addImage(bizSigData, 'PNG', margin + sigWidth + margin / 2 + 10, yPos + 14, sigWidth - 20, 22);
       }
     } catch (e) {
       console.warn('Failed to load business signature');
@@ -765,14 +809,16 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   }
   
   doc.setDrawColor(...secondaryColor);
-  doc.setLineWidth(0.5);
-  doc.line(margin + sigWidth + margin / 2 + 10, yPos + 35, pageWidth - margin - 10, yPos + 35);
+  doc.setLineWidth(0.6);
+  doc.line(margin + sigWidth + margin / 2 + 10, yPos + 40, pageWidth - margin - 10, yPos + 40);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(60, 60, 60);
+  doc.setFontSize(8.5);
+  doc.text(companyName, margin + sigWidth + margin / 2 + sigWidth / 2, yPos + 46, { align: 'center' });
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(80, 80, 80);
-  doc.setFontSize(8);
-  doc.text(companyName, margin + sigWidth + margin / 2 + sigWidth / 2, yPos + 40, { align: 'center' });
   doc.setTextColor(120, 120, 120);
-  doc.text(new Date(contract.issued_at).toLocaleDateString('pt-PT'), margin + sigWidth + margin / 2 + sigWidth / 2, yPos + 45, { align: 'center' });
+  doc.setFontSize(7.5);
+  doc.text(new Date(contract.issued_at).toLocaleDateString('pt-PT'), margin + sigWidth + margin / 2 + sigWidth / 2, yPos + 51, { align: 'center' });
 
   // === MODERN FOOTER ON ALL PAGES ===
   const pageCount = doc.getNumberOfPages();

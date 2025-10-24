@@ -206,40 +206,27 @@ export function PDFViewerDialog({
   };
 
   const handleDownload = async () => {
-    if (currentPdfUrl) {
-      try {
-        const response = await fetch(currentPdfUrl);
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        
-        // Determine filename
-        let filename = 'documento.pdf';
-        if (pdfSource?.type === 'blob' && pdfSource.filename) {
-          filename = pdfSource.filename;
-        } else if (pdfSource?.type === 'local') {
-          filename = `${pdfSource.entityType}_${pdfSource.entityId.substring(0, 8)}.pdf`;
-        } else if (currentPdfUrl) {
-          filename = currentPdfUrl.split('/').pop() || 'documento.pdf';
-        }
-        
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        toast.success('Download iniciado');
-      } catch (error) {
-        console.error('Download error:', error);
-        // Fallback to direct link
-        const link = document.createElement('a');
-        link.href = currentPdfUrl;
-        link.target = '_blank';
-        link.download = 'documento.pdf';
-        link.click();
-        toast.info('Abrindo PDF em nova aba');
+    if (!currentPdfUrl) return;
+    
+    try {
+      // Determine filename
+      let filename = 'documento.pdf';
+      if (pdfSource?.type === 'blob' && pdfSource.filename) {
+        filename = pdfSource.filename;
+      } else if (pdfSource?.type === 'local') {
+        filename = `${pdfSource.entityType}_${pdfSource.entityId.substring(0, 8)}.pdf`;
       }
+      
+      const link = document.createElement('a');
+      link.href = currentPdfUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Download concluído com sucesso');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Erro ao fazer download. Tente abrir em nova aba.');
     }
   };
 
@@ -251,17 +238,24 @@ export function PDFViewerDialog({
   };
 
   const handlePrint = () => {
-    if (currentPdfUrl) {
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = currentPdfUrl;
-      document.body.appendChild(iframe);
-      iframe.onload = () => {
-        iframe.contentWindow?.print();
-      };
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 1000);
+    if (!currentPdfUrl) return;
+    
+    try {
+      // Open in new window for printing (avoids CORS issues)
+      const printWindow = window.open(currentPdfUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          setTimeout(() => {
+            printWindow.print();
+          }, 500);
+        };
+        toast.success('Abrindo janela de impressão');
+      } else {
+        toast.error('Por favor, permita pop-ups para imprimir');
+      }
+    } catch (error) {
+      console.error('Print error:', error);
+      toast.error('Erro ao imprimir. Tente abrir em nova aba primeiro.');
     }
   };
 
