@@ -52,6 +52,7 @@ export function PDFViewerDialog({
   const [loadTimeout, setLoadTimeout] = useState<boolean>(false);
   const [currentPdfUrl, setCurrentPdfUrl] = useState<string | null>(null);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
 
   // Generate PDF from local data or use provided URL/Blob
   useEffect(() => {
@@ -94,9 +95,11 @@ export function PDFViewerDialog({
         if (source.type === 'url') {
           // Use existing URL
           url = source.url;
+          setPdfBlob(null);
           setCurrentPdfUrl(url);
         } else if (source.type === 'blob') {
           // Convert blob to URL
+          setPdfBlob(source.blob);
           const objectUrl = URL.createObjectURL(source.blob);
           setBlobUrl(objectUrl);
           url = objectUrl;
@@ -122,6 +125,7 @@ export function PDFViewerDialog({
               throw new Error('Tipo de entidade desconhecido');
           }
 
+          setPdfBlob(blob);
           const objectUrl = URL.createObjectURL(blob);
           setBlobUrl(objectUrl);
           url = objectUrl;
@@ -205,9 +209,9 @@ export function PDFViewerDialog({
     setScale((prev) => Math.max(prev - 0.2, 0.5));
   };
 
-  const handleDownload = async () => {
-    if (!currentPdfUrl) {
-      toast.error('Nenhum PDF disponível para download');
+  const handleDownload = () => {
+    if (!pdfBlob) {
+      toast.error('PDF não está disponível para download');
       return;
     }
     
@@ -220,82 +224,72 @@ export function PDFViewerDialog({
         filename = `${pdfSource.entityType}_${pdfSource.entityId.substring(0, 8)}.pdf`;
       }
       
-      // For all URLs, fetch the blob and create a download link
-      const response = await fetch(currentPdfUrl);
-      if (!response.ok) {
-        throw new Error('Falha ao carregar PDF');
-      }
-      
-      const blob = await response.blob();
-      
-      // Create a temporary URL for the blob
-      const blobUrl = window.URL.createObjectURL(blob);
-      
-      // Create and trigger download link
+      // Create download link directly from blob
+      const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
-      link.href = blobUrl;
+      link.href = url;
       link.download = filename;
-      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       
-      // Cleanup
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl);
-      }, 100);
-      
-      toast.success('Download iniciado com sucesso');
+      toast.success('PDF baixado com sucesso!');
     } catch (error) {
-      console.error('Download error:', error);
-      toast.error('Erro ao fazer download. Tente abrir em nova aba e salvar de lá.');
+      console.error('Erro ao baixar PDF:', error);
+      toast.error('Falha ao baixar PDF');
     }
   };
 
   const handleOpenInNewTab = () => {
-    if (!currentPdfUrl) {
-      toast.error('Nenhum PDF disponível');
+    if (!pdfBlob) {
+      toast.error('PDF não está disponível');
       return;
     }
     
     try {
-      const newWindow = window.open(currentPdfUrl, '_blank', 'noopener,noreferrer');
-      if (newWindow) {
-        newWindow.focus();
-        toast.success('PDF aberto em nova aba');
-      } else {
-        toast.error('Por favor, permita pop-ups para abrir em nova aba');
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      const newWindow = window.open(blobUrl, '_blank');
+      
+      if (!newWindow) {
+        toast.error('Pop-up bloqueado. Por favor, permita pop-ups.');
+        URL.revokeObjectURL(blobUrl);
+        return;
       }
+      
+      toast.success('PDF aberto em nova aba!');
     } catch (error) {
-      console.error('Open in new tab error:', error);
-      toast.error('Erro ao abrir em nova aba. Verifique as configurações de pop-up do navegador.');
+      console.error('Erro ao abrir em nova aba:', error);
+      toast.error('Falha ao abrir PDF em nova aba');
     }
   };
 
-  const handlePrint = async () => {
-    if (!currentPdfUrl) return;
+  const handlePrint = () => {
+    if (!pdfBlob) {
+      toast.error('PDF não está disponível para impressão');
+      return;
+    }
     
     try {
-      // Create a new window/tab and trigger print from there
-      const printWindow = window.open(currentPdfUrl, '_blank');
-      if (printWindow) {
-        printWindow.onload = () => {
-          setTimeout(() => {
-            try {
-              printWindow.print();
-            } catch (e) {
-              console.error('Print error:', e);
-              toast.info('Por favor, use Ctrl+P ou Cmd+P para imprimir na janela aberta');
-            }
-          }, 1000);
-        };
-        toast.success('Abrindo PDF para impressão');
-      } else {
-        toast.error('Por favor, permita pop-ups para imprimir');
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(blobUrl, '_blank');
+      
+      if (!printWindow) {
+        toast.error('Pop-up bloqueado. Por favor, permita pop-ups para imprimir.');
+        URL.revokeObjectURL(blobUrl);
+        return;
       }
+
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+        }, 250);
+      };
+      
+      toast.success('Abrindo PDF para impressão...');
     } catch (error) {
-      console.error('Print error:', error);
-      toast.error('Erro ao imprimir. Por favor, abra em nova aba e use Ctrl+P');
+      console.error('Erro ao imprimir:', error);
+      toast.error('Falha ao abrir impressão');
     }
   };
 

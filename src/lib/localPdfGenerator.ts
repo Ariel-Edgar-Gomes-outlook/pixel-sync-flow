@@ -464,29 +464,43 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
     throw new Error('Usuário não autenticado');
   }
 
-  // 2. Fetch contract with related data
-  const { data: contract, error: contractError } = await supabase
-    .from('contracts')
-    .select('*, clients(*), jobs(id, title)')
-    .eq('id', contractId)
-    .single();
+  // 2. Fetch ALL data in parallel for better performance
+  const [contractResult, businessResult] = await Promise.all([
+    supabase.from('contracts').select('*, clients(*), jobs(id, title)').eq('id', contractId).single(),
+    supabase.from('business_settings').select('*').eq('user_id', user.id).maybeSingle()
+  ]);
 
-  if (contractError) throw contractError;
-  if (!contract) throw new Error('Contrato não encontrado');
-
-  // 3. Fetch business settings
-  const { data: businessSettings, error: settingsError } = await supabase
-    .from('business_settings')
-    .select('*')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  if (settingsError) throw settingsError;
-  if (!businessSettings) {
+  if (contractResult.error) throw contractResult.error;
+  if (!contractResult.data) throw new Error('Contrato não encontrado');
+  if (businessResult.error) throw businessResult.error;
+  if (!businessResult.data) {
     throw new Error('Configurações de negócio não encontradas. Configure em Configurações > Negócio.');
   }
 
-  // 4. Generate PROFESSIONAL CONTRACT PDF (Following Reference Designs)
+  const contract = contractResult.data;
+  const businessSettings = businessResult.data;
+
+  // 3. Pre-load images in parallel
+  const imagePromises: Promise<string | null>[] = [];
+  if (businessSettings.logo_url) {
+    imagePromises.push(loadImageWithCache(businessSettings.logo_url).catch(() => null));
+  } else {
+    imagePromises.push(Promise.resolve(null));
+  }
+  if (contract.signature_url) {
+    imagePromises.push(loadImageWithCache(contract.signature_url).catch(() => null));
+  } else {
+    imagePromises.push(Promise.resolve(null));
+  }
+  if (businessSettings.signature_url) {
+    imagePromises.push(loadImageWithCache(businessSettings.signature_url).catch(() => null));
+  } else {
+    imagePromises.push(Promise.resolve(null));
+  }
+
+  const [logoData, clientSigData, businessSigData] = await Promise.all(imagePromises);
+
+  // 4. Generate PROFESSIONAL CONTRACT PDF (A4 format)
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -495,6 +509,7 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 20;
+  const contentWidth = pageWidth - (margin * 2);
   
   // Parse colors
   const hexToRgb = (hex: string): [number, number, number] => {
@@ -505,386 +520,304 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   };
   
   const primaryColor = hexToRgb(businessSettings.primary_color || '#2563EB');
+  const companyName = businessSettings.business_name || businessSettings.trade_name || 'Empresa';
   
   let yPos = margin;
   
-  // === PROFESSIONAL HEADER ===
-  // Logo (centered at top, maintaining aspect ratio)
-  if (businessSettings.logo_url) {
+  // === CABEÇALHO PROFISSIONAL com Logo Proporcional ===
+  if (logoData) {
     try {
-      const logoData = await loadImageWithCache(businessSettings.logo_url);
-      if (logoData) {
-        // Calculate logo dimensions maintaining aspect ratio
-        // Create a temporary image to get actual dimensions
-        const img = new Image();
-        img.src = logoData;
-        await new Promise((resolve) => {
-          img.onload = resolve;
-        });
-        
-        const logoMaxWidth = 40;
-        const logoMaxHeight = 30;
-        const aspectRatio = img.width / img.height;
-        
-        let logoWidth = logoMaxWidth;
-        let logoHeight = logoMaxWidth / aspectRatio;
-        
-        // If height exceeds max, scale by height instead
-        if (logoHeight > logoMaxHeight) {
-          logoHeight = logoMaxHeight;
-          logoWidth = logoMaxHeight * aspectRatio;
-        }
-        
-        // Center the logo
-        const logoX = (pageWidth - logoWidth) / 2;
-        doc.addImage(logoData, 'PNG', logoX, yPos, logoWidth, logoHeight);
-        yPos += logoHeight + 5;
+      // Obter dimensões reais da imagem para manter aspect ratio
+      const img = new Image();
+      img.src = logoData;
+      await new Promise<void>((resolve) => { 
+        img.onload = () => resolve(); 
+      });
+      
+      const aspectRatio = img.width / img.height;
+      const maxWidth = 40;
+      const maxHeight = 25;
+      
+      let finalWidth = maxWidth;
+      let finalHeight = maxWidth / aspectRatio;
+      
+      if (finalHeight > maxHeight) {
+        finalHeight = maxHeight;
+        finalWidth = maxHeight * aspectRatio;
       }
-    } catch (e) {
-      console.warn('Failed to load logo:', e);
-      yPos += 5;
+      
+      const logoX = (pageWidth - finalWidth) / 2;
+      doc.addImage(logoData, 'PNG', logoX, yPos, finalWidth, finalHeight);
+      yPos += finalHeight + 8;
+    } catch (error) {
+      console.error('Erro ao carregar logo:', error);
+      yPos += 10;
     }
-  } else {
-    yPos += 5;
   }
   
-  // Company Name (Centered, Bold, Large)
-  const companyName = businessSettings.business_name || businessSettings.trade_name || 'Empresa';
-  doc.setFontSize(16);
+  // Nome da empresa (centralizado, negrito, maiúsculas)
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0);
   doc.text(companyName.toUpperCase(), pageWidth / 2, yPos, { align: 'center' });
-  yPos += 7;
+  yPos += 6;
+
+  // Informações da empresa (centralizadas, fonte menor)
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 80);
   
-  // Department/Trade Name (if different)
-  if (businessSettings.trade_name && businessSettings.trade_name !== businessSettings.business_name) {
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.text(businessSettings.trade_name.toUpperCase(), pageWidth / 2, yPos, { align: 'center' });
-    yPos += 6;
-  }
-  
-  // NIF/Tax ID (centered)
   if (businessSettings.nif) {
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(80, 80, 80);
     doc.text(`NIF: ${businessSettings.nif}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 8;
-  } else {
-    yPos += 5;
+    yPos += 4;
   }
   
-  // === CONTRACT TITLE (CENTERED, UNDERLINED) ===
-  doc.setDrawColor(0, 0, 0);
-  doc.setLineWidth(0.5);
-  doc.line(margin, yPos, pageWidth - margin, yPos);
-  yPos += 8;
+  const addressParts = [];
+  if (businessSettings.address_line1) addressParts.push(businessSettings.address_line1);
+  if (businessSettings.city) addressParts.push(businessSettings.city);
+  if (businessSettings.province) addressParts.push(businessSettings.province);
   
+  if (addressParts.length > 0) {
+    doc.text(addressParts.join(', '), pageWidth / 2, yPos, { align: 'center' });
+    yPos += 4;
+  }
+  
+  if (businessSettings.email) {
+    doc.text(`Email: ${businessSettings.email}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 4;
+  }
+  if (businessSettings.phone) {
+    doc.text(`Telefone: ${businessSettings.phone}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 4;
+  }
+
+  yPos += 5;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.3);
+  doc.line(margin, yPos, pageWidth - margin, yPos);
+  yPos += 10;
+  
+  // === TÍTULO DO CONTRATO (centralizado) ===
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0);
   doc.text('CONTRATO DE PRESTAÇÃO DE SERVIÇOS', pageWidth / 2, yPos, { align: 'center' });
-  yPos += 5;
-  
-  const contractNumber = `Nº ${contract.id.substring(0, 8).toUpperCase()}/${new Date(contract.issued_at).getFullYear()}`;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text(contractNumber, pageWidth / 2, yPos, { align: 'center' });
   yPos += 8;
-  
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Contrato Nº: ${contract.id.substring(0, 8).toUpperCase()}`, pageWidth / 2, yPos, { align: 'center' });
+  yPos += 5;
+  doc.text(`Data: ${new Date(contract.created_at).toLocaleDateString('pt-PT')}`, pageWidth / 2, yPos, { align: 'center' });
+  yPos += 10;
+
+  // Linha dupla de separação
   doc.setLineWidth(0.5);
+  doc.line(margin, yPos, pageWidth - margin, yPos);
+  yPos += 2;
+  doc.setLineWidth(0.2);
   doc.line(margin, yPos, pageWidth - margin, yPos);
   yPos += 12;
   
-  // === PARTIES SECTION (FORMAL STYLE) ===
-  doc.setFontSize(10);
+  // === SEÇÃO DAS PARTES (Formal) ===
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.text('CONTRATANTE:', margin, yPos);
-  yPos += 7;
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  
-  // Build contractor info paragraph
-  let contractorInfo = `${contract.clients.name}`;
-  
-  if (contract.clients.email || contract.clients.phone || contract.clients.address) {
-    contractorInfo += ', ';
-    const details = [];
-    if (contract.clients.email) details.push(`e-mail: ${contract.clients.email}`);
-    if (contract.clients.phone) details.push(`telefone: ${contract.clients.phone}`);
-    if (contract.clients.address) details.push(`endereço: ${contract.clients.address}`);
-    contractorInfo += details.join(', ');
-  }
-  
-  contractorInfo += ', doravante designado como CONTRATANTE';
-  
-  const contractorLines = doc.splitTextToSize(contractorInfo, pageWidth - 2 * margin);
-  doc.text(contractorLines, margin, yPos);
-  yPos += contractorLines.length * 5 + 8;
-  
-  doc.setFont('helvetica', 'bold');
+  yPos += 6;
+
   doc.setFontSize(10);
-  doc.text('CONTRATADO:', margin, yPos);
-  yPos += 7;
-  
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
+  doc.text(`Nome: ${businessSettings.business_name || 'N/A'}`, margin + 5, yPos);
+  yPos += 5;
   
-  // Build contracted info paragraph
-  let contractedInfo = companyName;
-  
-  if (businessSettings.trade_name && businessSettings.trade_name !== businessSettings.business_name) {
-    contractedInfo += ` (${businessSettings.trade_name})`;
+  if (businessSettings.nif) {
+    doc.text(`NIF: ${businessSettings.nif}`, margin + 5, yPos);
+    yPos += 5;
   }
   
-  if (businessSettings.nif || businessSettings.email || businessSettings.phone || businessSettings.address_line1) {
-    contractedInfo += ', ';
-    const details = [];
-    if (businessSettings.nif) details.push(`NIF: ${businessSettings.nif}`);
-    if (businessSettings.email) details.push(`e-mail: ${businessSettings.email}`);
-    if (businessSettings.phone) details.push(`telefone: ${businessSettings.phone}`);
-    if (businessSettings.address_line1) {
-      const fullAddress = [
-        businessSettings.address_line1,
-        businessSettings.city,
-        businessSettings.province
-      ].filter(Boolean).join(', ');
-      details.push(`com sede em ${fullAddress}`);
-    }
-    contractedInfo += details.join(', ');
-  }
+  const businessAddressParts = [];
+  if (businessSettings.address_line1) businessAddressParts.push(businessSettings.address_line1);
+  if (businessSettings.city) businessAddressParts.push(businessSettings.city);
+  if (businessSettings.province) businessAddressParts.push(businessSettings.province);
   
-  contractedInfo += ', doravante designado como CONTRATADO';
-  
-  const contractedLines = doc.splitTextToSize(contractedInfo, pageWidth - 2 * margin);
-  doc.text(contractedLines, margin, yPos);
-  yPos += contractedLines.length * 5 + 10;
-  
-  // Service description if available
-  if (contract.jobs?.title) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    const serviceText = `resolvem celebrar o presente contrato nos termos do processo referente ao serviço "${contract.jobs.title}", mediante as cláusulas e condições a seguir estabelecidas:`;
-    const serviceLines = doc.splitTextToSize(serviceText, pageWidth - 2 * margin);
-    doc.text(serviceLines, margin, yPos);
-    yPos += serviceLines.length * 5 + 12;
-  } else {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.text('resolvem celebrar o presente contrato, mediante as cláusulas e condições a seguir estabelecidas:', margin, yPos);
-    yPos += 12;
+  if (businessAddressParts.length > 0) {
+    const addressLines = doc.splitTextToSize(`Endereço: ${businessAddressParts.join(', ')}`, contentWidth - 5);
+    doc.text(addressLines, margin + 5, yPos);
+    yPos += addressLines.length * 5;
   }
 
-  // === CONTRACT CLAUSES (FORMAL NUMBERED SECTIONS) ===
+  yPos += 8;
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CONTRATADO:', margin, yPos);
+  yPos += 6;
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  if (contract.clients) {
+    doc.text(`Nome: ${contract.clients.name}`, margin + 5, yPos);
+    yPos += 5;
+    if (contract.clients.email) {
+      doc.text(`Email: ${contract.clients.email}`, margin + 5, yPos);
+      yPos += 5;
+    }
+    if (contract.clients.phone) {
+      doc.text(`Telefone: ${contract.clients.phone}`, margin + 5, yPos);
+      yPos += 5;
+    }
+    if (contract.clients.address) {
+      const clientAddressLines = doc.splitTextToSize(`Endereço: ${contract.clients.address}`, contentWidth - 5);
+      doc.text(clientAddressLines, margin + 5, yPos);
+      yPos += clientAddressLines.length * 5;
+    }
+  }
+
+  yPos += 12;
+
+  // === CLÁUSULAS DO CONTRATO (Numeradas e Justificadas) ===
   let clauseNumber = 1;
   
   const addClause = (title: string, content: string) => {
-    // Check if we need a new page
+    // Verificar se precisa de nova página
     if (yPos > 240) {
       doc.addPage();
       yPos = margin + 10;
     }
 
-    // Clause title (uppercase, bold, numbered)
+    // Título da cláusula (maiúsculas, negrito, numerado)
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
-    doc.text(`CLÁUSULA ${clauseNumber} - ${title.toUpperCase()}`, margin, yPos);
+    doc.text(`CLÁUSULA ${clauseNumber}ª - ${title.toUpperCase()}`, margin, yPos);
     yPos += 7;
     clauseNumber++;
 
-    // Clause content (justified text)
-    doc.setFontSize(9);
+    // Conteúdo da cláusula (texto justificado)
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(50, 50, 50);
-    doc.setLineHeightFactor(1.5);
     
-    const lines = doc.splitTextToSize(content, pageWidth - 2 * margin);
-    doc.text(lines, margin, yPos, { align: 'justify', maxWidth: pageWidth - 2 * margin });
-    yPos += lines.length * 5.5 + 10;
+    const lines = doc.splitTextToSize(content, contentWidth);
+    lines.forEach((line: string) => {
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = margin + 10;
+      }
+      doc.text(line, margin, yPos, { align: 'justify', maxWidth: contentWidth });
+      yPos += 5;
+    });
+    
+    yPos += 6;
   };
 
-  // Add all contract clauses
+  // Adicionar todas as cláusulas do contrato
   if (contract.terms_text) {
-    addClause('DO OBJETO', contract.terms_text);
+    addClause('OBJETO DO CONTRATO', contract.terms_text);
   }
-
   if (contract.usage_rights_text) {
-    addClause('DOS DIREITOS DE USO DE IMAGEM', contract.usage_rights_text);
+    addClause('DIREITOS DE USO', contract.usage_rights_text);
   }
-
   if (contract.cancellation_policy_text) {
-    addClause('DA POLÍTICA DE CANCELAMENTO', contract.cancellation_policy_text);
+    addClause('CANCELAMENTO', contract.cancellation_policy_text);
   }
-
   if (contract.reschedule_policy) {
-    addClause('DA POLÍTICA DE REAGENDAMENTO', contract.reschedule_policy);
+    addClause('REAGENDAMENTO', contract.reschedule_policy);
   }
-
   if (contract.revision_policy) {
-    addClause('DAS REVISÕES E ALTERAÇÕES', contract.revision_policy);
+    addClause('REVISÕES', contract.revision_policy);
   }
-
   if (contract.copyright_notice) {
-    addClause('DOS DIREITOS AUTORAIS', contract.copyright_notice);
+    addClause('DIREITOS AUTORAIS', contract.copyright_notice);
   }
-
   if (contract.late_delivery_clause) {
-    addClause('DOS PRAZOS DE ENTREGA', contract.late_delivery_clause);
+    addClause('PRAZOS DE ENTREGA', contract.late_delivery_clause);
   }
 
-  if (contract.cancellation_fee && contract.cancellation_fee > 0) {
-    addClause(
-      'DAS PENALIDADES',
-      `Em caso de cancelamento injustificado, será aplicada uma taxa de ${contract.cancellation_fee.toFixed(2)} AOA conforme estabelecido na cláusula de cancelamento acima.`
-    );
-  }
-
-  // General provisions
-  const location = businessSettings.city || businessSettings.address_line1 || '[Localidade]';
-  addClause(
-    'DAS DISPOSIÇÕES GERAIS',
-    `As partes elegem o foro da comarca de ${location} para dirimir quaisquer dúvidas oriundas do presente contrato. Este contrato entra em vigor na data de sua assinatura e tem validade conforme os termos estabelecidos.`
-  );
-
-  // Date and place
-  yPos += 5;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(0, 0, 0);
-  const datePlace = `${location}, ${new Date(contract.issued_at).toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' })}.`;
-  doc.text(datePlace, pageWidth / 2, yPos, { align: 'center' });
-  yPos += 15;
-
-  // === SIGNATURE SECTION (FORMAL STYLE) ===
+  // === SEÇÃO DE ASSINATURAS (Formal) ===
   if (yPos > 210) {
     doc.addPage();
     yPos = margin + 10;
-  } else {
-    yPos += 5;
   }
 
-  doc.setDrawColor(0, 0, 0);
-  doc.setLineWidth(0.5);
+  yPos += 15;
+  doc.setLineWidth(0.3);
   doc.line(margin, yPos, pageWidth - margin, yPos);
+  yPos += 12;
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('ASSINATURAS', pageWidth / 2, yPos, { align: 'center' });
+  yPos += 15;
+
+  const signatureLeftX = margin + 35;
+  const signatureRightX = pageWidth / 2 + 35;
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+
+  // CONTRATANTE (esquerda)
+  if (clientSigData) {
+    try {
+      doc.addImage(clientSigData, 'PNG', signatureLeftX - 20, yPos, 40, 20);
+      yPos += 25;
+    } catch (error) {
+      yPos += 25;
+    }
+  } else {
+    yPos += 25;
+  }
+  
+  doc.setLineWidth(0.2);
+  doc.line(signatureLeftX - 30, yPos, signatureLeftX + 30, yPos);
+  yPos += 5;
+  doc.setFont('helvetica', 'bold');
+  doc.text('CONTRATANTE', signatureLeftX, yPos, { align: 'center' });
+  yPos += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text(businessSettings.business_name || '', signatureLeftX, yPos, { align: 'center' });
+
+  // Reset yPos para CONTRATADO
+  yPos -= 35;
+
+  // CONTRATADO (direita)
+  yPos += 25;
+  doc.setFontSize(10);
+  doc.setLineWidth(0.2);
+  doc.line(signatureRightX - 30, yPos, signatureRightX + 30, yPos);
+  yPos += 5;
+  doc.setFont('helvetica', 'bold');
+  doc.text('CONTRATADO', signatureRightX, yPos, { align: 'center' });
+  yPos += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text(contract.clients?.name || '', signatureRightX, yPos, { align: 'center' });
+
   yPos += 10;
 
-  const sigWidth = (pageWidth - 3 * margin) / 2;
-  const sigBoxHeight = 50;
-  
-  // CONTRATANTE signature box
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(0, 0, 0);
-  doc.text('CONTRATANTE', margin + sigWidth / 2, yPos, { align: 'center' });
-  yPos += 5;
-  
-  // Signature space
-  if (contract.signature_url && contract.signed_at) {
-    try {
-      const sigData = await loadImageWithCache(contract.signature_url);
-      if (sigData) {
-        doc.addImage(sigData, 'PNG', margin + 10, yPos, sigWidth - 20, 25);
-      }
-    } catch (e) {
-      console.warn('Failed to load client signature');
-    }
-  }
-  
-  const signatureLineY = yPos + sigBoxHeight - 18;
-  doc.setDrawColor(0, 0, 0);
-  doc.setLineWidth(0.3);
-  doc.line(margin + 10, signatureLineY, margin + sigWidth - 10, signatureLineY);
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.text(contract.clients.name, margin + sigWidth / 2, signatureLineY + 5, { align: 'center' });
-  
-  if (contract.signed_at) {
-    doc.setTextColor(100, 100, 100);
-    doc.setFontSize(7);
-    doc.text(`Assinado em ${new Date(contract.signed_at).toLocaleDateString('pt-PT')}`, margin + sigWidth / 2, signatureLineY + 10, { align: 'center' });
-  }
-
-  // Reset yPos for CONTRATADO
-  yPos -= 5;
-
-  // CONTRATADO signature box
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(0, 0, 0);
-  doc.text('CONTRATADO', margin + sigWidth + margin / 2 + sigWidth / 2, yPos, { align: 'center' });
-  yPos += 5;
-  
-  if (businessSettings.signature_url) {
-    try {
-      const bizSigData = await loadImageWithCache(businessSettings.signature_url);
-      if (bizSigData) {
-        doc.addImage(bizSigData, 'PNG', margin + sigWidth + margin / 2 + 10, yPos, sigWidth - 20, 25);
-      }
-    } catch (e) {
-      console.warn('Failed to load business signature');
-    }
-  }
-  
-  doc.setDrawColor(0, 0, 0);
-  doc.setLineWidth(0.3);
-  doc.line(margin + sigWidth + margin / 2 + 10, signatureLineY, pageWidth - margin - 10, signatureLineY);
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(0, 0, 0);
-  doc.text(companyName, margin + sigWidth + margin / 2 + sigWidth / 2, signatureLineY + 5, { align: 'center' });
-  doc.setTextColor(100, 100, 100);
-  doc.setFontSize(7);
-  doc.text(new Date(contract.issued_at).toLocaleDateString('pt-PT'), margin + sigWidth + margin / 2 + sigWidth / 2, signatureLineY + 10, { align: 'center' });
-
-  // === FOOTER ON ALL PAGES ===
+  // === RODAPÉ EM TODAS AS PÁGINAS ===
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     
-    // Footer separator line
-    const footerY = pageHeight - 20;
-    doc.setDrawColor(0, 0, 0);
-    doc.setLineWidth(0.3);
-    doc.line(margin, footerY, pageWidth - margin, footerY);
+    const footerY = pageHeight - 15;
     
-    // Footer content
-    doc.setFontSize(7);
+    // Número da página
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
+    doc.text(
+      `Página ${i} de ${pageCount}`,
+      pageWidth / 2,
+      footerY,
+      { align: 'center' }
+    );
     
-    // Left: Company name
-    doc.text(companyName, margin, footerY + 5);
-    
-    // Center: Contact info
-    const contactInfo = [];
-    if (businessSettings.phone) contactInfo.push(`Tel: ${businessSettings.phone}`);
-    if (businessSettings.email) contactInfo.push(`E-mail: ${businessSettings.email}`);
-    if (contactInfo.length > 0) {
-      doc.text(contactInfo.join(' | '), pageWidth / 2, footerY + 5, { align: 'center' });
-    }
-    
-    // Bottom center: Address/Website
-    if (businessSettings.website) {
-      doc.text(businessSettings.website, pageWidth / 2, footerY + 10, { align: 'center' });
-    } else if (businessSettings.address_line1) {
-      const fullAddress = [
-        businessSettings.address_line1,
-        businessSettings.city,
-        businessSettings.province
-      ].filter(Boolean).join(', ');
-      doc.text(fullAddress, pageWidth / 2, footerY + 10, { align: 'center' });
-    }
-    
-    // Right: Page number
-    doc.text(`Página ${i} de ${pageCount}`, pageWidth - margin, footerY + 5, { align: 'right' });
+    // Texto do rodapé (se existir) - removido pois campo não existe
   }
 
-  // 5. Return Blob directly (NO UPLOAD)
+  // 5. Retornar Blob diretamente
   return doc.output('blob');
 }
 
