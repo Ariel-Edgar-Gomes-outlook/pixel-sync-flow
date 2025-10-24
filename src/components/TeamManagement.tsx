@@ -65,7 +65,6 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
         .insert({
           job_id: jobId,
           team_member_id: memberId,
-          user_id: memberId, // Keep for backward compatibility
           role: role,
         })
         .select()

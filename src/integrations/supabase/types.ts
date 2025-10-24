@@ -750,7 +750,7 @@ export type Database = {
           job_id: string
           role: string | null
           team_member_id: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           assigned_at?: string
@@ -758,7 +758,7 @@ export type Database = {
           job_id: string
           role?: string | null
           team_member_id?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           assigned_at?: string
@@ -766,7 +766,7 @@ export type Database = {
           job_id?: string
           role?: string | null
           team_member_id?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
