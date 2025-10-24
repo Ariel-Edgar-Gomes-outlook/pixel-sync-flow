@@ -59,6 +59,7 @@ export async function generateReceiptPDF(
   if (!settings) {
     throw new Error('Configurações de negócio não encontradas');
   }
+  
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -73,167 +74,207 @@ export async function generateReceiptPDF(
   };
   const [r, g, b] = hexToRgb(primaryColor);
   
-  let yPos = 20;
+  // Top colored bar
+  doc.setFillColor(r, g, b);
+  doc.rect(0, 0, pageWidth, 8, 'F');
+  
+  let yPos = 18;
   
   // Logo and business header
   if (settings.logo_url) {
     try {
-      doc.addImage(settings.logo_url, 'PNG', 20, yPos, 30, 30);
-      yPos += 35;
+      const response = await fetch(settings.logo_url, { cache: 'force-cache' });
+      const blob = await response.blob();
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+      doc.addImage(base64, 'PNG', 20, yPos, 35, 35, undefined, 'FAST');
+      
+      // Company info next to logo
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(r, g, b);
+      doc.text(settings.business_name, 60, yPos + 8);
+      
+      yPos += 12;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+      
+      if (settings.trade_name) {
+        doc.text(settings.trade_name, 60, yPos);
+        yPos += 4;
+      }
+      if (settings.nif) {
+        doc.text(`NIF: ${settings.nif}`, 60, yPos);
+        yPos += 4;
+      }
+      doc.text(`✉ ${settings.email}`, 60, yPos);
+      yPos += 4;
+      if (settings.phone) {
+        doc.text(`☎ ${settings.phone}`, 60, yPos);
+      }
+      
+      yPos = 60;
     } catch (error) {
       console.error('Error loading logo:', error);
-      yPos += 5;
+      
+      // Fallback if logo fails
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(r, g, b);
+      doc.text(settings.business_name, 20, yPos);
+      yPos += 8;
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+      
+      if (settings.trade_name) {
+        doc.text(settings.trade_name, 20, yPos);
+        yPos += 4;
+      }
+      if (settings.nif) {
+        doc.text(`NIF: ${settings.nif}`, 20, yPos);
+        yPos += 4;
+      }
+      doc.text(`✉ ${settings.email}`, 20, yPos);
+      yPos += 4;
+      if (settings.phone) {
+        doc.text(`☎ ${settings.phone}`, 20, yPos);
+        yPos += 10;
+      }
     }
   }
   
-  // Business info
-  doc.setFontSize(16);
+  // Receipt title box
+  const titleBoxWidth = 120;
+  const titleBoxX = (pageWidth - titleBoxWidth) / 2;
+  
+  doc.setFillColor(r, g, b);
+  doc.roundedRect(titleBoxX, yPos, titleBoxWidth, 20, 2, 2, 'F');
+  
+  doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(r, g, b);
-  doc.text(settings.business_name, 20, yPos);
+  doc.setTextColor(255, 255, 255);
+  doc.text('RECIBO DE PAGAMENTO', pageWidth / 2, yPos + 8, { align: 'center' });
   
-  yPos += 6;
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(80, 80, 80);
-  
-  if (settings.trade_name) {
-    doc.text(settings.trade_name, 20, yPos);
-    yPos += 5;
-  }
-  
-  if (settings.nif) {
-    doc.text(`NIF: ${settings.nif}`, 20, yPos);
-    yPos += 5;
-  }
-  
-  if (settings.address_line1) {
-    doc.text(settings.address_line1, 20, yPos);
-    yPos += 5;
-  }
-  
-  const locationParts = [settings.city, settings.province, settings.country].filter(Boolean);
-  if (locationParts.length > 0) {
-    doc.text(locationParts.join(', '), 20, yPos);
-    yPos += 5;
-  }
-  
-  doc.text(`Email: ${settings.email}`, 20, yPos);
-  yPos += 5;
-  
-  if (settings.phone) {
-    doc.text(`Tel: ${settings.phone}`, 20, yPos);
-    yPos += 5;
-  }
-  
-  // Receipt title and number
-  yPos += 10;
-  doc.setFontSize(24);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(r, g, b);
-  doc.text('RECIBO DE PAGAMENTO', pageWidth / 2, yPos, { align: 'center' });
-  
-  yPos += 10;
+  yPos += 13;
   const receiptNumber = `REC${new Date().getFullYear()}${payment.id.substring(0, 8).toUpperCase()}`;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0);
-  doc.text(`Recibo Nº: ${receiptNumber}`, pageWidth / 2, yPos, { align: 'center' });
+  doc.setFontSize(10);
+  doc.text(`Nº: ${receiptNumber}`, pageWidth / 2, yPos, { align: 'center' });
   
   yPos += 15;
   
-  // Client info box
+  // Client info box with modern design
+  doc.setFillColor(248, 250, 252);
   doc.setDrawColor(r, g, b);
   doc.setLineWidth(0.5);
-  doc.line(20, yPos, pageWidth - 20, yPos);
+  doc.roundedRect(20, yPos, pageWidth - 40, 32, 2, 2, 'FD');
   
-  yPos += 8;
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(r, g, b);
-  doc.text('DADOS DO CLIENTE', 20, yPos);
-  
-  yPos += 7;
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(0, 0, 0);
-  doc.text(`Nome: ${client.name}`, 20, yPos);
-  
-  if (client.email) {
-    yPos += 6;
-    doc.text(`Email: ${client.email}`, 20, yPos);
-  }
-  
-  if (client.phone) {
-    yPos += 6;
-    doc.text(`Telefone: ${client.phone}`, 20, yPos);
-  }
-  
-  if (client.address) {
-    yPos += 6;
-    doc.text(`Endereço: ${client.address}`, 20, yPos);
-  }
-  
-  yPos += 10;
-  doc.setDrawColor(r, g, b);
-  doc.line(20, yPos, pageWidth - 20, yPos);
-  yPos += 10;
-  
-  // Payment details
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(r, g, b);
-  doc.text('DETALHES DO PAGAMENTO', 20, yPos);
-  
-  yPos += 8;
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(0, 0, 0);
-  
-  const details = [
-    ['Fatura Referência:', invoice.invoice_number],
-    ['Data de Emissão da Fatura:', new Date(invoice.issue_date).toLocaleDateString('pt-PT')],
-    ['Data do Pagamento:', new Date(payment.paid_at).toLocaleDateString('pt-PT')],
-    ['Tipo de Pagamento:', payment.type === 'full' ? 'Pagamento Completo' : payment.type === 'partial' ? 'Pagamento Parcial' : payment.type],
-    ['Método de Pagamento:', payment.method || 'N/A'],
-  ];
-  
-  details.forEach(([label, value]) => {
-    doc.setFont('helvetica', 'bold');
-    doc.text(label, 20, yPos);
-    doc.setFont('helvetica', 'normal');
-    doc.text(value, 95, yPos);
-    yPos += 6;
-  });
-  
-  if (payment.notes) {
-    yPos += 5;
-    doc.setFont('helvetica', 'bold');
-    doc.text('Observações:', 20, yPos);
-    yPos += 7;
-    doc.setFont('helvetica', 'normal');
-    const splitNotes = doc.splitTextToSize(payment.notes, 170);
-    doc.text(splitNotes, 20, yPos);
-    yPos += splitNotes.length * 7;
-  }
-  
-  // Payment summary table
-  yPos += 10;
+  // Client header
   doc.setFillColor(r, g, b);
-  doc.rect(20, yPos, pageWidth - 40, 8, 'F');
+  doc.rect(20, yPos, pageWidth - 40, 7, 'F');
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
-  doc.text('RESUMO FINANCEIRO', 25, yPos + 5);
+  doc.text('👤 DADOS DO CLIENTE', 23, yPos + 5);
+  
+  yPos += 13;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(40, 40, 40);
+  doc.text(client.name, 23, yPos);
+  
+  yPos += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  
+  if (client.email) {
+    doc.text(`✉ ${client.email}`, 23, yPos);
+    yPos += 4;
+  }
+  
+  if (client.phone) {
+    doc.text(`☎ ${client.phone}`, 23, yPos);
+    yPos += 4;
+  }
+  
+  if (client.address) {
+    doc.text(`📍 ${client.address}`, 23, yPos);
+  }
+  
+  yPos += 12;
+  
+  // Payment details with modern design
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(r, g, b);
+  doc.roundedRect(20, yPos, pageWidth - 40, 45, 2, 2, 'FD');
+  
+  // Payment header
+  doc.setFillColor(r, g, b);
+  doc.rect(20, yPos, pageWidth - 40, 7, 'F');
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('💳 DETALHES DO PAGAMENTO', 23, yPos + 5);
+  
+  yPos += 14;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(40, 40, 40);
+  
+  const details = [
+    ['Fatura Referência:', invoice.invoice_number],
+    ['Data de Emissão:', new Date(invoice.issue_date).toLocaleDateString('pt-PT')],
+    ['Data do Pagamento:', new Date(payment.paid_at).toLocaleDateString('pt-PT')],
+    ['Tipo:', payment.type === 'full' ? 'Pagamento Completo' : payment.type === 'partial' ? 'Pagamento Parcial' : payment.type],
+    ['Método:', payment.method || 'N/A'],
+  ];
+  
+  details.forEach(([label, value]) => {
+    doc.setFont('helvetica', 'bold');
+    doc.text(label, 23, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(value, 80, yPos);
+    yPos += 5.5;
+  });
+  
+  if (payment.notes) {
+    yPos += 3;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Observações:', 23, yPos);
+    yPos += 5;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    const splitNotes = doc.splitTextToSize(payment.notes, 165);
+    doc.text(splitNotes, 23, yPos);
+    yPos += splitNotes.length * 4 + 8;
+  } else {
+    yPos += 10;
+  }
+  
+  // Payment summary with modern design
+  const summaryWidth = pageWidth - 40;
+  doc.setFillColor(r, g, b);
+  doc.roundedRect(20, yPos, summaryWidth, 8, 1, 1, 'F');
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('💰 RESUMO FINANCEIRO', 25, yPos + 5);
   
   yPos += 8;
-  doc.setFillColor(250, 250, 250);
-  doc.rect(20, yPos, pageWidth - 40, 30, 'F');
+  doc.setFillColor(248, 250, 252);
+  doc.rect(20, yPos, summaryWidth, 32, 'F');
   
   yPos += 8;
   doc.setFontSize(10);
-  doc.setTextColor(0, 0, 0);
+  doc.setTextColor(40, 40, 40);
   doc.setFont('helvetica', 'normal');
   doc.text('Total da Fatura:', 25, yPos);
   doc.text(`${Number(invoice.total).toFixed(2)} ${invoice.currency || 'AOA'}`, pageWidth - 25, yPos, { align: 'right' });
@@ -242,54 +283,56 @@ export async function generateReceiptPDF(
   doc.text('Valor já Pago:', 25, yPos);
   doc.text(`${Number(invoice.amount_paid || 0).toFixed(2)} ${invoice.currency || 'AOA'}`, pageWidth - 25, yPos, { align: 'right' });
   
-  yPos += 7;
+  yPos += 10;
+  
+  // Highlight the receipt amount
+  doc.setFillColor(r, g, b);
+  doc.roundedRect(22, yPos - 5, summaryWidth - 4, 10, 1, 1, 'F');
+  
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
-  doc.setTextColor(r, g, b);
+  doc.setTextColor(255, 255, 255);
   doc.text('Valor deste Recibo:', 25, yPos);
   doc.text(`${Number(payment.amount).toFixed(2)} ${invoice.currency || 'AOA'}`, pageWidth - 25, yPos, { align: 'right' });
   
-  // Watermark for paid receipts
-  if (payment.status === 'paid') {
-    doc.setFontSize(60);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(34, 197, 94, 0.1);
-    doc.text('PAGO', pageWidth / 2, pageHeight / 2, {
-      align: 'center',
-      angle: 45,
-    });
-  }
-  
-  // Footer
+  // Footer with signature
   yPos = pageHeight - 50;
   
-  // Signature if available
   if (settings.signature_url) {
     try {
-      doc.addImage(settings.signature_url, 'PNG', 25, yPos, 40, 15);
+      const response = await fetch(settings.signature_url, { cache: 'force-cache' });
+      const blob = await response.blob();
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+      
+      doc.addImage(base64, 'PNG', 25, yPos, 40, 15, undefined, 'FAST');
       doc.setFontSize(8);
-      doc.setTextColor(0, 0, 0);
+      doc.setTextColor(100, 100, 100);
       doc.setFont('helvetica', 'normal');
-      doc.text('_______________________', 25, yPos + 20);
-      doc.text('Assinatura Autorizada', 25, yPos + 25);
+      doc.line(25, yPos + 18, 65, yPos + 18);
+      doc.text('Assinatura Autorizada', 45, yPos + 22, { align: 'center' });
     } catch (error) {
       console.error('Error loading signature:', error);
     }
   }
   
-  yPos = pageHeight - 25;
-  doc.setDrawColor(r, g, b);
-  doc.setLineWidth(0.5);
-  doc.line(20, yPos, pageWidth - 20, yPos);
+  // Bottom bar
+  yPos = pageHeight - 22;
+  doc.setFillColor(r, g, b);
+  doc.rect(0, yPos, pageWidth, 22, 'F');
   
-  yPos += 5;
+  yPos += 7;
   doc.setFontSize(8);
   doc.setFont('helvetica', 'italic');
-  doc.setTextColor(100, 100, 100);
-  doc.text('Este recibo é válido como comprovativo de pagamento e tem valor legal.', pageWidth / 2, yPos, { align: 'center' });
+  doc.setTextColor(255, 255, 255);
+  doc.text('✓ Este recibo é válido como comprovativo de pagamento e tem valor legal.', pageWidth / 2, yPos, { align: 'center' });
   yPos += 4;
   doc.text(`Emitido em: ${new Date().toLocaleDateString('pt-PT')} às ${new Date().toLocaleTimeString('pt-PT')}`, pageWidth / 2, yPos, { align: 'center' });
   yPos += 4;
+  doc.setFont('helvetica', 'bold');
   doc.text(`Recibo Nº: ${receiptNumber}`, pageWidth / 2, yPos, { align: 'center' });
   
   // Upload to Supabase Storage

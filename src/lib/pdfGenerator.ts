@@ -435,10 +435,34 @@ export interface ProfessionalQuoteData {
   accepted_at?: string | null;
 }
 
+// Image cache for faster loading
+const imageCache = new Map<string, string>();
+
+async function loadImageWithCache(url: string): Promise<string> {
+  if (imageCache.has(url)) {
+    return imageCache.get(url)!;
+  }
+
+  try {
+    const response = await fetch(url, { cache: 'force-cache' });
+    const blob = await response.blob();
+    const base64 = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+    
+    imageCache.set(url, base64);
+    return base64;
+  } catch (error) {
+    console.error('Error loading image:', error);
+    return '';
+  }
+}
+
 export async function generateProfessionalQuotePDF(quote: ProfessionalQuoteData): Promise<string> {
   const doc = new jsPDF();
-  let yPos = 20;
-
+  
   // Fetch business settings
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('User not authenticated');
@@ -449,182 +473,268 @@ export async function generateProfessionalQuotePDF(quote: ProfessionalQuoteData)
     .eq('user_id', user.id)
     .single();
 
-  // Header with logo
+  const primaryColor = businessSettings?.primary_color || '#3B82F6';
+  const hexToRgb = (hex: string): [number, number, number] => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+      : [59, 130, 246];
+  };
+  const [r, g, b] = hexToRgb(primaryColor);
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // Top colored bar
+  doc.setFillColor(r, g, b);
+  doc.rect(0, 0, pageWidth, 8, 'F');
+
+  let yPos = 18;
+
+  // Logo and company info with modern layout
   if (businessSettings?.logo_url) {
     try {
-      doc.addImage(businessSettings.logo_url, 'PNG', 20, yPos, 40, 20);
+      const logoBase64 = await loadImageWithCache(businessSettings.logo_url);
+      if (logoBase64) {
+        doc.addImage(logoBase64, 'PNG', 20, yPos, 35, 35, undefined, 'FAST');
+        
+        // Company info next to logo
+        const companyName = businessSettings.business_name || businessSettings.trade_name || 'Empresa';
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(r, g, b);
+        doc.text(companyName, 60, yPos + 8);
+        
+        yPos += 12;
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(80, 80, 80);
+        
+        if (businessSettings.nif) {
+          doc.text(`NIF: ${businessSettings.nif}`, 60, yPos);
+          yPos += 4;
+        }
+        doc.text(`✉ ${businessSettings.email || ''}`, 60, yPos);
+        yPos += 4;
+        if (businessSettings.phone) {
+          doc.text(`☎ ${businessSettings.phone}`, 60, yPos);
+        }
+        
+        yPos = 60;
+      }
     } catch (e) {
-      console.warn('Failed to load logo');
+      console.warn('Failed to load logo, using fallback');
+      yPos = 25;
     }
+  } else {
+    yPos = 25;
   }
 
-  // Company info (right side)
-  doc.setFontSize(10);
-  doc.setFont(undefined, 'bold');
-  const companyName = businessSettings?.business_name || businessSettings?.trade_name || 'Empresa';
-  doc.text(companyName, 200, yPos + 5, { align: 'right' });
+  // Quote title box - modern design
+  const titleBoxWidth = 110;
+  const titleBoxX = (pageWidth - titleBoxWidth) / 2;
   
-  doc.setFont(undefined, 'normal');
-  doc.setFontSize(8);
-  if (businessSettings?.nif) {
-    doc.text(`NIF: ${businessSettings.nif}`, 200, yPos + 10, { align: 'right' });
-  }
-  if (businessSettings?.email) {
-    doc.text(businessSettings.email, 200, yPos + 14, { align: 'right' });
-  }
-  if (businessSettings?.phone) {
-    doc.text(businessSettings.phone, 200, yPos + 18, { align: 'right' });
-  }
-
-  yPos = 50;
-
-  // Title
-  doc.setFontSize(18);
-  doc.setFont(undefined, 'bold');
-  doc.text('ORÇAMENTO', 105, yPos, { align: 'center' });
+  doc.setFillColor(r, g, b);
+  doc.roundedRect(titleBoxX, yPos, titleBoxWidth, 18, 2, 2, 'F');
   
-  yPos += 8;
-  doc.setFontSize(10);
-  doc.setFont(undefined, 'normal');
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('ORÇAMENTO', pageWidth / 2, yPos + 7, { align: 'center' });
+  
+  yPos += 11;
   const quoteNumber = `ORC-${quote.id.substring(0, 8).toUpperCase()}`;
-  doc.text(`Nº ${quoteNumber}`, 105, yPos, { align: 'center' });
+  doc.setFontSize(9);
+  doc.text(`Nº ${quoteNumber}`, pageWidth / 2, yPos, { align: 'center' });
   
-  yPos += 5;
-  doc.text(`Emitido em: ${new Date(quote.created_at).toLocaleDateString('pt-AO')}`, 105, yPos, { align: 'center' });
+  yPos += 13;
+  doc.setFontSize(8);
+  doc.setTextColor(80, 80, 80);
+  doc.text(`Emitido: ${new Date(quote.created_at).toLocaleDateString('pt-PT')}`, pageWidth / 2, yPos, { align: 'center' });
   
   if (quote.validity_date) {
-    yPos += 5;
-    doc.text(`Válido até: ${new Date(quote.validity_date).toLocaleDateString('pt-AO')}`, 105, yPos, { align: 'center' });
+    yPos += 4;
+    doc.setTextColor(220, 38, 38);
+    doc.text(`⏰ Válido até: ${new Date(quote.validity_date).toLocaleDateString('pt-PT')}`, pageWidth / 2, yPos, { align: 'center' });
   }
 
-  yPos += 15;
+  yPos += 10;
 
-  // Client Info Box
-  doc.setFillColor(240, 240, 240);
-  doc.rect(20, yPos, 170, quote.job_title ? 25 : 20, 'F');
+
+  // Client Info Box - modern design
+  const boxHeight = quote.job_title ? 35 : 28;
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(r, g, b);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(20, yPos, pageWidth - 40, boxHeight, 2, 2, 'FD');
+  
+  // Header bar
+  doc.setFillColor(r, g, b);
+  doc.rect(20, yPos, pageWidth - 40, 7, 'F');
   
   doc.setFontSize(9);
-  doc.setFont(undefined, 'bold');
-  doc.text('CLIENTE:', 25, yPos + 6);
-  doc.setFont(undefined, 'normal');
-  doc.text(quote.client_name, 25, yPos + 11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('👤 CLIENTE', 23, yPos + 5);
+  
+  yPos += 13;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(40, 40, 40);
+  doc.text(quote.client_name, 23, yPos);
+  
+  yPos += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  
   if (quote.client_email) {
-    doc.text(quote.client_email, 25, yPos + 16);
+    doc.text(`✉ ${quote.client_email}`, 23, yPos);
+    yPos += 4;
   }
   if (quote.client_phone) {
-    doc.text(quote.client_phone, 25, yPos + 21);
+    doc.text(`☎ ${quote.client_phone}`, 23, yPos);
   }
 
   if (quote.job_title) {
-    doc.setFont(undefined, 'bold');
-    doc.text('SERVIÇO:', 120, yPos + 6);
-    doc.setFont(undefined, 'normal');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.text('SERVIÇO:', pageWidth / 2 + 10, yPos - 9);
+    doc.setFont('helvetica', 'normal');
     const jobLines = doc.splitTextToSize(quote.job_title, 65);
-    doc.text(jobLines, 120, yPos + 11);
+    doc.text(jobLines, pageWidth / 2 + 10, yPos - 4);
   }
 
-  yPos += (quote.job_title ? 35 : 30);
+  yPos += (quote.job_title ? 20 : 10);
 
   // Status Badge
   if (quote.status === 'accepted' && quote.accepted_at) {
     doc.setFillColor(34, 197, 94);
-    doc.roundedRect(20, yPos, 60, 8, 2, 2, 'F');
+    doc.roundedRect(20, yPos, 55, 9, 2, 2, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(8);
-    doc.setFont(undefined, 'bold');
-    doc.text('✓ ACEITE', 50, yPos + 5, { align: 'center' });
-    doc.text(`em ${new Date(quote.accepted_at).toLocaleDateString('pt-AO')}`, 50, yPos + 8, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.text(`✓ ACEITE em ${new Date(quote.accepted_at).toLocaleDateString('pt-PT')}`, 47, yPos + 6, { align: 'center' });
     doc.setTextColor(0, 0, 0);
-    yPos += 15;
+    yPos += 14;
   }
 
-  // Items Table
+  // Items Table with modern styling
   const tableData = quote.items.map((item: any) => [
     item.description || item.name,
     (item.quantity || 1).toString(),
-    `${quote.currency} ${Number(item.price || 0).toFixed(2)}`,
-    `${quote.currency} ${((item.quantity || 1) * (item.price || 0)).toFixed(2)}`,
+    `${Number(item.price || 0).toFixed(2)} ${quote.currency}`,
+    `${((item.quantity || 1) * (item.price || 0)).toFixed(2)} ${quote.currency}`,
   ]);
 
   autoTable(doc, {
     startY: yPos,
     head: [['Descrição', 'Qtd', 'Preço Unit.', 'Total']],
     body: tableData,
-    theme: 'striped',
+    theme: 'grid',
     headStyles: { 
-      fillColor: businessSettings?.primary_color ? 
-        [parseInt(businessSettings.primary_color.slice(1,3), 16), 
-         parseInt(businessSettings.primary_color.slice(3,5), 16), 
-         parseInt(businessSettings.primary_color.slice(5,7), 16)] : 
-        [59, 130, 246],
+      fillColor: [r, g, b],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
       fontSize: 10,
+      halign: 'center',
+      cellPadding: 4,
     },
     bodyStyles: {
       fontSize: 9,
+      cellPadding: 4,
+      lineColor: [220, 220, 220],
+      lineWidth: 0.1,
     },
     columnStyles: {
-      0: { cellWidth: 90 },
-      1: { cellWidth: 25, halign: 'center' },
-      2: { cellWidth: 35, halign: 'right' },
-      3: { cellWidth: 35, halign: 'right' },
+      0: { cellWidth: 'auto', halign: 'left' },
+      1: { cellWidth: 22, halign: 'center' },
+      2: { cellWidth: 40, halign: 'right' },
+      3: { cellWidth: 40, halign: 'right', fontStyle: 'bold' },
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252],
     },
   });
 
-  // Calculations
+
+  // Calculations with modern styling
   const finalY = (doc as any).lastAutoTable.finalY || yPos;
   const subtotal = quote.items.reduce((sum, item) => sum + ((item.quantity || 1) * (item.price || 0)), 0);
   const taxAmount = subtotal * (quote.tax / 100);
   const discountAmount = quote.discount || 0;
 
-  let calcY = finalY + 15;
+  let calcY = finalY + 12;
+  
+  const totalsBoxWidth = 80;
+  const boxX = pageWidth - 20 - totalsBoxWidth;
+  const totalsBoxHeight = 28 + (quote.tax > 0 ? 6 : 0) + (quote.discount > 0 ? 6 : 0);
+  
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(220, 220, 220);
+  doc.roundedRect(boxX, calcY - 2, totalsBoxWidth, totalsBoxHeight, 1, 1, 'FD');
 
-  doc.setFontSize(10);
-  doc.setFont(undefined, 'normal');
-  doc.text('Subtotal:', 130, calcY);
-  doc.text(`${quote.currency} ${subtotal.toFixed(2)}`, 185, calcY, { align: 'right' });
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(70, 70, 70);
+  
+  const labelX = boxX + 5;
+  const valueX = pageWidth - 25;
+
+  doc.text('Subtotal:', labelX, calcY);
+  doc.text(`${subtotal.toFixed(2)} ${quote.currency}`, valueX, calcY, { align: 'right' });
 
   if (quote.tax > 0) {
-    calcY += 7;
-    doc.text(`IVA (${quote.tax}%):`, 130, calcY);
-    doc.text(`${quote.currency} ${taxAmount.toFixed(2)}`, 185, calcY, { align: 'right' });
+    calcY += 6;
+    doc.text(`IVA (${quote.tax}%):`, labelX, calcY);
+    doc.text(`${taxAmount.toFixed(2)} ${quote.currency}`, valueX, calcY, { align: 'right' });
   }
 
   if (quote.discount > 0) {
-    calcY += 7;
-    doc.text(`Desconto:`, 130, calcY);
-    doc.text(`-${quote.currency} ${discountAmount.toFixed(2)}`, 185, calcY, { align: 'right' });
+    calcY += 6;
+    doc.setTextColor(220, 38, 38);
+    doc.text(`Desconto:`, labelX, calcY);
+    doc.text(`-${discountAmount.toFixed(2)} ${quote.currency}`, valueX, calcY, { align: 'right' });
+    doc.setTextColor(70, 70, 70);
   }
 
-  calcY += 10;
-  doc.setDrawColor(0, 0, 0);
-  doc.line(130, calcY, 190, calcY);
+  calcY += 9;
+  
+  // Total with colored background
+  doc.setFillColor(r, g, b);
+  doc.roundedRect(boxX + 2, calcY - 4, totalsBoxWidth - 4, 10, 1, 1, 'F');
 
-  calcY += 8;
-  doc.setFontSize(14);
-  doc.setFont(undefined, 'bold');
-  doc.text('TOTAL:', 130, calcY);
-  doc.text(`${quote.currency} ${Number(quote.total).toFixed(2)}`, 185, calcY, { align: 'right' });
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('TOTAL:', labelX, calcY + 2);
+  doc.text(`${Number(quote.total).toFixed(2)} ${quote.currency}`, valueX, calcY + 2, { align: 'right' });
 
   // Payment Terms
   if (businessSettings?.payment_terms) {
-    calcY += 15;
-    doc.setFontSize(9);
-    doc.setFont(undefined, 'bold');
-    doc.text('Condições de Pagamento:', 20, calcY);
-    doc.setFont(undefined, 'normal');
+    calcY += 18;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(r, g, b);
+    doc.text('💳 Condições de Pagamento:', 20, calcY);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
     const termsLines = doc.splitTextToSize(businessSettings.payment_terms, 170);
     doc.text(termsLines, 20, calcY + 5);
   }
 
-  // Footer
-  doc.setFontSize(8);
-  doc.setTextColor(128, 128, 128);
+  // Bottom bar
+  const footerY = doc.internal.pageSize.getHeight() - 20;
+  doc.setFillColor(r, g, b);
+  doc.rect(0, footerY, pageWidth, 20, 'F');
+  
+  doc.setFontSize(7);
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'italic');
   const footerText = businessSettings?.terms_footer || 
-    `Este orçamento é válido até ${quote.validity_date ? new Date(quote.validity_date).toLocaleDateString('pt-AO') : 'a data indicada'}. Sujeito a disponibilidade.`;
-  doc.text(footerText, 105, 280, { align: 'center', maxWidth: 170 });
-  doc.text('Obrigado pela sua confiança!', 105, 285, { align: 'center' });
+    `Este orçamento é válido até ${quote.validity_date ? new Date(quote.validity_date).toLocaleDateString('pt-PT') : 'a data indicada'}. Sujeito a disponibilidade.`;
+  doc.text(footerText, pageWidth / 2, footerY + 7, { align: 'center', maxWidth: 180 });
+  doc.setFont('helvetica', 'bold');
+  doc.text('✨ Obrigado pela sua confiança!', pageWidth / 2, footerY + 13, { align: 'center' });
 
   // Upload to pdfs bucket
   const pdfBlob = doc.output('blob');

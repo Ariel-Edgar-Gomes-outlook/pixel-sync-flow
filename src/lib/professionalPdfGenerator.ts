@@ -58,16 +58,27 @@ export class ProfessionalPDFGenerator {
       : [59, 130, 246]; // Default blue
   }
 
+  private imageCache: Map<string, string> = new Map();
+
   private async loadImage(url: string): Promise<string> {
+    // Check cache first
+    if (this.imageCache.has(url)) {
+      return this.imageCache.get(url)!;
+    }
+
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { cache: 'force-cache' });
       const blob = await response.blob();
-      return new Promise((resolve, reject) => {
+      const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
+      
+      // Cache the result
+      this.imageCache.set(url, base64);
+      return base64;
     } catch (error) {
       console.error('Error loading image:', error);
       return '';
@@ -77,104 +88,152 @@ export class ProfessionalPDFGenerator {
   private async addHeader(invoiceData: InvoiceData) {
     const startY = this.margin;
 
-    // Add logo if available
+    // Modern colored header bar
+    this.doc.setFillColor(...this.primaryColor);
+    this.doc.rect(0, 0, this.pageWidth, 8, 'F');
+
+    // Add logo with better sizing and positioning
+    let logoWidth = 0;
     if (this.businessSettings.logo_url) {
       try {
         const logoData = await this.loadImage(this.businessSettings.logo_url);
         if (logoData) {
-          this.doc.addImage(logoData, 'PNG', this.margin, startY, 30, 30);
+          const logoSize = 35;
+          this.doc.addImage(logoData, 'PNG', this.margin, startY, logoSize, logoSize, undefined, 'FAST');
+          logoWidth = logoSize + 10;
         }
       } catch (error) {
         console.error('Error loading logo:', error);
       }
     }
 
-    // Company name and details
-    this.doc.setFontSize(20);
-    this.doc.setTextColor(...this.primaryColor);
+    // Company name and details with better spacing
+    const detailsX = this.margin + logoWidth;
+    this.doc.setFontSize(18);
+    this.doc.setTextColor(40, 40, 40);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text(this.businessSettings.business_name, this.margin, startY + 10);
+    this.doc.text(this.businessSettings.business_name, detailsX, startY + 8);
 
-    this.doc.setFontSize(10);
+    this.doc.setFontSize(9);
     this.doc.setTextColor(100, 100, 100);
     this.doc.setFont('helvetica', 'normal');
     
-    let yPos = startY + 18;
+    let yPos = startY + 14;
     if (this.businessSettings.trade_name) {
-      this.doc.text(this.businessSettings.trade_name, this.margin, yPos);
-      yPos += 5;
+      this.doc.text(this.businessSettings.trade_name, detailsX, yPos);
+      yPos += 4;
     }
     if (this.businessSettings.nif) {
-      this.doc.text(`NIF: ${this.businessSettings.nif}`, this.margin, yPos);
-      yPos += 5;
+      this.doc.text(`NIF: ${this.businessSettings.nif}`, detailsX, yPos);
+      yPos += 4;
     }
     if (this.businessSettings.email) {
-      this.doc.text(`Email: ${this.businessSettings.email}`, this.margin, yPos);
-      yPos += 5;
+      this.doc.text(`✉ ${this.businessSettings.email}`, detailsX, yPos);
+      yPos += 4;
     }
     if (this.businessSettings.phone) {
-      this.doc.text(`Tel: ${this.businessSettings.phone}`, this.margin, yPos);
-      yPos += 5;
+      this.doc.text(`☎ ${this.businessSettings.phone}`, detailsX, yPos);
+      yPos += 4;
     }
 
-    // Invoice title and number
-    this.doc.setFontSize(24);
+    // Invoice title and number in elegant box
+    const boxWidth = 85;
+    const boxHeight = 28;
+    const boxX = this.pageWidth - this.margin - boxWidth;
+    const boxY = startY;
+
+    // Box with gradient effect (simulated with multiple rectangles)
+    this.doc.setFillColor(...this.primaryColor);
+    this.doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 2, 2, 'F');
+    
+    this.doc.setFillColor(255, 255, 255, 0.9);
+    this.doc.roundedRect(boxX + 2, boxY + 2, boxWidth - 4, boxHeight - 4, 1, 1, 'F');
+
+    this.doc.setFontSize(20);
     this.doc.setTextColor(...this.primaryColor);
     this.doc.setFont('helvetica', 'bold');
-    const title = invoiceData.is_proforma ? 'FACTURA PRO-FORMA' : 'FACTURA';
-    this.doc.text(title, this.pageWidth - this.margin, startY + 15, { align: 'right' });
-
-    this.doc.setFontSize(14);
-    this.doc.setTextColor(80, 80, 80);
-    this.doc.text(invoiceData.invoice_number, this.pageWidth - this.margin, startY + 25, { align: 'right' });
-
-    return yPos + 10;
-  }
-
-  private addClientInfo(invoiceData: InvoiceData, startY: number) {
-    // Client box
-    this.doc.setFillColor(245, 245, 245);
-    this.doc.rect(this.margin, startY, (this.pageWidth - 2 * this.margin) / 2, 35, 'F');
+    const title = invoiceData.is_proforma ? 'PRO-FORMA' : 'FATURA';
+    this.doc.text(title, boxX + boxWidth / 2, boxY + 12, { align: 'center' });
 
     this.doc.setFontSize(11);
     this.doc.setTextColor(60, 60, 60);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text('CLIENTE', this.margin + 5, startY + 8);
+    this.doc.text(invoiceData.invoice_number, boxX + boxWidth / 2, boxY + 20, { align: 'center' });
+
+    return Math.max(yPos, startY + boxHeight) + 10;
+  }
+
+  private addClientInfo(invoiceData: InvoiceData, startY: number) {
+    const boxHeight = 32;
+    const boxWidth = (this.pageWidth - 2 * this.margin - 5) / 2;
+
+    // Client box with modern styling
+    this.doc.setFillColor(248, 250, 252);
+    this.doc.setDrawColor(...this.primaryColor);
+    this.doc.setLineWidth(0.5);
+    this.doc.roundedRect(this.margin, startY, boxWidth, boxHeight, 2, 2, 'FD');
+
+    // Client header with icon
+    this.doc.setFillColor(...this.primaryColor);
+    this.doc.rect(this.margin, startY, boxWidth, 7, 'F');
+    
+    this.doc.setFontSize(10);
+    this.doc.setTextColor(255, 255, 255);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.text('👤 CLIENTE', this.margin + 3, startY + 5);
 
     this.doc.setFont('helvetica', 'normal');
     this.doc.setFontSize(10);
-    let yPos = startY + 15;
+    this.doc.setTextColor(40, 40, 40);
+    let yPos = startY + 13;
     
-    this.doc.text(invoiceData.client.name, this.margin + 5, yPos);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.text(invoiceData.client.name, this.margin + 3, yPos);
     yPos += 5;
     
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.setFontSize(8);
     if (invoiceData.client.email) {
-      this.doc.text(invoiceData.client.email, this.margin + 5, yPos);
-      yPos += 5;
+      this.doc.text(`✉ ${invoiceData.client.email}`, this.margin + 3, yPos);
+      yPos += 4;
     }
     if (invoiceData.client.phone) {
-      this.doc.text(invoiceData.client.phone, this.margin + 5, yPos);
-      yPos += 5;
+      this.doc.text(`☎ ${invoiceData.client.phone}`, this.margin + 3, yPos);
     }
 
-    // Invoice dates
-    const dateBoxX = this.pageWidth / 2 + 5;
-    this.doc.setFont('helvetica', 'bold');
-    yPos = startY + 8;
+    // Dates box with modern styling
+    const dateBoxX = this.margin + boxWidth + 5;
+    this.doc.setFillColor(248, 250, 252);
+    this.doc.setDrawColor(...this.secondaryColor);
+    this.doc.roundedRect(dateBoxX, startY, boxWidth, boxHeight, 2, 2, 'FD');
+
+    // Dates header
+    this.doc.setFillColor(...this.secondaryColor);
+    this.doc.rect(dateBoxX, startY, boxWidth, 7, 'F');
     
-    this.doc.text('Data de Emissão:', dateBoxX, yPos);
+    this.doc.setFontSize(10);
+    this.doc.setTextColor(255, 255, 255);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.text('📅 DATAS', dateBoxX + 3, startY + 5);
+
+    yPos = startY + 13;
+    this.doc.setFontSize(9);
+    this.doc.setTextColor(40, 40, 40);
+    
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.text('Emissão:', dateBoxX + 3, yPos);
     this.doc.setFont('helvetica', 'normal');
-    this.doc.text(new Date(invoiceData.issue_date).toLocaleDateString('pt-PT'), dateBoxX + 40, yPos);
+    this.doc.text(new Date(invoiceData.issue_date).toLocaleDateString('pt-PT'), dateBoxX + 25, yPos);
     
     if (invoiceData.due_date) {
-      yPos += 7;
+      yPos += 5;
       this.doc.setFont('helvetica', 'bold');
-      this.doc.text('Data de Vencimento:', dateBoxX, yPos);
+      this.doc.text('Vencimento:', dateBoxX + 3, yPos);
       this.doc.setFont('helvetica', 'normal');
-      this.doc.text(new Date(invoiceData.due_date).toLocaleDateString('pt-PT'), dateBoxX + 40, yPos);
+      this.doc.text(new Date(invoiceData.due_date).toLocaleDateString('pt-PT'), dateBoxX + 25, yPos);
     }
 
-    return startY + 45;
+    return startY + boxHeight + 8;
   }
 
   private addItemsTable(invoiceData: InvoiceData, startY: number) {
@@ -189,22 +248,29 @@ export class ProfessionalPDFGenerator {
       startY: startY,
       head: [['Descrição', 'Qtd', 'Preço Unit.', 'Total']],
       body: tableData,
-      theme: 'striped',
+      theme: 'grid',
       headStyles: {
         fillColor: this.primaryColor,
         textColor: [255, 255, 255],
         fontSize: 10,
         fontStyle: 'bold',
+        halign: 'center',
+        cellPadding: 4,
       },
       styles: {
         fontSize: 9,
-        cellPadding: 5,
+        cellPadding: 4,
+        lineColor: [220, 220, 220],
+        lineWidth: 0.1,
       },
       columnStyles: {
-        0: { cellWidth: 'auto' },
+        0: { cellWidth: 'auto', halign: 'left' },
         1: { cellWidth: 20, halign: 'center' },
-        2: { cellWidth: 40, halign: 'right' },
-        3: { cellWidth: 40, halign: 'right' },
+        2: { cellWidth: 42, halign: 'right' },
+        3: { cellWidth: 42, halign: 'right', fontStyle: 'bold' },
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252],
       },
     });
 
@@ -212,14 +278,27 @@ export class ProfessionalPDFGenerator {
   }
 
   private addTotalsSection(invoiceData: InvoiceData, startY: number) {
+    const boxWidth = 85;
     const rightX = this.pageWidth - this.margin;
-    const labelX = rightX - 80;
-    const valueX = rightX - 5;
-
-    this.doc.setFontSize(10);
-    this.doc.setTextColor(80, 80, 80);
+    const boxX = rightX - boxWidth;
 
     let yPos = startY;
+    const lineHeight = 6;
+
+    // Background box for totals
+    this.doc.setFillColor(248, 250, 252);
+    this.doc.setDrawColor(220, 220, 220);
+    this.doc.setLineWidth(0.1);
+    
+    const boxHeight = 35 + (invoiceData.discount_amount > 0 ? 6 : 0);
+    this.doc.roundedRect(boxX, yPos - 2, boxWidth, boxHeight, 1, 1, 'FD');
+
+    this.doc.setFontSize(9);
+    this.doc.setTextColor(70, 70, 70);
+    this.doc.setFont('helvetica', 'normal');
+
+    const labelX = boxX + 5;
+    const valueX = rightX - 5;
 
     // Subtotal
     this.doc.text('Subtotal:', labelX, yPos);
@@ -229,10 +308,11 @@ export class ProfessionalPDFGenerator {
       yPos,
       { align: 'right' }
     );
-    yPos += 7;
+    yPos += lineHeight;
 
     // Discount
     if (invoiceData.discount_amount > 0) {
+      this.doc.setTextColor(220, 38, 38);
       this.doc.text('Desconto:', labelX, yPos);
       this.doc.text(
         `-${invoiceData.discount_amount.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`,
@@ -240,7 +320,8 @@ export class ProfessionalPDFGenerator {
         yPos,
         { align: 'right' }
       );
-      yPos += 7;
+      this.doc.setTextColor(70, 70, 70);
+      yPos += lineHeight;
     }
 
     // Tax
@@ -251,17 +332,20 @@ export class ProfessionalPDFGenerator {
       yPos,
       { align: 'right' }
     );
-    yPos += 10;
+    yPos += lineHeight + 3;
 
-    // Total
+    // Total with colored background
+    this.doc.setFillColor(...this.primaryColor);
+    this.doc.roundedRect(boxX + 2, yPos - 4, boxWidth - 4, 10, 1, 1, 'F');
+
     this.doc.setFontSize(12);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.setTextColor(...this.primaryColor);
-    this.doc.text('TOTAL:', labelX, yPos);
+    this.doc.setTextColor(255, 255, 255);
+    this.doc.text('TOTAL:', labelX, yPos + 2);
     this.doc.text(
       `${invoiceData.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`,
       valueX,
-      yPos,
+      yPos + 2,
       { align: 'right' }
     );
 
@@ -273,56 +357,77 @@ export class ProfessionalPDFGenerator {
       return startY;
     }
 
-    this.doc.setFillColor(250, 250, 250);
-    this.doc.rect(this.margin, startY, this.pageWidth - 2 * this.margin, 25, 'F');
+    // Modern payment info box
+    this.doc.setFillColor(248, 250, 252);
+    this.doc.setDrawColor(...this.secondaryColor);
+    this.doc.setLineWidth(0.5);
+    this.doc.roundedRect(this.margin, startY, this.pageWidth - 2 * this.margin, 24, 2, 2, 'FD');
+
+    // Header bar
+    this.doc.setFillColor(...this.secondaryColor);
+    this.doc.rect(this.margin, startY, this.pageWidth - 2 * this.margin, 7, 'F');
 
     this.doc.setFontSize(10);
-    this.doc.setTextColor(60, 60, 60);
+    this.doc.setTextColor(255, 255, 255);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text('DADOS BANCÁRIOS', this.margin + 5, startY + 8);
+    this.doc.text('🏦 DADOS BANCÁRIOS', this.margin + 3, startY + 5);
 
     this.doc.setFont('helvetica', 'normal');
     this.doc.setFontSize(9);
-    let yPos = startY + 14;
+    this.doc.setTextColor(40, 40, 40);
+    let yPos = startY + 13;
 
     if (this.businessSettings.bank_name) {
-      this.doc.text(`Banco: ${this.businessSettings.bank_name}`, this.margin + 5, yPos);
+      this.doc.setFont('helvetica', 'bold');
+      this.doc.text('Banco:', this.margin + 3, yPos);
+      this.doc.setFont('helvetica', 'normal');
+      this.doc.text(this.businessSettings.bank_name, this.margin + 20, yPos);
       yPos += 5;
     }
     if (this.businessSettings.iban) {
-      this.doc.text(`IBAN: ${this.businessSettings.iban}`, this.margin + 5, yPos);
+      this.doc.setFont('helvetica', 'bold');
+      this.doc.text('IBAN:', this.margin + 3, yPos);
+      this.doc.setFont('helvetica', 'normal');
+      this.doc.text(this.businessSettings.iban, this.margin + 20, yPos);
       yPos += 5;
     }
     if (this.businessSettings.account_holder) {
-      this.doc.text(`Titular: ${this.businessSettings.account_holder}`, this.margin + 5, yPos);
+      this.doc.setFont('helvetica', 'bold');
+      this.doc.text('Titular:', this.margin + 3, yPos);
+      this.doc.setFont('helvetica', 'normal');
+      this.doc.text(this.businessSettings.account_holder, this.margin + 20, yPos);
     }
 
-    return startY + 30;
+    return startY + 28;
   }
 
-  private addFooter(invoiceData: InvoiceData, startY: number) {
-    const footerY = this.pageHeight - 30;
+  private async addFooter(invoiceData: InvoiceData, startY: number) {
+    const footerY = this.pageHeight - 32;
 
-    // Signature
-    if (this.businessSettings.signature_url) {
-      // Signature will be added asynchronously
-    }
+    // Decorative line
+    this.doc.setDrawColor(...this.primaryColor);
+    this.doc.setLineWidth(0.5);
+    this.doc.line(this.margin, footerY - 5, this.pageWidth - this.margin, footerY - 5);
 
     // Legal terms
     if (this.businessSettings.terms_footer) {
-      this.doc.setFontSize(8);
-      this.doc.setTextColor(120, 120, 120);
+      this.doc.setFontSize(7);
+      this.doc.setTextColor(100, 100, 100);
       this.doc.setFont('helvetica', 'italic');
       const terms = this.doc.splitTextToSize(this.businessSettings.terms_footer, this.pageWidth - 2 * this.margin);
-      this.doc.text(terms, this.margin, footerY);
+      this.doc.text(terms, this.pageWidth / 2, footerY, { align: 'center' });
     }
 
-    // Page number
-    this.doc.setFontSize(8);
+    // Bottom bar with page number
+    this.doc.setFillColor(...this.primaryColor);
+    this.doc.rect(0, this.pageHeight - 12, this.pageWidth, 12, 'F');
+    
+    this.doc.setFontSize(7);
+    this.doc.setTextColor(255, 255, 255);
     this.doc.text(
-      `Página 1 de 1`,
+      `Documento gerado eletronicamente | Página 1 de 1`,
       this.pageWidth / 2,
-      this.pageHeight - 10,
+      this.pageHeight - 6,
       { align: 'center' }
     );
   }
