@@ -17,7 +17,7 @@ interface ContractData {
   cancellation_policy_text: string | null;
   revision_policy: string | null;
   clauses: any;
-  pdf_url: string | null;
+  
   clients: {
     name: string;
     email: string;
@@ -156,11 +156,6 @@ export default function ContractSign() {
             signature_url: publicUrl,
           });
 
-          await supabase
-            .from('contracts')
-            .update({ pdf_url: pdfUrl })
-            .eq('id', contract!.id);
-
           // Send signed copy email
           await supabase.functions.invoke('send-contract-email', {
             body: {
@@ -222,16 +217,6 @@ export default function ContractSign() {
           <p className="text-muted-foreground mb-4">
             O contrato foi assinado com sucesso. Uma cópia foi enviada para o seu email.
           </p>
-          {contract?.pdf_url && (
-            <Button
-              variant="outline"
-              onClick={() => window.open(contract.pdf_url, '_blank')}
-              className="mb-4"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Baixar Contrato Assinado
-            </Button>
-          )}
           <p className="text-sm text-muted-foreground">
             Você pode fechar esta página.
           </p>
@@ -254,18 +239,11 @@ export default function ContractSign() {
             </div>
           </div>
 
-          {contract.pdf_url && (
-            <div className="mb-6">
-              <Button
-                variant="outline"
-                onClick={() => window.open(contract.pdf_url, '_blank')}
-                className="w-full"
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                Ver Contrato Completo em PDF
-              </Button>
-            </div>
-          )}
+          <div className="mb-6 p-4 bg-muted rounded-lg">
+            <p className="text-sm text-muted-foreground">
+              Revise os termos do contrato abaixo e assine no final da página.
+            </p>
+          </div>
 
           <div className="prose max-w-none mb-8">
             <h2>Termos e Condições</h2>

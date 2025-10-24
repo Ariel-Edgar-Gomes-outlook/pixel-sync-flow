@@ -12,7 +12,6 @@ export interface Quote {
   validity_date: string | null;
   status: 'draft' | 'sent' | 'accepted' | 'rejected';
   currency: string | null;
-  pdf_url: string | null;
   accepted_at: string | null;
   created_at: string;
   updated_at: string;

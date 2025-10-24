@@ -124,13 +124,6 @@ export default function Quotes() {
 
       const newInvoice = await createInvoice.mutateAsync(invoiceData);
 
-      const pdfUrl = await generateInvoicePDF(newInvoice, client, businessSettings);
-
-      await supabase
-        .from('invoices')
-        .update({ pdf_url: pdfUrl })
-        .eq('id', newInvoice.id);
-
       await supabase
         .from('business_settings')
         .update({ next_invoice_number: nextNumber + 1 })

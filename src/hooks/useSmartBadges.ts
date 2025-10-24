@@ -83,16 +83,7 @@ export function useSmartBadges({ entityType, entity }: UseSmartBadgesProps): Sma
           }
         }
 
-        // Invoice paid but no receipt
-        if (entity.status === 'paid' && !entity.receipt_url) {
-          result.push({
-            id: 'invoice-no-receipt',
-            label: '📄 Gerar Recibo',
-            variant: 'outline',
-            priority: 'info',
-            tooltip: 'Fatura paga - gerar recibo',
-          });
-        }
+        // Invoice paid but no receipt - removed (receipts now generated on-demand)
         break;
 
       case 'job':
@@ -131,16 +122,7 @@ export function useSmartBadges({ entityType, entity }: UseSmartBadgesProps): Sma
         break;
 
       case 'payment':
-        // Payment paid without receipt
-        if (entity.status === 'paid' && !entity.receipt_url && !entity.receipt_link) {
-          result.push({
-            id: 'payment-no-receipt',
-            label: '📄 Gerar Recibo',
-            variant: 'success',
-            priority: 'attention',
-            tooltip: 'Pagamento registado - gerar recibo',
-          });
-        }
+        // Payment paid without receipt - removed (receipts now generated on-demand)
 
         // Payment overdue
         if (entity.status === 'pending' && entity.due_date && isPast(parseISO(entity.due_date))) {
