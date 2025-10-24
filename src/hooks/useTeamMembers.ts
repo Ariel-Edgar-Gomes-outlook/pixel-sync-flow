@@ -3,12 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface TeamMember {
   id: string;
-  user_id: string;
   name: string;
   email: string;
   phone: string | null;
   type: string;
+  notes: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export function useTeamMembers() {
@@ -16,9 +17,8 @@ export function useTeamMembers() {
     queryKey: ['team_members'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('team_members')
         .select('*')
-        .neq('type', 'client')
         .order('name');
       
       if (error) throw error;
@@ -36,18 +36,19 @@ export function useCreateTeamMember() {
       email: string;
       phone?: string;
       type: string;
+      notes?: string;
     }) => {
-      // Create a dummy user_id for team members (they don't need auth)
-      const dummyUserId = crypto.randomUUID();
+      const { data: { user } } = await supabase.auth.getUser();
       
       const { data, error } = await supabase
-        .from('profiles')
+        .from('team_members')
         .insert({
-          user_id: dummyUserId,
           name: member.name,
           email: member.email,
           phone: member.phone || null,
           type: member.type,
+          notes: member.notes || null,
+          created_by: user?.id,
         })
         .select()
         .single();
@@ -57,7 +58,6 @@ export function useCreateTeamMember() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team_members'] });
-      queryClient.invalidateQueries({ queryKey: ['team_profiles'] });
     },
   });
 }
@@ -75,9 +75,10 @@ export function useUpdateTeamMember() {
       email?: string;
       phone?: string;
       type?: string;
+      notes?: string;
     }) => {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('team_members')
         .update(updates)
         .eq('id', id)
         .select()
@@ -88,7 +89,6 @@ export function useUpdateTeamMember() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team_members'] });
-      queryClient.invalidateQueries({ queryKey: ['team_profiles'] });
     },
   });
 }
@@ -99,7 +99,7 @@ export function useDeleteTeamMember() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('profiles')
+        .from('team_members')
         .delete()
         .eq('id', id);
 
@@ -107,7 +107,6 @@ export function useDeleteTeamMember() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team_members'] });
-      queryClient.invalidateQueries({ queryKey: ['team_profiles'] });
     },
   });
 }

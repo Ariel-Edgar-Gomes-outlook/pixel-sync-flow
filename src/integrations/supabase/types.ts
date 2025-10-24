@@ -749,6 +749,7 @@ export type Database = {
           id: string
           job_id: string
           role: string | null
+          team_member_id: string | null
           user_id: string
         }
         Insert: {
@@ -756,6 +757,7 @@ export type Database = {
           id?: string
           job_id: string
           role?: string | null
+          team_member_id?: string | null
           user_id: string
         }
         Update: {
@@ -763,6 +765,7 @@ export type Database = {
           id?: string
           job_id?: string
           role?: string | null
+          team_member_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -771,6 +774,13 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_team_members_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
         ]
@@ -1312,6 +1322,42 @@ export type Database = {
           name?: string
           next_maintenance_date?: string | null
           status?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
           type?: string
           updated_at?: string
         }

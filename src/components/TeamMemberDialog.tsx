@@ -65,6 +65,9 @@ export function TeamMemberDialog({ trigger }: TeamMemberDialogProps) {
         <DialogHeader>
           <DialogTitle>Adicionar Membro de Equipe</DialogTitle>
         </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Crie um novo membro de equipe que poderá ser atribuído a projetos
+        </p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

@@ -20,15 +20,13 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
   const [selectedRole, setSelectedRole] = useState("");
   const queryClient = useQueryClient();
 
-  // Fetch only team members (NOT clients)
-  // Filter by type: photographer, assistant, editor, admin
+  // Fetch all team members
   const { data: allUsers } = useQuery({
-    queryKey: ['team_profiles'],
+    queryKey: ['team_members'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('team_members')
         .select('*')
-        .neq('type', 'client')
         .order('name');
       
       if (error) throw error;
@@ -36,7 +34,7 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
     },
   });
 
-  // Fetch team members for this job
+  // Fetch team members assigned to this job
   const { data: teamMembers } = useQuery({
     queryKey: ['job_team_members', jobId],
     queryFn: async () => {
@@ -44,13 +42,15 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
         .from('job_team_members')
         .select(`
           *,
-          profiles:user_id (
+          team_members:team_member_id (
             id,
             name,
-            email
+            email,
+            type
           )
         `)
-        .eq('job_id', jobId);
+        .eq('job_id', jobId)
+        .not('team_member_id', 'is', null);
       
       if (error) throw error;
       return data;
@@ -59,12 +59,13 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
   });
 
   const addMember = useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+    mutationFn: async ({ memberId, role }: { memberId: string; role: string }) => {
       const { data, error } = await supabase
         .from('job_team_members')
         .insert({
           job_id: jobId,
-          user_id: userId,
+          team_member_id: memberId,
+          user_id: memberId, // Keep for backward compatibility
           role: role,
         })
         .select()
@@ -75,12 +76,13 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['job_team_members', jobId] });
-      toast.success("Membro adicionado!");
+      toast.success("Membro adicionado ao projeto!");
       setSelectedUserId("");
       setSelectedRole("");
     },
-    onError: () => {
-      toast.error("Erro ao adicionar membro");
+    onError: (error: any) => {
+      console.error('Error adding member:', error);
+      toast.error("Erro ao adicionar membro ao projeto");
     },
   });
 
@@ -104,15 +106,15 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
 
   const handleAddMember = () => {
     if (!selectedUserId || !selectedRole) {
-      toast.error("Selecione um usuário e função");
+      toast.error("Selecione um membro e função");
       return;
     }
 
-    addMember.mutate({ userId: selectedUserId, role: selectedRole });
+    addMember.mutate({ memberId: selectedUserId, role: selectedRole });
   };
 
   const availableUsers = allUsers?.filter(
-    user => !teamMembers?.some(member => member.user_id === user.user_id)
+    user => !teamMembers?.some(member => member.team_member_id === user.id)
   );
 
   return (
@@ -150,7 +152,7 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
               </SelectTrigger>
               <SelectContent>
                 {availableUsers.map((user) => (
-                  <SelectItem key={user.user_id} value={user.user_id}>
+                  <SelectItem key={user.id} value={user.id}>
                     {user.name} - {user.type || 'Membro'}
                   </SelectItem>
                 ))}
@@ -191,16 +193,19 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
                 <div className="flex items-center gap-3">
                   <Avatar>
                     <AvatarFallback>
-                      {member.profiles?.name?.charAt(0).toUpperCase() || 'U'}
+                      {member.team_members?.name?.charAt(0).toUpperCase() || 'M'}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium text-sm">{member.profiles?.name || 'Usuário'}</p>
-                    <p className="text-xs text-muted-foreground">{member.profiles?.email}</p>
+                    <p className="font-medium text-sm">{member.team_members?.name || 'Membro'}</p>
+                    <p className="text-xs text-muted-foreground">{member.team_members?.email}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{member.role || 'Membro'}</Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {member.team_members?.type || 'Tipo'}
+                  </Badge>
+                  <Badge variant="secondary">{member.role || 'Função'}</Badge>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -216,7 +221,7 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
         ) : (
           <Card className="p-8">
             <p className="text-center text-muted-foreground text-sm">
-              Nenhum membro da equipa atribuído
+              Nenhum membro da equipa atribuído a este projeto
             </p>
           </Card>
         )}
