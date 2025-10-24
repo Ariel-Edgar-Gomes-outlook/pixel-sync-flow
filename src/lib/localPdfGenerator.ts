@@ -143,7 +143,11 @@ export class ProfessionalPDFGenerator {
   private margin: number = 20;
 
   constructor(businessSettings: BusinessSettings) {
-    this.doc = new jsPDF();
+    this.doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
     this.businessSettings = businessSettings;
     this.pageWidth = this.doc.internal.pageSize.getWidth();
     this.pageHeight = this.doc.internal.pageSize.getHeight();
@@ -483,7 +487,11 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   }
 
   // 4. Generate PROFESSIONAL CONTRACT PDF (Following Reference Designs)
-  const doc = new jsPDF();
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 20;
@@ -501,17 +509,39 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   let yPos = margin;
   
   // === PROFESSIONAL HEADER ===
-  // Logo (centered at top or left aligned)
+  // Logo (centered at top, maintaining aspect ratio)
   if (businessSettings.logo_url) {
     try {
       const logoData = await loadImageWithCache(businessSettings.logo_url);
       if (logoData) {
-        // Centered logo at top
-        doc.addImage(logoData, 'PNG', (pageWidth - 50) / 2, yPos, 50, 25);
-        yPos += 30;
+        // Calculate logo dimensions maintaining aspect ratio
+        // Create a temporary image to get actual dimensions
+        const img = new Image();
+        img.src = logoData;
+        await new Promise((resolve) => {
+          img.onload = resolve;
+        });
+        
+        const logoMaxWidth = 40;
+        const logoMaxHeight = 30;
+        const aspectRatio = img.width / img.height;
+        
+        let logoWidth = logoMaxWidth;
+        let logoHeight = logoMaxWidth / aspectRatio;
+        
+        // If height exceeds max, scale by height instead
+        if (logoHeight > logoMaxHeight) {
+          logoHeight = logoMaxHeight;
+          logoWidth = logoMaxHeight * aspectRatio;
+        }
+        
+        // Center the logo
+        const logoX = (pageWidth - logoWidth) / 2;
+        doc.addImage(logoData, 'PNG', logoX, yPos, logoWidth, logoHeight);
+        yPos += logoHeight + 5;
       }
     } catch (e) {
-      console.warn('Failed to load logo');
+      console.warn('Failed to load logo:', e);
       yPos += 5;
     }
   } else {
@@ -891,7 +921,11 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
   }
 
   // 4. Generate PDF with jsPDF
-  const doc = new jsPDF();
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
   let yPos = 20;
 
   // Header with logo (using cache)
@@ -1181,7 +1215,11 @@ export async function generateReceiptPDFLocal(paymentId: string): Promise<Blob> 
   }
 
   // 4. Generate PDF with jsPDF
-  const doc = new jsPDF();
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   

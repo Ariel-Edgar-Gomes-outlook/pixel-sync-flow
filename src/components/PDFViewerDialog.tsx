@@ -206,7 +206,10 @@ export function PDFViewerDialog({
   };
 
   const handleDownload = async () => {
-    if (!currentPdfUrl) return;
+    if (!currentPdfUrl) {
+      toast.error('Nenhum PDF disponível para download');
+      return;
+    }
     
     try {
       // Determine filename
@@ -217,38 +220,55 @@ export function PDFViewerDialog({
         filename = `${pdfSource.entityType}_${pdfSource.entityId.substring(0, 8)}.pdf`;
       }
       
-      // For blob URLs, we need to fetch and download properly
-      if (currentPdfUrl.startsWith('blob:')) {
-        const response = await fetch(currentPdfUrl);
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      } else {
-        const link = document.createElement('a');
-        link.href = currentPdfUrl;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+      // For all URLs, fetch the blob and create a download link
+      const response = await fetch(currentPdfUrl);
+      if (!response.ok) {
+        throw new Error('Falha ao carregar PDF');
       }
       
-      toast.success('Download concluído com sucesso');
+      const blob = await response.blob();
+      
+      // Create a temporary URL for the blob
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Create and trigger download link
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+      }, 100);
+      
+      toast.success('Download iniciado com sucesso');
     } catch (error) {
       console.error('Download error:', error);
-      toast.error('Erro ao fazer download. Tente abrir em nova aba.');
+      toast.error('Erro ao fazer download. Tente abrir em nova aba e salvar de lá.');
     }
   };
 
   const handleOpenInNewTab = () => {
-    if (currentPdfUrl) {
-      window.open(currentPdfUrl, '_blank');
-      toast.success('PDF aberto em nova aba');
+    if (!currentPdfUrl) {
+      toast.error('Nenhum PDF disponível');
+      return;
+    }
+    
+    try {
+      const newWindow = window.open(currentPdfUrl, '_blank', 'noopener,noreferrer');
+      if (newWindow) {
+        newWindow.focus();
+        toast.success('PDF aberto em nova aba');
+      } else {
+        toast.error('Por favor, permita pop-ups para abrir em nova aba');
+      }
+    } catch (error) {
+      console.error('Open in new tab error:', error);
+      toast.error('Erro ao abrir em nova aba. Verifique as configurações de pop-up do navegador.');
     }
   };
 
@@ -256,47 +276,26 @@ export function PDFViewerDialog({
     if (!currentPdfUrl) return;
     
     try {
-      // For blob URLs, we need to create a proper iframe to print
-      if (currentPdfUrl.startsWith('blob:')) {
-        const response = await fetch(currentPdfUrl);
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = url;
-        document.body.appendChild(iframe);
-        
-        iframe.onload = () => {
+      // Create a new window/tab and trigger print from there
+      const printWindow = window.open(currentPdfUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
           setTimeout(() => {
-            if (iframe.contentWindow) {
-              iframe.contentWindow.print();
-            }
-            // Clean up after printing
-            setTimeout(() => {
-              document.body.removeChild(iframe);
-              window.URL.revokeObjectURL(url);
-            }, 1000);
-          }, 500);
-        };
-        
-        toast.success('Preparando impressão...');
-      } else {
-        const printWindow = window.open(currentPdfUrl, '_blank');
-        if (printWindow) {
-          printWindow.onload = () => {
-            setTimeout(() => {
+            try {
               printWindow.print();
-            }, 500);
-          };
-          toast.success('Abrindo janela de impressão');
-        } else {
-          toast.error('Por favor, permita pop-ups para imprimir');
-        }
+            } catch (e) {
+              console.error('Print error:', e);
+              toast.info('Por favor, use Ctrl+P ou Cmd+P para imprimir na janela aberta');
+            }
+          }, 1000);
+        };
+        toast.success('Abrindo PDF para impressão');
+      } else {
+        toast.error('Por favor, permita pop-ups para imprimir');
       }
     } catch (error) {
       console.error('Print error:', error);
-      toast.error('Erro ao imprimir. Tente abrir em nova aba primeiro.');
+      toast.error('Erro ao imprimir. Por favor, abra em nova aba e use Ctrl+P');
     }
   };
 
