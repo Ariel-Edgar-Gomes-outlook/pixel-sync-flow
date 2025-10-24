@@ -4,9 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, TrendingUp, Users, Target, Award, ArrowUpDown, Download } from "lucide-react";
+import { Search, Plus, Edit, TrendingUp, Users, Target, Award, ArrowUpDown, Download, UserCheck } from "lucide-react";
 import { useLeads } from "@/hooks/useLeads";
 import { LeadDialog } from "@/components/LeadDialog";
+import { LeadConversionDialog } from "@/components/LeadConversionDialog";
 import { Lead } from "@/hooks/useLeads";
 import { exportToExcel, formatLeadsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
@@ -23,6 +24,7 @@ export default function Leads() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [conversionDialogOpen, setConversionDialogOpen] = useState(false);
   const [sortBy, setSortBy] = useState<"date" | "probability">("date");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const { data: leads, isLoading } = useLeads();
@@ -30,6 +32,11 @@ export default function Leads() {
   const handleEdit = (lead: any) => {
     setSelectedLead(lead);
     setDialogOpen(true);
+  };
+
+  const handleConvert = (lead: any) => {
+    setSelectedLead(lead);
+    setConversionDialogOpen(true);
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -232,6 +239,17 @@ export default function Leads() {
                       <p className="text-xs text-muted-foreground mt-2">
                         {new Date(lead.created_at).toLocaleDateString('pt-PT')}
                       </p>
+                      {status === 'proposal_sent' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-2 w-full"
+                          onClick={() => handleConvert(lead)}
+                        >
+                          <UserCheck className="h-3 w-3 mr-1" />
+                          Converter
+                        </Button>
+                      )}
                     </div>
                     <Button
                       variant="ghost"
@@ -255,6 +273,12 @@ export default function Leads() {
       </div>
         </>
       )}
+
+      <LeadConversionDialog
+        lead={selectedLead || null}
+        open={conversionDialogOpen}
+        onOpenChange={setConversionDialogOpen}
+      />
     </div>
   );
 }

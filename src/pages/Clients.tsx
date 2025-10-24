@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Mail, Phone, MapPin, ExternalLink, Edit, Users, UserPlus, Building, Download } from "lucide-react";
+import { Plus, Search, Mail, Phone, MapPin, ExternalLink, Edit, Users, UserPlus, Building, Download, Eye } from "lucide-react";
 import { useClients } from "@/hooks/useClients";
 import { ClientDialog } from "@/components/ClientDialog";
+import { ClientDetailsDialog } from "@/components/ClientDetailsDialog";
 import { exportToExcel, formatClientsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -14,6 +15,7 @@ export default function Clients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"name" | "recent">("name");
   const { data: clients, isLoading } = useClients();
@@ -21,6 +23,11 @@ export default function Clients() {
   const handleEdit = (client: any) => {
     setSelectedClient(client);
     setIsDialogOpen(true);
+  };
+
+  const handleViewDetails = (client: any) => {
+    setSelectedClient(client);
+    setDetailsDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
@@ -212,13 +219,15 @@ export default function Clients() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 justify-end sm:justify-center">
-                  {client.external_folder_link && (
-                    <Button variant="ghost" size="sm" asChild>
-                      <a href={client.external_folder_link} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </Button>
-                  )}
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    onClick={() => handleViewDetails(client)}
+                    className="gap-2"
+                  >
+                    <Eye className="h-3 w-3" />
+                    <span className="hidden sm:inline">Detalhes</span>
+                  </Button>
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -228,6 +237,13 @@ export default function Clients() {
                     <Edit className="h-3 w-3" />
                     <span className="hidden sm:inline">Editar</span>
                   </Button>
+                  {client.external_folder_link && (
+                    <Button variant="ghost" size="sm" asChild>
+                      <a href={client.external_folder_link} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  )}
                 </div>
               </div>
             ))
@@ -240,6 +256,12 @@ export default function Clients() {
         client={selectedClient} 
         open={isDialogOpen} 
         onOpenChange={handleCloseDialog}
+      />
+
+      <ClientDetailsDialog
+        client={selectedClient}
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
       />
     </div>
   );
