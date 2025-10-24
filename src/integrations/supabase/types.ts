@@ -415,7 +415,6 @@ export type Database = {
           issued_at: string | null
           job_id: string | null
           late_delivery_clause: string | null
-          pdf_url: string | null
           reschedule_policy: string | null
           revision_policy: string | null
           signature_token: string | null
@@ -438,7 +437,6 @@ export type Database = {
           issued_at?: string | null
           job_id?: string | null
           late_delivery_clause?: string | null
-          pdf_url?: string | null
           reschedule_policy?: string | null
           revision_policy?: string | null
           signature_token?: string | null
@@ -461,7 +459,6 @@ export type Database = {
           issued_at?: string | null
           job_id?: string | null
           late_delivery_clause?: string | null
-          pdf_url?: string | null
           reschedule_policy?: string | null
           revision_policy?: string | null
           signature_token?: string | null
@@ -616,7 +613,6 @@ export type Database = {
           notes: string | null
           paid_date: string | null
           payment_instructions: string | null
-          pdf_url: string | null
           quote_id: string | null
           status: string | null
           subtotal: number
@@ -643,7 +639,6 @@ export type Database = {
           notes?: string | null
           paid_date?: string | null
           payment_instructions?: string | null
-          pdf_url?: string | null
           quote_id?: string | null
           status?: string | null
           subtotal: number
@@ -670,7 +665,6 @@ export type Database = {
           notes?: string | null
           paid_date?: string | null
           payment_instructions?: string | null
-          pdf_url?: string | null
           quote_id?: string | null
           status?: string | null
           subtotal?: number
@@ -1032,11 +1026,7 @@ export type Database = {
           paid_at: string | null
           payment_plan_id: string | null
           quote_id: string | null
-          receipt_downloads: number | null
-          receipt_generated_at: string | null
-          receipt_link: string | null
           receipt_sent_at: string | null
-          receipt_url: string | null
           status: Database["public"]["Enums"]["payment_status"]
           type: string
           updated_at: string
@@ -1054,11 +1044,7 @@ export type Database = {
           paid_at?: string | null
           payment_plan_id?: string | null
           quote_id?: string | null
-          receipt_downloads?: number | null
-          receipt_generated_at?: string | null
-          receipt_link?: string | null
           receipt_sent_at?: string | null
-          receipt_url?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           type: string
           updated_at?: string
@@ -1076,11 +1062,7 @@ export type Database = {
           paid_at?: string | null
           payment_plan_id?: string | null
           quote_id?: string | null
-          receipt_downloads?: number | null
-          receipt_generated_at?: string | null
-          receipt_link?: string | null
           receipt_sent_at?: string | null
-          receipt_url?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           type?: string
           updated_at?: string
@@ -1205,7 +1187,6 @@ export type Database = {
           id: string
           items: Json
           job_id: string | null
-          pdf_url: string | null
           status: Database["public"]["Enums"]["quote_status"]
           tax: number | null
           total: number
@@ -1222,7 +1203,6 @@ export type Database = {
           id?: string
           items?: Json
           job_id?: string | null
-          pdf_url?: string | null
           status?: Database["public"]["Enums"]["quote_status"]
           tax?: number | null
           total: number
@@ -1239,7 +1219,6 @@ export type Database = {
           id?: string
           items?: Json
           job_id?: string | null
-          pdf_url?: string | null
           status?: Database["public"]["Enums"]["quote_status"]
           tax?: number | null
           total?: number
