@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, UserPlus, X } from "lucide-react";
+import { Users, UserPlus, X, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { TeamMemberDialog } from "./TeamMemberDialog";
 
 interface TeamManagementProps {
   jobId: string;
@@ -115,37 +117,45 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Equipa do Projeto
-        </h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          Adicione fotógrafos, assistentes e outros membros da sua equipe (não clientes)
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Equipa do Projeto
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Adicione fotógrafos, assistentes e outros membros da sua equipe
+          </p>
+        </div>
+        <TeamMemberDialog />
       </div>
 
+      {/* Alert if no team members available */}
+      {(!availableUsers || availableUsers.length === 0) && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Não há membros de equipe disponíveis. Crie novos membros usando o botão "Novo Membro de Equipe" acima.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Add Member Form */}
-      <Card className="p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecionar fotógrafo/equipe" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableUsers && availableUsers.length > 0 ? (
-                availableUsers.map((user) => (
+      {availableUsers && availableUsers.length > 0 && (
+        <Card className="p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecionar membro" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableUsers.map((user) => (
                   <SelectItem key={user.user_id} value={user.user_id}>
-                    {user.name} ({user.email})
+                    {user.name} - {user.type || 'Membro'}
                   </SelectItem>
-                ))
-              ) : (
-                <div className="p-2 text-sm text-muted-foreground">
-                  Nenhum usuário disponível. Certifique-se que há perfis cadastrados no sistema.
-                </div>
-              )}
-            </SelectContent>
-          </Select>
+                ))}
+              </SelectContent>
+            </Select>
 
           <Select value={selectedRole} onValueChange={setSelectedRole}>
             <SelectTrigger>
@@ -160,16 +170,17 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
             </SelectContent>
           </Select>
 
-          <Button 
-            onClick={handleAddMember}
-            disabled={addMember.isPending}
-            className="gap-2"
-          >
-            <UserPlus className="h-4 w-4" />
-            Adicionar
-          </Button>
-        </div>
-      </Card>
+            <Button 
+              onClick={handleAddMember}
+              disabled={addMember.isPending}
+              className="gap-2"
+            >
+              <UserPlus className="h-4 w-4" />
+              Adicionar ao Projeto
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {/* Team Members List */}
       <div className="space-y-2">
