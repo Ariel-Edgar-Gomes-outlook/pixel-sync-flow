@@ -14,14 +14,20 @@ export function useWorkflowAutomation() {
   useEffect(() => {
     const runAutomations = async () => {
       try {
-        // Get current data
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Get current data with user filters
         const { data: invoices } = await supabase
           .from('invoices')
-          .select('id, status, due_date');
+          .select('id, status, due_date, user_id')
+          .eq('user_id', user.id);
 
         const { data: payments } = await supabase
           .from('payments')
-          .select('id, status, due_date');
+          .select('id, status, due_date, created_by')
+          .eq('created_by', user.id);
 
         const now = new Date();
 

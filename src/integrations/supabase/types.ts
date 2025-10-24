@@ -1469,6 +1469,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_system_notification: {
+        Args: { _payload: Json; _recipient_id: string; _type: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

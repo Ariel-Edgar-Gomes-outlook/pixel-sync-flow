@@ -68,6 +68,10 @@ export function useWorkflowExecution() {
     try {
       setProgress(20);
       
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+      
       // Step 1: Create Job
       const { data: job, error: jobError } = await supabase
         .from('jobs')
@@ -78,6 +82,7 @@ export function useWorkflowExecution() {
           status: 'confirmed',
           start_datetime: new Date().toISOString(),
           estimated_revenue: quoteData.total,
+          created_by: user.id,
         })
         .select()
         .single();
@@ -134,11 +139,16 @@ export function useWorkflowExecution() {
     try {
       setProgress(30);
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       // Get business settings for invoice numbering
       const { data: settings } = await supabase
         .from('business_settings')
         .select('*')
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
 
       const invoiceNumber = `${settings?.invoice_prefix || 'FT'}${String(settings?.next_invoice_number || 1).padStart(4, '0')}`;
 
@@ -149,7 +159,7 @@ export function useWorkflowExecution() {
           client_id: jobData.client_id,
           job_id: jobId,
           invoice_number: invoiceNumber,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user.id,
           issue_date: new Date().toISOString().split('T')[0],
           due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           items: [{
@@ -224,11 +234,16 @@ export function useWorkflowExecution() {
     try {
       setProgress(30);
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       // Create Quote
       const { data: quote, error: quoteError } = await supabase
         .from('quotes')
         .insert({
           client_id: leadData.client_id,
+          created_by: user.id,
           items: [
             {
               description: 'Serviço fotográfico',

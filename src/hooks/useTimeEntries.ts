@@ -17,12 +17,27 @@ export function useTimeEntries(jobId?: string) {
   return useQuery({
     queryKey: ['time-entries', jobId],
     queryFn: async () => {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       let query = supabase
         .from('time_entries')
         .select('*')
+        .eq('user_id', user.id)
         .order('entry_date', { ascending: false });
 
       if (jobId) {
+        // Verify job belongs to user
+        const { data: job } = await supabase
+          .from('jobs')
+          .select('id')
+          .eq('id', jobId)
+          .eq('created_by', user.id)
+          .maybeSingle();
+
+        if (!job) throw new Error('Job not found or access denied');
+        
         query = query.eq('job_id', jobId);
       }
 

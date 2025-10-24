@@ -55,7 +55,7 @@ export function useNotificationAutomation() {
             .select('id')
             .eq('recipient_id', userId)
             .eq('type', 'job_reminder')
-            .contains('payload', { job_id: job.id })
+            .eq('payload->job_id', job.id)
             .eq('read', false);
 
           if (!existing || existing.length === 0) {
@@ -86,7 +86,7 @@ export function useNotificationAutomation() {
               .select('id')
               .eq('recipient_id', userId)
               .eq('type', 'lead_follow_up')
-              .contains('payload', { lead_id: lead.id })
+              .eq('payload->lead_id', lead.id)
               .eq('read', false);
 
             if (!existing || existing.length === 0) {
@@ -118,7 +118,7 @@ export function useNotificationAutomation() {
               .select('id')
               .eq('recipient_id', userId)
               .eq('type', 'payment_overdue')
-              .contains('payload', { payment_id: payment.id })
+              .eq('payload->payment_id', payment.id)
               .eq('read', false);
 
             if (!existing || existing.length === 0) {
@@ -151,7 +151,7 @@ export function useNotificationAutomation() {
               .select('id')
               .eq('recipient_id', userId)
               .eq('type', 'maintenance_reminder')
-              .contains('payload', { resource_id: resource.id })
+              .eq('payload->resource_id', resource.id)
               .eq('read', false);
 
             if (!existing || existing.length === 0) {
