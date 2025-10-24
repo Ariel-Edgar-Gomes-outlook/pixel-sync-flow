@@ -62,7 +62,7 @@ export function useJob(id: string) {
           job_team_members (
             id,
             role,
-            profiles (
+            team_members (
               id,
               name,
               email
