@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { InvoiceDialog } from '@/components/InvoiceDialog';
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
+import { EntityQuickLinks } from '@/components/EntityQuickLinks';
 import { useInvoices, useInvoiceStats, useUpdateInvoice } from '@/hooks/useInvoices';
 import {
   Plus,
@@ -25,6 +26,9 @@ import {
   AlertCircle,
   DollarSign,
   TrendingUp,
+  Users,
+  Briefcase,
+  Receipt,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -244,25 +248,31 @@ export default function Invoices() {
                       {invoice.is_proforma && <Badge variant="outline">Pro-Forma</Badge>}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">Cliente:</span>
-                        <p className="font-medium">{invoice.clients?.name}</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Data de Emissão:</span>
-                        <p className="font-medium">
-                          {new Date(invoice.issue_date).toLocaleDateString('pt-PT')}
-                        </p>
-                      </div>
-                      {invoice.due_date && (
+                    <div className="space-y-3">
+                      <EntityQuickLinks 
+                        links={[
+                          { type: 'client', id: invoice.client_id, name: invoice.clients?.name || 'Cliente' },
+                          ...(invoice.quote_id ? [{ type: 'quote' as const, id: invoice.quote_id, name: 'Orçamento', status: 'origem' }] : []),
+                          ...(invoice.job_id ? [{ type: 'job' as const, id: invoice.job_id, name: 'Job' }] : []),
+                        ]}
+                      />
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                         <div>
-                          <span className="text-muted-foreground">Vencimento:</span>
+                          <span className="text-muted-foreground">Data de Emissão:</span>
                           <p className="font-medium">
-                            {new Date(invoice.due_date).toLocaleDateString('pt-PT')}
+                            {new Date(invoice.issue_date).toLocaleDateString('pt-PT')}
                           </p>
                         </div>
-                      )}
+                        {invoice.due_date && (
+                          <div>
+                            <span className="text-muted-foreground">Vencimento:</span>
+                            <p className="font-medium">
+                              {new Date(invoice.due_date).toLocaleDateString('pt-PT')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4 pt-2 border-t">

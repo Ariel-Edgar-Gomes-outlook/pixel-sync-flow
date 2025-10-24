@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase, Download, CreditCard, Sparkles } from "lucide-react";
+import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase, Download, CreditCard, Sparkles, FileText, Package, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobs } from "@/hooks/useJobs";
 import { JobDialog } from "@/components/JobDialog";
 import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
 import { QuickStartWizard } from "@/components/QuickStartWizard";
+import { JobRelationsPanel } from "@/components/JobRelationsPanel";
 import { exportToExcel, formatJobsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -224,63 +225,71 @@ export default function Jobs() {
                     key={job.id}
                     className="p-4 sm:p-5 rounded-lg border border-border bg-card hover:shadow-md transition-all"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div className="flex flex-col lg:flex-row gap-4">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <h3 className="text-base sm:text-lg font-semibold text-foreground">{job.title}</h3>
-                          <Badge variant={statusConfig[job.status as keyof typeof statusConfig]?.variant || 'secondary'} className="text-xs">
-                            {statusConfig[job.status as keyof typeof statusConfig]?.label || job.status}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">{job.type}</Badge>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mt-3 sm:mt-4">
-                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4 shrink-0" />
-                            <span>
-                              {new Date(job.start_datetime).toLocaleDateString("pt-PT")} às{" "}
-                              {new Date(job.start_datetime).toLocaleTimeString("pt-PT", { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          {job.location && (
-                            <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                              <MapPin className="h-4 w-4 shrink-0" />
-                              <span className="truncate">{job.location}</span>
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <h3 className="text-base sm:text-lg font-semibold text-foreground">{job.title}</h3>
+                              <Badge variant={statusConfig[job.status as keyof typeof statusConfig]?.variant || 'secondary'} className="text-xs">
+                                {statusConfig[job.status as keyof typeof statusConfig]?.label || job.status}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">{job.type}</Badge>
                             </div>
-                          )}
-                          <div className="text-xs sm:text-sm">
-                            <span className="text-muted-foreground">Cliente: </span>
-                            <span className="font-medium text-foreground">
-                              {job.clients?.name || 'Não especificado'}
-                            </span>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mt-3 sm:mt-4">
+                              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                                <Calendar className="h-4 w-4 shrink-0" />
+                                <span>
+                                  {new Date(job.start_datetime).toLocaleDateString("pt-PT")} às{" "}
+                                  {new Date(job.start_datetime).toLocaleTimeString("pt-PT", { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              {job.location && (
+                                <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                                  <MapPin className="h-4 w-4 shrink-0" />
+                                  <span className="truncate">{job.location}</span>
+                                </div>
+                              )}
+                              <div className="text-xs sm:text-sm">
+                                <span className="text-muted-foreground">Cliente: </span>
+                                <span className="font-medium text-foreground">
+                                  {job.clients?.name || 'Não especificado'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-2 sm:ml-6">
+                            {job.estimated_revenue && (
+                              <div className="text-xl sm:text-2xl font-bold text-foreground">Kz {Number(job.estimated_revenue).toFixed(0)}</div>
+                            )}
+                            <div className="flex flex-col gap-2">
+                              <JobDialog job={job}>
+                                <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm">
+                                  <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
+                                  Editar
+                                </Button>
+                              </JobDialog>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="gap-2 text-xs sm:text-sm"
+                                onClick={() => {
+                                  setPaymentPlanJob(job);
+                                  setPaymentPlanDialogOpen(true);
+                                }}
+                              >
+                                <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
+                                Plano
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-2 sm:ml-6">
-                        {job.estimated_revenue && (
-                          <div className="text-xl sm:text-2xl font-bold text-foreground">Kz {Number(job.estimated_revenue).toFixed(0)}</div>
-                        )}
-                        <div className="flex flex-col gap-2">
-                          <JobDialog job={job}>
-                            <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm">
-                              <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
-                              Editar
-                            </Button>
-                          </JobDialog>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="gap-2 text-xs sm:text-sm"
-                            onClick={() => {
-                              setPaymentPlanJob(job);
-                              setPaymentPlanDialogOpen(true);
-                            }}
-                          >
-                            <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
-                            Plano
-                          </Button>
-                        </div>
+                      <div className="lg:w-64 border-t lg:border-t-0 lg:border-l pt-4 lg:pt-0 lg:pl-4">
+                        <JobRelationsPanel jobId={job.id} clientName={job.clients?.name} />
                       </div>
                     </div>
                   </div>

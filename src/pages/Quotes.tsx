@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle, Download, CreditCard, Briefcase, Clock } from "lucide-react";
+import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle, Download, CreditCard, Briefcase, Clock, Users, Receipt } from "lucide-react";
 import { useQuotes, useUpdateQuote } from "@/hooks/useQuotes";
 import { useCreateJob } from "@/hooks/useJobs";
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,6 +17,7 @@ import { generateInvoicePDF } from '@/lib/professionalPdfGenerator';
 import { QuoteDialog } from "@/components/QuoteDialog";
 import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
+import { EntityQuickLinks } from "@/components/EntityQuickLinks";
 import { exportToExcel, formatQuotesForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -367,12 +368,22 @@ export default function Quotes() {
                          <div className="text-xs text-muted-foreground">
                            {quote.currency || 'AOA'}
                          </div>
-                       </div>
-                     </div>
-                   </div>
+                      </div>
+                    </div>
+                  </div>
 
+                  <div className="space-y-3">
+                    <div className="pt-2 border-t">
+                      <EntityQuickLinks 
+                        links={[
+                          { type: 'client', id: quote.client_id, name: quote.clients?.name || 'Cliente' },
+                          ...(quote.job_id ? [{ type: 'job' as const, id: quote.job_id, name: 'Job Criado', status: 'convertido' }] : []),
+                        ]}
+                      />
+                    </div>
+                    
                     <div className="flex flex-wrap gap-2 pt-2 border-t">
-                       {quote.pdf_url ? (
+                        {quote.pdf_url ? (
                         <Button 
                           variant="outline" 
                           size="sm"
@@ -471,12 +482,13 @@ export default function Quotes() {
                        >
                          <CreditCard className="h-4 w-4 sm:mr-2" />
                          <span className="hidden sm:inline">Plano</span>
-                       </Button>
-                     </>
-                   )}
-                 </div>
-               </div>
-             </Card>
+                        </Button>
+                      </>
+                    )}
+                    </div>
+                  </div>
+                  </div>
+                </Card>
            ))
            )}
           </div>

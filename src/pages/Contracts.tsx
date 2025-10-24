@@ -3,10 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Edit, FileText, FileSignature, Shield, CheckCircle2, Link2, Send, Eye } from "lucide-react";
+import { Search, Plus, Edit, FileText, FileSignature, Shield, CheckCircle2, Link2, Send, Eye, Users, Briefcase } from "lucide-react";
 import { useContracts } from "@/hooks/useContracts";
 import { ContractDialog } from "@/components/ContractDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
+import { EntityQuickLinks } from "@/components/EntityQuickLinks";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -204,33 +205,36 @@ export default function Contracts() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                {contract.jobs && (
+              <div className="space-y-3">
+                <EntityQuickLinks 
+                  links={[
+                    { type: 'client', id: contract.client_id, name: contract.clients?.name || 'Cliente' },
+                    ...(contract.job_id ? [{ type: 'job' as const, id: contract.job_id, name: contract.jobs?.title || 'Job' }] : []),
+                  ]}
+                />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Job:</span>
-                    <p className="font-medium truncate">{contract.jobs.title}</p>
-                  </div>
-                )}
-                <div>
-                  <span className="text-muted-foreground">Emitido:</span>
-                  <p className="font-medium">
-                    {new Date(contract.issued_at || contract.created_at).toLocaleDateString('pt-PT')}
-                  </p>
-                </div>
-                {contract.signed_at && (
-                  <div>
-                    <span className="text-muted-foreground">Assinado:</span>
-                    <p className="font-medium text-success">
-                      {new Date(contract.signed_at).toLocaleDateString('pt-PT')}
+                    <span className="text-muted-foreground">Emitido:</span>
+                    <p className="font-medium">
+                      {new Date(contract.issued_at || contract.created_at).toLocaleDateString('pt-PT')}
                     </p>
                   </div>
-                )}
-                {contract.cancellation_fee && (
-                  <div>
-                    <span className="text-muted-foreground">Taxa Cancelamento:</span>
-                    <p className="font-medium">Kz {Number(contract.cancellation_fee).toFixed(2)}</p>
-                  </div>
-                )}
+                  {contract.signed_at && (
+                    <div>
+                      <span className="text-muted-foreground">Assinado:</span>
+                      <p className="font-medium text-success">
+                        {new Date(contract.signed_at).toLocaleDateString('pt-PT')}
+                      </p>
+                    </div>
+                  )}
+                  {contract.cancellation_fee && (
+                    <div>
+                      <span className="text-muted-foreground">Taxa Cancelamento:</span>
+                      <p className="font-medium">Kz {Number(contract.cancellation_fee).toFixed(2)}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2 border-t">

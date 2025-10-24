@@ -3,11 +3,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, DollarSign, Calendar, CreditCard, Edit, TrendingUp, Wallet, Receipt, Download, FileText } from "lucide-react";
+import { Plus, Search, DollarSign, Calendar, CreditCard, Edit, TrendingUp, Wallet, Receipt, Download, FileText, Users, Briefcase } from "lucide-react";
 import { usePayments, type Payment } from "@/hooks/usePayments";
 import PaymentDialog from "@/components/PaymentDialog";
 import { PaymentReceiptDialog } from "@/components/PaymentReceiptDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
+import { EntityQuickLinks } from "@/components/EntityQuickLinks";
 import { exportToExcel, formatPaymentsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -243,7 +244,14 @@ export default function Payments() {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                  <EntityQuickLinks 
+                    links={[
+                      { type: 'client', id: payment.client_id, name: payment.clients?.name || 'Cliente' },
+                      ...(payment.invoice_id ? [{ type: 'invoice' as const, id: payment.invoice_id, name: 'Fatura', status: 'vinculada' }] : []),
+                    ]}
+                  />
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm pt-2 border-t">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Calendar className="h-4 w-4" />
                       <span>
