@@ -899,6 +899,45 @@ export type Database = {
           },
         ]
       }
+      notification_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          job_completed: boolean | null
+          job_reminders: boolean | null
+          lead_follow_up: boolean | null
+          maintenance_reminder: boolean | null
+          new_lead: boolean | null
+          payment_overdue: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          job_completed?: boolean | null
+          job_reminders?: boolean | null
+          lead_follow_up?: boolean | null
+          maintenance_reminder?: boolean | null
+          new_lead?: boolean | null
+          payment_overdue?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          job_completed?: boolean | null
+          job_reminders?: boolean | null
+          lead_follow_up?: boolean | null
+          maintenance_reminder?: boolean | null
+          new_lead?: boolean | null
+          payment_overdue?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1318,6 +1357,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          date_format: string | null
+          id: string
+          language: string | null
+          timezone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          date_format?: string | null
+          id?: string
+          language?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          date_format?: string | null
+          id?: string
+          language?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

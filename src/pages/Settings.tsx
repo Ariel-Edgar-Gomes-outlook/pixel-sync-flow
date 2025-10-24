@@ -6,13 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
-import { Settings as SettingsIcon, User, Bell, Shield, Activity, Moon, Sun, Building2 } from "lucide-react";
+import { useUserPreferences, useUpdateUserPreferences } from "@/hooks/useUserPreferences";
+import { Settings as SettingsIcon, User, Bell, Shield, Activity, Moon, Sun, Building2, Globe } from "lucide-react";
 import { AuditLogViewer } from "@/components/AuditLogViewer";
 import { GoogleCalendarIntegration } from "@/components/GoogleCalendarIntegration";
 import { NotificationSettings } from "@/components/NotificationSettings";
 import { BusinessSettingsForm } from "@/components/BusinessSettingsForm";
+import { PasswordChangeDialog } from "@/components/PasswordChangeDialog";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
@@ -20,12 +23,22 @@ export default function Settings() {
   const { user } = useAuth();
   const { data: profile, isLoading } = useProfile(user?.id);
   const updateProfile = useUpdateProfile();
+  const { data: preferences } = useUserPreferences(user?.id);
+  const updatePreferences = useUpdateUserPreferences();
   const { theme, setTheme } = useTheme();
 
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
   });
+
+  const [preferencesData, setPreferencesData] = useState({
+    currency: "AOA",
+    timezone: "Africa/Luanda",
+    language: "pt-PT",
+  });
+
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
 
   // Update form when profile loads
   useEffect(() => {
@@ -36,6 +49,17 @@ export default function Settings() {
       });
     }
   }, [profile]);
+
+  // Update preferences when loaded
+  useEffect(() => {
+    if (preferences) {
+      setPreferencesData({
+        currency: preferences.currency || "AOA",
+        timezone: preferences.timezone || "Africa/Luanda",
+        language: preferences.language || "pt-PT",
+      });
+    }
+  }, [preferences]);
 
   const handleProfileUpdate = async () => {
     if (!user?.id) return;
@@ -53,8 +77,20 @@ export default function Settings() {
     }
   };
 
-  const handlePasswordChange = async () => {
-    toast.info("Funcionalidade de alteração de password será implementada em breve");
+  const handlePreferenceUpdate = async (key: keyof typeof preferencesData, value: string) => {
+    if (!user?.id) return;
+
+    setPreferencesData(prev => ({ ...prev, [key]: value }));
+    
+    try {
+      await updatePreferences.mutateAsync({
+        userId: user.id,
+        [key]: value,
+      });
+    } catch (error) {
+      toast.error("Erro ao atualizar preferências");
+      console.error(error);
+    }
   };
 
   if (isLoading) {
@@ -162,7 +198,7 @@ export default function Settings() {
                 <p className="font-medium text-foreground">Alterar Password</p>
                 <p className="text-sm text-muted-foreground">Atualizar a sua senha de acesso</p>
               </div>
-              <Button variant="outline" onClick={handlePasswordChange}>Alterar</Button>
+              <Button variant="outline" onClick={() => setPasswordDialogOpen(true)}>Alterar</Button>
             </div>
 
             <Separator />
@@ -170,13 +206,18 @@ export default function Settings() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-foreground">Autenticação de Dois Fatores</p>
-                <p className="text-sm text-muted-foreground">Adicionar camada extra de segurança</p>
+                <p className="text-sm text-muted-foreground">Adicionar camada extra de segurança (em breve)</p>
               </div>
               <Button variant="outline" disabled>Configurar</Button>
             </div>
           </div>
             </Card>
           </div>
+
+          <PasswordChangeDialog 
+            open={passwordDialogOpen} 
+            onOpenChange={setPasswordDialogOpen}
+          />
         </TabsContent>
 
         <TabsContent value="preferences" className="mt-6">
@@ -211,26 +252,69 @@ export default function Settings() {
 
             <div className="grid gap-2">
               <Label htmlFor="currency">Moeda Padrão</Label>
-              <Input
-                id="currency"
-                type="text"
-                value="AOA (Kz)"
-                disabled
-                className="bg-muted"
-              />
-              <p className="text-xs text-muted-foreground">Kwanza Angolano</p>
+              <Select
+                value={preferencesData.currency}
+                onValueChange={(value) => handlePreferenceUpdate('currency', value)}
+              >
+                <SelectTrigger id="currency">
+                  <SelectValue placeholder="Selecione a moeda" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AOA">AOA - Kwanza Angolano (Kz)</SelectItem>
+                  <SelectItem value="USD">USD - Dólar Americano ($)</SelectItem>
+                  <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
+                  <SelectItem value="GBP">GBP - Libra Esterlina (£)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Moeda utilizada em faturas e relatórios</p>
             </div>
 
             <div className="grid gap-2">
               <Label htmlFor="timezone">Fuso Horário</Label>
-              <Input
-                id="timezone"
-                type="text"
-                value="Africa/Luanda"
-                disabled
-                className="bg-muted"
-              />
-              <p className="text-xs text-muted-foreground">Hora de Luanda, Angola</p>
+              <Select
+                value={preferencesData.timezone}
+                onValueChange={(value) => handlePreferenceUpdate('timezone', value)}
+              >
+                <SelectTrigger id="timezone">
+                  <SelectValue placeholder="Selecione o fuso horário" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Africa/Luanda">Africa/Luanda (WAT +01:00)</SelectItem>
+                  <SelectItem value="Europe/Lisbon">Europe/Lisbon (WET +00:00)</SelectItem>
+                  <SelectItem value="Europe/London">Europe/London (GMT +00:00)</SelectItem>
+                  <SelectItem value="America/New_York">America/New_York (EST -05:00)</SelectItem>
+                  <SelectItem value="America/Sao_Paulo">America/Sao_Paulo (BRT -03:00)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Fuso horário para agendamentos e notificações</p>
+            </div>
+
+            <Separator />
+
+            <div className="grid gap-2">
+              <Label htmlFor="language">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  Idioma
+                </div>
+              </Label>
+              <Select
+                value={preferencesData.language}
+                onValueChange={(value) => handlePreferenceUpdate('language', value)}
+              >
+                <SelectTrigger id="language">
+                  <SelectValue placeholder="Selecione o idioma" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pt-PT">Português (Portugal)</SelectItem>
+                  <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                  <SelectItem value="en-US">English (US)</SelectItem>
+                  <SelectItem value="en-GB">English (UK)</SelectItem>
+                  <SelectItem value="es-ES">Español</SelectItem>
+                  <SelectItem value="fr-FR">Français</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Idioma da interface (em breve)</p>
             </div>
           </div>
             </Card>

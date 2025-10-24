@@ -3,10 +3,16 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Bell, Calendar, TrendingUp, DollarSign, Wrench } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNotificationSettings, useUpdateNotificationSettings } from "@/hooks/useNotificationSettings";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function NotificationSettings() {
+  const { user } = useAuth();
+  const { data: notificationSettings, isLoading } = useNotificationSettings(user?.id);
+  const updateSettings = useUpdateNotificationSettings();
+
   const [settings, setSettings] = useState({
     jobReminders: true,
     leadFollowUp: true,
@@ -16,10 +22,53 @@ export function NotificationSettings() {
     jobCompleted: false,
   });
 
+  useEffect(() => {
+    if (notificationSettings) {
+      setSettings({
+        jobReminders: notificationSettings.job_reminders,
+        leadFollowUp: notificationSettings.lead_follow_up,
+        paymentOverdue: notificationSettings.payment_overdue,
+        maintenanceReminder: notificationSettings.maintenance_reminder,
+        newLead: notificationSettings.new_lead,
+        jobCompleted: notificationSettings.job_completed,
+      });
+    }
+  }, [notificationSettings]);
+
   const handleToggle = (key: keyof typeof settings) => {
-    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
-    toast.success("Configurações de notificação atualizadas");
+    if (!user) return;
+
+    const newValue = !settings[key];
+    setSettings(prev => ({ ...prev, [key]: newValue }));
+
+    // Map frontend keys to database column names
+    const keyMap = {
+      jobReminders: 'job_reminders',
+      leadFollowUp: 'lead_follow_up',
+      paymentOverdue: 'payment_overdue',
+      maintenanceReminder: 'maintenance_reminder',
+      newLead: 'new_lead',
+      jobCompleted: 'job_completed',
+    };
+
+    updateSettings.mutate({
+      userId: user.id,
+      [keyMap[key]]: newValue,
+    });
   };
+
+  if (isLoading) {
+    return (
+      <Card className="p-6">
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6">
