@@ -309,20 +309,32 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                               <SelectItem value="none">
                                 <span className="text-muted-foreground">Criar manualmente (sem orçamento)</span>
                               </SelectItem>
-                              {quotes
-                                ?.filter(q => q.status === 'accepted' || q.status === 'sent')
-                                ?.map((quote) => (
+                              {quotes && quotes.length > 0 ? (
+                                quotes.map((quote) => (
                                   <SelectItem key={quote.id} value={quote.id}>
                                     <div className="flex items-center justify-between gap-4 min-w-[300px]">
-                                      <span className="font-medium">{quote.clients?.name || 'Cliente'}</span>
-                                      <span className="text-muted-foreground text-sm">
+                                      <div className="flex flex-col items-start">
+                                        <span className="font-medium">{quote.clients?.name || 'Cliente'}</span>
+                                        <span className="text-xs text-muted-foreground capitalize">
+                                          {quote.status === 'draft' ? 'Rascunho' : 
+                                           quote.status === 'sent' ? 'Enviado' : 
+                                           quote.status === 'accepted' ? 'Aceite' : 
+                                           quote.status === 'rejected' ? 'Rejeitado' : quote.status}
+                                        </span>
+                                      </div>
+                                      <span className="text-muted-foreground text-sm font-mono">
                                         {quote.total?.toLocaleString('pt-PT', { 
                                           minimumFractionDigits: 2 
                                         })} {quote.currency || 'AOA'}
                                       </span>
                                     </div>
                                   </SelectItem>
-                                ))}
+                                ))
+                              ) : (
+                                <SelectItem value="no-quotes" disabled>
+                                  <span className="text-muted-foreground text-sm">Nenhum orçamento disponível</span>
+                                </SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                           <FormMessage />
