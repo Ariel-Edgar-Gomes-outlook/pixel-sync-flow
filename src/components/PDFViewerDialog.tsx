@@ -50,7 +50,6 @@ export function PDFViewerDialog({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [loadTimeout, setLoadTimeout] = useState<boolean>(false);
   const [currentPdfUrl, setCurrentPdfUrl] = useState<string | null>(null);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
@@ -61,7 +60,6 @@ export function PDFViewerDialog({
       // Reset states but DON'T revoke blob URL yet - wait for dialog animation
       setCurrentPdfUrl(null);
       setError(null);
-      setLoadTimeout(false);
       return;
     }
 
@@ -70,7 +68,6 @@ export function PDFViewerDialog({
         setIsGenerating(true);
         setIsLoading(true);
         setError(null);
-        setLoadTimeout(false);
         setPageNumber(1);
         setScale(1.4);
 
@@ -127,16 +124,6 @@ export function PDFViewerDialog({
         
         setCurrentPdfUrl(url);
         setIsGenerating(false);
-
-        // Increased timeout for loading (60 seconds)
-        const timeoutId = setTimeout(() => {
-          if (isLoading) {
-            setLoadTimeout(true);
-            setError('O PDF está demorando muito para carregar. Tente abrir em nova aba ou fazer download.');
-          }
-        }, 60000);
-
-        return () => clearTimeout(timeoutId);
       } catch (err) {
         console.error('Erro ao gerar PDF:', err);
         setIsGenerating(false);
@@ -162,7 +149,6 @@ export function PDFViewerDialog({
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
     setIsLoading(false);
-    setLoadTimeout(false);
     setError(null);
     setPageNumber(1);
   };
@@ -392,12 +378,12 @@ export function PDFViewerDialog({
                 <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Nenhum PDF selecionado</p>
               </div>
-            ) : error || loadTimeout ? (
+            ) : error ? (
               <div className="max-w-md w-full space-y-4 py-10">
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    {error || 'O PDF está demorando muito para carregar.'}
+                    {error}
                   </AlertDescription>
                 </Alert>
                 
@@ -413,7 +399,6 @@ export function PDFViewerDialog({
                   <Button 
                     onClick={() => {
                       setError(null);
-                      setLoadTimeout(false);
                       setIsLoading(true);
                     }} 
                     variant="ghost" 
