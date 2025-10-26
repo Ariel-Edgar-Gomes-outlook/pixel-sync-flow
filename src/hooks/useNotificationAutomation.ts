@@ -14,16 +14,18 @@ export function useNotificationAutomation() {
   const { data: payments } = usePayments();
   const { data: resources } = useResources();
 
-  // Create notification mutation
+  // Create notification mutation using the system function
   const createNotification = useMutation({
     mutationFn: async (notification: {
       recipient_id: string;
       type: string;
       payload: any;
     }) => {
-      const { error } = await supabase
-        .from('notifications')
-        .insert(notification);
+      const { error } = await supabase.rpc('create_system_notification', {
+        _recipient_id: notification.recipient_id,
+        _type: notification.type,
+        _payload: notification.payload,
+      });
 
       if (error) throw error;
     },
@@ -55,7 +57,7 @@ export function useNotificationAutomation() {
             .select('id')
             .eq('recipient_id', userId)
             .eq('type', 'job_reminder')
-            .eq('payload->job_id', job.id)
+            .filter('payload->>job_id', 'eq', job.id)
             .eq('read', false);
 
           if (!existing || existing.length === 0) {
@@ -86,7 +88,7 @@ export function useNotificationAutomation() {
               .select('id')
               .eq('recipient_id', userId)
               .eq('type', 'lead_follow_up')
-              .eq('payload->lead_id', lead.id)
+              .filter('payload->>lead_id', 'eq', lead.id)
               .eq('read', false);
 
             if (!existing || existing.length === 0) {
@@ -118,7 +120,7 @@ export function useNotificationAutomation() {
               .select('id')
               .eq('recipient_id', userId)
               .eq('type', 'payment_overdue')
-              .eq('payload->payment_id', payment.id)
+              .filter('payload->>payment_id', 'eq', payment.id)
               .eq('read', false);
 
             if (!existing || existing.length === 0) {
@@ -151,7 +153,7 @@ export function useNotificationAutomation() {
               .select('id')
               .eq('recipient_id', userId)
               .eq('type', 'maintenance_reminder')
-              .eq('payload->resource_id', resource.id)
+              .filter('payload->>resource_id', 'eq', resource.id)
               .eq('read', false);
 
             if (!existing || existing.length === 0) {
