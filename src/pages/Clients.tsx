@@ -76,10 +76,10 @@ export default function Clients() {
             Gerencie sua carteira de clientes, contactos e histórico de trabalhos
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={handleExport}>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" className="gap-2 flex-1 sm:flex-none" size="sm" onClick={handleExport}>
             <Download className="h-4 w-4" />
-            Exportar Excel
+            <span className="hidden sm:inline">Exportar</span>
           </Button>
           <ClientDialog />
         </div>

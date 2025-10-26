@@ -101,6 +101,7 @@ export function PaymentPlanDialog({
         .single();
 
       if (clientData?.client_id) {
+        const { data: { user } } = await supabase.auth.getUser();
         const paymentsToInsert = completeInstallments.map(inst => ({
           client_id: clientData.client_id,
           quote_id: quoteId || null,
@@ -111,6 +112,7 @@ export function PaymentPlanDialog({
           due_date: inst.due_date,
           notes: inst.description,
           currency: 'AOA',
+          created_by: user?.id,
         }));
 
         const { error: paymentsError } = await supabase

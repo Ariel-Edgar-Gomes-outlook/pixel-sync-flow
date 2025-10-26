@@ -174,9 +174,9 @@ export default function Dashboard() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="custom">Dashboard Personalizável</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 h-auto max-w-md">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm py-2.5">Visão Geral</TabsTrigger>
+          <TabsTrigger value="custom" className="text-xs sm:text-sm py-2.5">Personalizável</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-6">
@@ -187,18 +187,18 @@ export default function Dashboard() {
           <SmartNotificationPanel />
 
           {/* Stats Grid */}
-          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <TooltipProvider>
               {stats.map((stat) => (
-                <Card key={stat.name} className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                      <stat.icon className="h-6 w-6 text-primary" />
+                <Card key={stat.name} className="p-4 sm:p-6">
+                  <div className="flex items-center justify-between mb-3 sm:mb-4">
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-primary/10 shrink-0">
+                      <stat.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex items-center gap-1">
-                          <span className={`text-sm font-medium ${stat.trend === 'up' ? 'text-success' : 'text-destructive'}`}>
+                          <span className={`text-xs sm:text-sm font-medium ${stat.trend === 'up' ? 'text-success' : 'text-destructive'}`}>
                             {stat.change}
                           </span>
                           <Info className="h-3 w-3 text-muted-foreground" />
@@ -213,45 +213,45 @@ export default function Dashboard() {
                       </TooltipContent>
                     </Tooltip>
                   </div>
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-muted-foreground">{stat.name}</p>
-                    <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">{stat.name}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-foreground mt-1">{stat.value}</p>
                   </div>
                 </Card>
               ))}
             </TooltipProvider>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
             {/* Upcoming Jobs */}
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <Calendar className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold text-foreground">Próximos Jobs</h2>
+            <Card className="p-4 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                <h2 className="text-base sm:text-lg font-semibold text-foreground">Próximos Jobs</h2>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {upcomingJobs.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">Nenhum job próximo</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">Nenhum job próximo</p>
                 ) : (
                   upcomingJobs.map((job) => (
-                    <div key={job.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                    <div key={job.id} className="p-3 sm:p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <h3 className="font-medium text-foreground">{job.title}</h3>
-                          <Badge variant={statusColors[job.status] || 'secondary'}>
+                        <div className="flex items-start gap-2 flex-wrap mb-2">
+                          <h3 className="font-medium text-sm sm:text-base text-foreground flex-1">{job.title}</h3>
+                          <Badge variant={statusColors[job.status] || 'secondary'} className="text-xs shrink-0">
                             {job.status === "confirmed" ? "Confirmado" : 
                              job.status === "scheduled" ? "Agendado" : "Pendente"}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-2">
                           {job.clients?.name || 'Cliente não especificado'}
                         </p>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                           <span>{new Date(job.start_datetime).toLocaleDateString("pt-PT")}</span>
                           <span>•</span>
                           <span>{new Date(job.start_datetime).toLocaleTimeString("pt-PT", { hour: '2-digit', minute: '2-digit' })}</span>
                           <span>•</span>
-                          <span>{job.type}</span>
+                          <span className="truncate">{job.type}</span>
                         </div>
                       </div>
                     </div>
@@ -261,30 +261,30 @@ export default function Dashboard() {
             </Card>
 
             {/* Recent Leads */}
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <AlertCircle className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold text-foreground">Leads Recentes</h2>
+            <Card className="p-4 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                <h2 className="text-base sm:text-lg font-semibold text-foreground">Leads Recentes</h2>
               </div>
-               <div className="space-y-4">
+               <div className="space-y-3 sm:space-y-4">
                 {displayedLeads.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">Nenhum lead recente</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">Nenhum lead recente</p>
                 ) : (
                   displayedLeads.map((lead) => (
-                    <div key={lead.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                    <div key={lead.id} className="p-3 sm:p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <h3 className="font-medium text-foreground">
+                        <div className="flex items-start gap-2 flex-wrap mb-2">
+                          <h3 className="font-medium text-sm sm:text-base text-foreground flex-1">
                             {lead.clients?.name || 'Nome não especificado'}
                           </h3>
-                          <Badge variant={statusColors[lead.status] || 'secondary'}>
+                          <Badge variant={statusColors[lead.status] || 'secondary'} className="text-xs shrink-0">
                             {lead.status === "new" ? "Novo" : 
                              lead.status === "contacted" ? "Contactado" : 
                              lead.status === "won" ? "Ganho" :
-                             lead.status === "proposal_sent" ? "Proposta Enviada" : "Perdido"}
+                             lead.status === "proposal_sent" ? "Proposta" : "Perdido"}
                           </Badge>
                         </div>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                           {lead.source && (
                             <>
                               <span>via {lead.source}</span>
@@ -301,14 +301,14 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Payment Alerts Widget */}
-          <PaymentAlertsWidget />
-
-          {/* Galleries Widget */}
-          <GalleriesWidget />
+          {/* Widgets */}
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
+            <PaymentAlertsWidget />
+            <GalleriesWidget />
+          </div>
 
           {/* Charts Section */}
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
             <RevenueChart payments={payments || []} />
             <JobStatusChart jobs={jobs || []} />
           </div>

@@ -131,9 +131,9 @@ export function ClientDialog({ children, client, open: controlledOpen, onOpenCha
         
         {client ? (
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="details">Detalhes</TabsTrigger>
-              <TabsTrigger value="history">Histórico</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-auto">
+              <TabsTrigger value="details" className="text-xs sm:text-sm py-2">Detalhes</TabsTrigger>
+              <TabsTrigger value="history" className="text-xs sm:text-sm py-2">Histórico</TabsTrigger>
             </TabsList>
 
             <TabsContent value="details">
