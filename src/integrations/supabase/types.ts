@@ -325,7 +325,7 @@ export type Database = {
         Row: {
           address: string | null
           created_at: string
-          created_by: string | null
+          created_by: string
           email: string | null
           external_folder_link: string | null
           id: string
@@ -340,7 +340,7 @@ export type Database = {
         Insert: {
           address?: string | null
           created_at?: string
-          created_by?: string | null
+          created_by: string
           email?: string | null
           external_folder_link?: string | null
           id?: string
@@ -355,7 +355,7 @@ export type Database = {
         Update: {
           address?: string | null
           created_at?: string
-          created_by?: string | null
+          created_by?: string
           email?: string | null
           external_folder_link?: string | null
           id?: string
@@ -789,7 +789,7 @@ export type Database = {
         Row: {
           client_id: string | null
           created_at: string
-          created_by: string | null
+          created_by: string
           description: string | null
           end_datetime: string | null
           estimated_cost: number | null
@@ -812,7 +812,7 @@ export type Database = {
         Insert: {
           client_id?: string | null
           created_at?: string
-          created_by?: string | null
+          created_by: string
           description?: string | null
           end_datetime?: string | null
           estimated_cost?: number | null
@@ -835,7 +835,7 @@ export type Database = {
         Update: {
           client_id?: string | null
           created_at?: string
-          created_by?: string | null
+          created_by?: string
           description?: string | null
           end_datetime?: string | null
           estimated_cost?: number | null
@@ -1066,7 +1066,7 @@ export type Database = {
           amount: number
           client_id: string
           created_at: string
-          created_by: string | null
+          created_by: string
           currency: string | null
           due_date: string | null
           id: string
@@ -1085,7 +1085,7 @@ export type Database = {
           amount: number
           client_id: string
           created_at?: string
-          created_by?: string | null
+          created_by: string
           currency?: string | null
           due_date?: string | null
           id?: string
@@ -1104,7 +1104,7 @@ export type Database = {
           amount?: number
           client_id?: string
           created_at?: string
-          created_by?: string | null
+          created_by?: string
           currency?: string | null
           due_date?: string | null
           id?: string
@@ -1234,7 +1234,7 @@ export type Database = {
           client_id: string
           converted_to_job_at: string | null
           created_at: string
-          created_by: string | null
+          created_by: string
           currency: string | null
           discount: number | null
           id: string
@@ -1251,7 +1251,7 @@ export type Database = {
           client_id: string
           converted_to_job_at?: string | null
           created_at?: string
-          created_by?: string | null
+          created_by: string
           currency?: string | null
           discount?: number | null
           id?: string
@@ -1268,7 +1268,7 @@ export type Database = {
           client_id?: string
           converted_to_job_at?: string | null
           created_at?: string
-          created_by?: string | null
+          created_by?: string
           currency?: string | null
           discount?: number | null
           id?: string
@@ -1300,7 +1300,7 @@ export type Database = {
       resources: {
         Row: {
           created_at: string
-          created_by: string | null
+          created_by: string
           id: string
           location: string | null
           manual_link: string | null
@@ -1312,7 +1312,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          created_by?: string | null
+          created_by: string
           id?: string
           location?: string | null
           manual_link?: string | null
@@ -1324,7 +1324,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          created_by?: string | null
+          created_by?: string
           id?: string
           location?: string | null
           manual_link?: string | null
