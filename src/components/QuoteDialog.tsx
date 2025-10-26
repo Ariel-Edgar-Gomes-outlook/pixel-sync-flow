@@ -117,15 +117,12 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
     const quoteSchema = z.object({
       client_id: z.string().min(1, "Selecione um cliente"),
       items: z.array(z.object({
-        description: z.string().min(3, "Descrição deve ter pelo menos 3 caracteres"),
-        quantity: z.number().min(1, "Quantidade deve ser maior que 0"),
-        price: z.number().min(0.01, "Preço deve ser maior que 0"),
+        description: z.string().min(1, "Descrição não pode estar vazia"),
+        quantity: z.number().min(1, "Quantidade deve ser pelo menos 1"),
+        price: z.number().min(0, "Preço não pode ser negativo"),
       })).min(1, "Adicione pelo menos um item"),
-      validity_date: z.string().optional().refine(
-        (date) => !date || new Date(date) > new Date(), 
-        "Data de validade deve ser no futuro"
-      ),
-      total: z.number().min(0.01, "Total deve ser maior que 0"),
+      validity_date: z.string().optional(),
+      total: z.number().min(0, "Total não pode ser negativo"),
     });
 
     try {
