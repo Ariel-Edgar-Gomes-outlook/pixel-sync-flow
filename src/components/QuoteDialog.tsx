@@ -444,8 +444,8 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
                               placeholder="1"
                               className="bg-background"
                               min="1"
-                              value={item.quantity}
-                              onChange={(e) => updateItem(index, "quantity", Number(e.target.value))}
+                              value={item.quantity || ''}
+                              onChange={(e) => updateItem(index, "quantity", e.target.value ? Number(e.target.value) : 0)}
                             />
                           </div>
                           <div>
@@ -458,8 +458,8 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
                               className="bg-background"
                               min="0"
                               step="0.01"
-                              value={item.price}
-                              onChange={(e) => updateItem(index, "price", Number(e.target.value))}
+                              value={item.price || ''}
+                              onChange={(e) => updateItem(index, "price", e.target.value ? Number(e.target.value) : 0)}
                             />
                           </div>
                         </div>
@@ -510,8 +510,8 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
                   min="0"
                   max="100"
                   step="0.01"
-                  value={formData.tax}
-                  onChange={(e) => setFormData({ ...formData, tax: Number(e.target.value) })}
+                  value={formData.tax || ''}
+                  onChange={(e) => setFormData({ ...formData, tax: e.target.value ? Number(e.target.value) : 0 })}
                 />
                 <p className="text-xs text-muted-foreground">
                   Ex: IVA, impostos aplicáveis
@@ -529,8 +529,8 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
                   className="bg-background"
                   min="0"
                   step="0.01"
-                  value={formData.discount}
-                  onChange={(e) => setFormData({ ...formData, discount: Number(e.target.value) })}
+                  value={formData.discount || ''}
+                  onChange={(e) => setFormData({ ...formData, discount: e.target.value ? Number(e.target.value) : 0 })}
                 />
                 <p className="text-xs text-muted-foreground">
                   Desconto em valor fixo

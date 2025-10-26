@@ -168,7 +168,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                 type="number"
                 step="0.01"
                 className="text-xl sm:text-2xl font-bold h-12 sm:h-14 bg-background pr-16 sm:pr-20"
-                value={formData.amount}
+                value={formData.amount || ''}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 placeholder="0.00"
                 required

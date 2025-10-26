@@ -414,7 +414,7 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
             step="0.5"
             placeholder="0.0"
             className="bg-background"
-            value={formData.estimated_hours}
+            value={formData.estimated_hours || ''}
             onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
           />
           <p className="text-xs text-muted-foreground">Tempo previsto de trabalho</p>
@@ -443,7 +443,7 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
             step="0.01"
             placeholder="0.00"
             className="bg-background"
-            value={formData.estimated_cost}
+            value={formData.estimated_cost || ''}
             onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
           />
           <p className="text-xs text-muted-foreground">Custo total previsto do projeto</p>
@@ -460,7 +460,7 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
             step="0.01"
             placeholder="0.00"
             className="bg-background"
-            value={formData.estimated_revenue}
+            value={formData.estimated_revenue || ''}
             onChange={(e) => setFormData({ ...formData, estimated_revenue: e.target.value })}
           />
           <p className="text-xs text-muted-foreground">Valor que será cobrado ao cliente</p>

@@ -344,9 +344,9 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                             <Input
                               type="number"
                               placeholder="Qtd"
-                              {...field}
+                              value={field.value || ''}
                               onChange={(e) => {
-                                field.onChange(Number(e.target.value));
+                                field.onChange(e.target.value ? Number(e.target.value) : '');
                                 updateItemTotal(index);
                               }}
                             />
@@ -366,9 +366,9 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                               type="number"
                               step="0.01"
                               placeholder="Preço"
-                              {...field}
+                              value={field.value || ''}
                               onChange={(e) => {
-                                field.onChange(Number(e.target.value));
+                                field.onChange(e.target.value ? Number(e.target.value) : '');
                                 updateItemTotal(index);
                               }}
                             />
@@ -412,8 +412,8 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                       <Input
                         type="number"
                         step="0.01"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : '')}
                       />
                     </FormControl>
                     <FormMessage />
@@ -431,8 +431,8 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                       <Input
                         type="number"
                         step="0.01"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : '')}
                       />
                     </FormControl>
                     <FormMessage />

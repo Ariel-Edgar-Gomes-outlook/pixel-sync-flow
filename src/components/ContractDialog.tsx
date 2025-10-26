@@ -480,9 +480,9 @@ Valor total: [Valor acordado]`,
                     <Label>Taxa de Cancelamento (AOA)</Label>
                     <Input
                       type="number"
-                      value={formData.cancellation_fee}
+                      value={formData.cancellation_fee || ''}
                       onChange={(e) => 
-                        setFormData({ ...formData, cancellation_fee: parseFloat(e.target.value) || 0 })
+                        setFormData({ ...formData, cancellation_fee: e.target.value ? parseFloat(e.target.value) : 0 })
                       }
                       min="0"
                       step="1000"

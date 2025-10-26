@@ -209,8 +209,8 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
                       <Input
                         type="number"
                         step="0.01"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : '')}
                       />
                     </FormControl>
                     <FormMessage />

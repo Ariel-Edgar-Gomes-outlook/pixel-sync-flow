@@ -177,7 +177,7 @@ export function LeadDialog({ children, lead, open: controlledOpen, onOpenChange:
                     min="0"
                     max="100"
                     className="bg-background pr-12"
-                    value={formData.probability}
+                    value={formData.probability || ''}
                     onChange={(e) => setFormData({ ...formData, probability: e.target.value })}
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">
