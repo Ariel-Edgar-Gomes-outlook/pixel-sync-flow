@@ -27,15 +27,17 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useClients } from '@/hooks/useClients';
+import { useQuotes } from '@/hooks/useQuotes';
 import { useCreateInvoice, useUpdateInvoice } from '@/hooks/useInvoices';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Plus, Trash2, FileText } from 'lucide-react';
+import { Plus, Trash2, FileText, FileCheck } from 'lucide-react';
 
 const invoiceSchema = z.object({
   client_id: z.string().min(1, 'Cliente é obrigatório'),
+  quote_id: z.string().optional(),
   is_proforma: z.boolean(),
   issue_date: z.string(),
   due_date: z.string().optional(),
@@ -64,15 +66,18 @@ interface InvoiceDialogProps {
 export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProps) {
   const { user } = useAuth();
   const { data: clients } = useClients();
+  const { data: quotes } = useQuotes();
   const { data: businessSettings } = useBusinessSettings(user?.id);
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [selectedQuoteId, setSelectedQuoteId] = useState<string>('');
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
       client_id: '',
+      quote_id: '',
       is_proforma: false,
       issue_date: new Date().toISOString().split('T')[0],
       due_date: '',
@@ -90,6 +95,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
     if (invoice) {
       form.reset({
         client_id: invoice.client_id,
+        quote_id: invoice.quote_id || '',
         is_proforma: invoice.is_proforma,
         issue_date: invoice.issue_date,
         due_date: invoice.due_date || '',
@@ -101,8 +107,51 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
         payment_instructions: invoice.payment_instructions || '',
         status: invoice.status,
       });
+      setSelectedQuoteId(invoice.quote_id || '');
     }
   }, [invoice, form]);
+
+  // Handle quote selection - automatically fill form with quote data
+  const handleQuoteSelection = (quoteId: string) => {
+    setSelectedQuoteId(quoteId);
+    form.setValue('quote_id', quoteId);
+    
+    if (quoteId && quoteId !== 'none') {
+      const selectedQuote = quotes?.find(q => q.id === quoteId);
+      if (selectedQuote) {
+        // Auto-fill client
+        form.setValue('client_id', selectedQuote.client_id);
+        
+        // Auto-fill items from quote
+        const quoteItems = Array.isArray(selectedQuote.items) 
+          ? selectedQuote.items.map((item: any) => ({
+              description: item.description || '',
+              quantity: item.quantity || 1,
+              unit_price: item.price || item.unit_price || 0,
+              total: (item.quantity || 1) * (item.price || item.unit_price || 0),
+            }))
+          : [{ description: '', quantity: 1, unit_price: 0, total: 0 }];
+        
+        form.setValue('items', quoteItems);
+        
+        // Auto-fill discount and currency
+        form.setValue('discount_amount', Number(selectedQuote.discount) || 0);
+        form.setValue('currency', selectedQuote.currency || 'AOA');
+        
+        // Calculate tax from quote total
+        const quoteSubtotal = Number(selectedQuote.total) - Number(selectedQuote.tax || 0);
+        const quoteTaxRate = selectedQuote.tax && quoteSubtotal > 0 
+          ? (Number(selectedQuote.tax) / quoteSubtotal) * 100 
+          : 14;
+        form.setValue('tax_rate', Math.round(quoteTaxRate));
+        
+        toast.success('Dados do orçamento carregados automaticamente!');
+      }
+    } else {
+      // Reset quote_id if "none" selected
+      form.setValue('quote_id', '');
+    }
+  };
 
   const items = form.watch('items');
   const discountAmount = form.watch('discount_amount');
@@ -183,6 +232,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
       const invoiceData = {
         ...data,
         user_id: user.id,
+        quote_id: data.quote_id || null,
         invoice_number: invoiceNumber,
         subtotal,
         tax_amount: taxAmount,
@@ -226,6 +276,64 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Quote Selection Section */}
+            {!invoice && (
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-start gap-3">
+                  <FileCheck className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                        Criar Fatura a partir de Orçamento
+                      </h4>
+                      <p className="text-xs text-blue-700 dark:text-blue-300">
+                        Selecione um orçamento existente para preencher automaticamente os dados da fatura
+                      </p>
+                    </div>
+                    
+                    <FormField
+                      control={form.control}
+                      name="quote_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Select 
+                            onValueChange={handleQuoteSelection} 
+                            value={selectedQuoteId || 'none'}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="bg-background">
+                                <SelectValue placeholder="Criar manualmente (sem orçamento)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">
+                                <span className="text-muted-foreground">Criar manualmente (sem orçamento)</span>
+                              </SelectItem>
+                              {quotes
+                                ?.filter(q => q.status === 'accepted' || q.status === 'sent')
+                                ?.map((quote) => (
+                                  <SelectItem key={quote.id} value={quote.id}>
+                                    <div className="flex items-center justify-between gap-4 min-w-[300px]">
+                                      <span className="font-medium">{quote.clients?.name || 'Cliente'}</span>
+                                      <span className="text-muted-foreground text-sm">
+                                        {quote.total?.toLocaleString('pt-PT', { 
+                                          minimumFractionDigits: 2 
+                                        })} {quote.currency || 'AOA'}
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
