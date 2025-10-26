@@ -873,31 +873,33 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
   // ============================================
   // MODERN HEADER WITH COLOR BLOCK
   // ============================================
-  const headerHeight = 45;
+  const headerHeight = 50;
   doc.setFillColor(primaryColorRgb[0], primaryColorRgb[1], primaryColorRgb[2]);
   doc.rect(0, 0, pageWidth, headerHeight, 'F');
 
   // Logo (if available) - centered with correct proportions
-  let logoYPos = 8;
+  let logoYPos = 10;
   if (businessSettings.logo_url) {
     try {
       const logoData = await loadImageWithCache(businessSettings.logo_url);
       if (logoData) {
-        // Calculate proportional size (max width 35mm, max height 25mm)
-        const maxWidth = 35;
-        const maxHeight = 25;
+        // Calculate proportional size (max width 40mm, max height 20mm for better visibility)
+        const maxWidth = 40;
+        const maxHeight = 20;
         const img = new Image();
         img.src = logoData;
         
         // Wait for image to load to get dimensions
         await new Promise((resolve) => {
           img.onload = resolve;
+          img.onerror = resolve; // Continue even if image fails
         });
         
         const aspectRatio = img.width / img.height;
         let logoWidth = maxWidth;
         let logoHeight = maxWidth / aspectRatio;
         
+        // Ensure logo doesn't exceed max height
         if (logoHeight > maxHeight) {
           logoHeight = maxHeight;
           logoWidth = maxHeight * aspectRatio;
@@ -906,32 +908,42 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
         // Center horizontally
         const logoX = (pageWidth - logoWidth) / 2;
         doc.addImage(logoData, 'PNG', logoX, logoYPos, logoWidth, logoHeight);
-        logoYPos += logoHeight + 3;
+        logoYPos += logoHeight + 4;
       }
     } catch (e) {
       console.warn('Failed to load logo');
+      logoYPos = 15; // Default position if logo fails
     }
+  } else {
+    logoYPos = 15; // Default position without logo
   }
 
   // Company name (white, centered)
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(18);
+  doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   const companyName = businessSettings.business_name || businessSettings.trade_name || 'Empresa';
-  doc.text(companyName, pageWidth / 2, logoYPos + 8, { align: 'center' });
+  doc.text(companyName, pageWidth / 2, logoYPos + 5, { align: 'center' });
 
+  // ============================================
+  // TITLE AND QUOTE NUMBER SECTION (BELOW HEADER)
+  // ============================================
+  let yPos = headerHeight + 12;
+  
   // Title - ORÇAMENTO
-  doc.setFontSize(28);
+  doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
-  doc.text('ORÇAMENTO', pageWidth / 2, logoYPos + 18, { align: 'center' });
+  doc.setTextColor(primaryColorRgb[0], primaryColorRgb[1], primaryColorRgb[2]);
+  doc.text('ORÇAMENTO', pageWidth / 2, yPos, { align: 'center' });
 
   // Quote number (with accent color)
   const quoteNumber = `#${quote.id.substring(0, 8).toUpperCase()}`;
   doc.setFontSize(14);
-  doc.setTextColor(255, 200, 0); // Gold/yellow accent
-  doc.text(quoteNumber, pageWidth / 2, logoYPos + 25, { align: 'center' });
+  doc.setTextColor(255, 180, 0); // Gold/yellow accent
+  doc.setFont('helvetica', 'bold');
+  doc.text(quoteNumber, pageWidth / 2, yPos + 8, { align: 'center' });
 
-  let yPos = headerHeight + 15;
+  yPos += 20;
 
   // ============================================
   // CLIENT INFO & DATE SECTION
@@ -941,8 +953,9 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
   doc.setFont('helvetica', 'bold');
   doc.text('CLIENTE:', 20, yPos);
   
-  doc.setFontSize(12);
+  doc.setFontSize(11);
   doc.setTextColor(40, 40, 40);
+  doc.setFont('helvetica', 'bold');
   doc.text(quote.clients.name.toUpperCase(), 20, yPos + 6);
   
   doc.setFontSize(9);
@@ -968,10 +981,10 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Válido até: ${new Date(quote.validity_date).toLocaleDateString('pt-AO')}`, pageWidth - 20, yPos + 12, { align: 'right' });
+    doc.text(`Valido ate: ${new Date(quote.validity_date).toLocaleDateString('pt-AO')}`, pageWidth - 20, yPos + 12, { align: 'right' });
   }
 
-  yPos += 30;
+  yPos += 28;
 
   // Job title if available
   if (quote.jobs?.title) {
@@ -1095,7 +1108,7 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
   }
 
   // ============================================
-  // FOOTER
+  // FOOTER (WITHOUT UNICODE SYMBOLS)
   // ============================================
   const footerY = pageHeight - 25;
   
@@ -1104,26 +1117,40 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
   doc.setLineWidth(0.5);
   doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
 
-  // Company contact info in footer
+  // Company contact info in footer (using text only, no emojis)
   doc.setFontSize(8);
-  doc.setTextColor(100, 100, 100);
+  doc.setTextColor(80, 80, 80);
   doc.setFont('helvetica', 'normal');
   
-  let footerText = '';
-  if (businessSettings.phone) footerText += `☎ ${businessSettings.phone}  `;
-  if (businessSettings.email) footerText += `✉ ${businessSettings.email}  `;
-  if (businessSettings.website) footerText += `🌐 ${businessSettings.website}`;
+  const contactParts = [];
+  if (businessSettings.phone) contactParts.push(`Tel: ${businessSettings.phone}`);
+  if (businessSettings.email) contactParts.push(`Email: ${businessSettings.email}`);
+  if (businessSettings.website) contactParts.push(`Web: ${businessSettings.website}`);
   
-  if (footerText) {
+  if (contactParts.length > 0) {
+    const footerText = contactParts.join('  |  ');
     doc.text(footerText, pageWidth / 2, footerY, { align: 'center' });
+  }
+
+  // Address if available
+  if (businessSettings.address_line1 || businessSettings.city) {
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    const addressParts = [];
+    if (businessSettings.address_line1) addressParts.push(businessSettings.address_line1);
+    if (businessSettings.city) addressParts.push(businessSettings.city);
+    if (businessSettings.province) addressParts.push(businessSettings.province);
+    const addressText = addressParts.join(', ');
+    doc.text(addressText, pageWidth / 2, footerY + 4, { align: 'center' });
   }
 
   doc.setFontSize(7);
   doc.setTextColor(120, 120, 120);
+  doc.setFont('helvetica', 'italic');
   const validityText = quote.validity_date ? 
-    `Orçamento válido até ${new Date(quote.validity_date).toLocaleDateString('pt-AO')}. Sujeito a disponibilidade.` :
-    'Orçamento sujeito a disponibilidade.';
-  doc.text(validityText, pageWidth / 2, footerY + 5, { align: 'center' });
+    `Orcamento valido ate ${new Date(quote.validity_date).toLocaleDateString('pt-AO')}. Sujeito a disponibilidade.` :
+    'Orcamento sujeito a disponibilidade.';
+  doc.text(validityText, pageWidth / 2, footerY + 9, { align: 'center' });
 
   // 5. Return Blob directly (NO UPLOAD)
   return doc.output('blob');
