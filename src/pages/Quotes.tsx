@@ -15,10 +15,10 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useCreateInvoice } from '@/hooks/useInvoices';
 import { generateInvoicePDF } from '@/lib/professionalPdfGenerator';
 import { QuoteDialog } from "@/components/QuoteDialog";
+import { QuoteCard } from "@/components/QuoteCard";
 import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
-import { useSmartBadges } from "@/hooks/useSmartBadges";
 import { WorkflowWizard } from "@/components/WorkflowWizard";
 import { exportToExcel, formatQuotesForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
@@ -327,148 +327,31 @@ export default function Quotes() {
                 <p className="text-sm">Tente ajustar os termos de pesquisa</p>
               </div>
              ) : (
-              filteredQuotes.map((quote) => {
-                const smartBadges = useSmartBadges({ entityType: 'quote', entity: quote });
-                
-                return (
-                <Card
+              filteredQuotes.map((quote) => (
+                <QuoteCard
                   key={quote.id}
-                  className="p-4 sm:p-5 hover:shadow-md transition-all"
-                >
-                  <div className="flex flex-col gap-4">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <FileText className="h-5 w-5 text-primary shrink-0" />
-                          <h3 className="text-base sm:text-lg font-semibold truncate">
-                            {quote.clients?.name || 'Cliente não especificado'}
-                          </h3>
-                          <Badge variant={statusConfig[quote.status as keyof typeof statusConfig]?.variant || 'secondary'}>
-                            {statusConfig[quote.status as keyof typeof statusConfig]?.label || quote.status}
-                          </Badge>
-                          {smartBadges.map((badge) => (
-                            <Badge 
-                              key={badge.id} 
-                              variant={badge.variant}
-                              className="text-xs"
-                              title={badge.tooltip}
-                            >
-                              {badge.label}
-                            </Badge>
-                          ))}
-                        </div>
-                       
-                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                         <div className="flex items-center gap-2 text-muted-foreground">
-                           <Calendar className="h-4 w-4 shrink-0" />
-                           <span className="truncate">Criado: {new Date(quote.created_at).toLocaleDateString("pt-PT")}</span>
-                         </div>
-                         {quote.validity_date && (
-                           <div className="flex items-center gap-2 text-muted-foreground">
-                             <Clock className="h-4 w-4 shrink-0" />
-                             <span className="truncate">Validade: {new Date(quote.validity_date).toLocaleDateString("pt-PT")}</span>
-                           </div>
-                         )}
-                       </div>
-                     </div>
-                     
-                     <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2">
-                       <div className="text-right">
-                         <div className="text-xl sm:text-2xl font-bold whitespace-nowrap">
-                           {Number(quote.total).toFixed(2)}
-                         </div>
-                         <div className="text-xs text-muted-foreground">
-                           {quote.currency || 'AOA'}
-                         </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="pt-2 border-t">
-                      <EntityQuickLinks 
-                        links={[
-                          { type: 'client', id: quote.client_id, name: quote.clients?.name || 'Cliente' },
-                          ...(quote.job_id ? [{ type: 'job' as const, id: quote.job_id, name: 'Job Criado', status: 'convertido' }] : []),
-                        ]}
-                      />
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2 pt-2 border-t">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setSelectedPdfSource({
-                            type: 'local',
-                            entityType: 'quote',
-                            entityId: quote.id
-                          });
-                          setPdfViewerOpen(true);
-                        }}
-                      >
-                        <FileText className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Ver PDF</span>
-                      </Button>
-                     <Button 
-                       variant="outline" 
-                       size="sm"
-                       onClick={() => handleEdit(quote)}
-                     >
-                       <Pencil className="h-4 w-4 sm:mr-2" />
-                       <span className="hidden sm:inline">Editar</span>
-                     </Button>
-                      {quote.status === 'accepted' && (
-                        <>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              navigate('/invoices?from_quote=' + quote.id);
-                            }}
-                          >
-                            <FileText className="h-4 w-4 sm:mr-2" />
-                            <span className="hidden sm:inline">Fatura</span>
-                          </Button>
-                          {!quote.job_id && (
-                            <Button 
-                              variant="default" 
-                              size="sm"
-                              onClick={() => {
-                                setWorkflowQuote(quote);
-                                setWorkflowWizardOpen(true);
-                              }}
-                              className="gap-2"
-                            >
-                              <Briefcase className="h-4 w-4" />
-                              <span className="hidden sm:inline">Criar Job</span>
-                            </Button>
-                          )}
-                          {quote.job_id && (
-                            <Badge variant="secondary" className="gap-1">
-                              <Briefcase className="h-3 w-3" />
-                              Job Criado
-                            </Badge>
-                          )}
-                       <Button 
-                         variant="outline" 
-                         size="sm"
-                         onClick={() => {
-                           setPaymentPlanQuote(quote);
-                           setPaymentPlanDialogOpen(true);
-                         }}
-                       >
-                         <CreditCard className="h-4 w-4 sm:mr-2" />
-                         <span className="hidden sm:inline">Plano</span>
-                        </Button>
-                      </>
-                    )}
-                    </div>
-                  </div>
-                  </div>
-                </Card>
-                );
-              })
+                  quote={quote}
+                  statusConfig={statusConfig}
+                  onViewPDF={(q) => {
+                    setSelectedPdfSource({
+                      type: 'local',
+                      entityType: 'quote',
+                      entityId: q.id
+                    });
+                    setPdfViewerOpen(true);
+                  }}
+                  onEdit={handleEdit}
+                  onGenerateInvoice={(q) => navigate('/invoices?from_quote=' + q.id)}
+                  onConvertToJob={(q) => {
+                    setWorkflowQuote(q);
+                    setWorkflowWizardOpen(true);
+                  }}
+                  onSetPaymentPlan={(q) => {
+                    setPaymentPlanQuote(q);
+                    setPaymentPlanDialogOpen(true);
+                  }}
+                />
+              ))
             )}
           </div>
         </Card>
