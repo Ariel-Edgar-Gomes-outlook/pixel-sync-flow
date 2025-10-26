@@ -1418,6 +1418,7 @@ export type Database = {
           created_at: string | null
           currency: string | null
           date_format: string | null
+          has_seen_onboarding: boolean | null
           id: string
           language: string | null
           timezone: string | null
@@ -1428,6 +1429,7 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           date_format?: string | null
+          has_seen_onboarding?: boolean | null
           id?: string
           language?: string | null
           timezone?: string | null
@@ -1438,6 +1440,7 @@ export type Database = {
           created_at?: string | null
           currency?: string | null
           date_format?: string | null
+          has_seen_onboarding?: boolean | null
           id?: string
           language?: string | null
           timezone?: string | null

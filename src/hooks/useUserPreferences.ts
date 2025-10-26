@@ -9,6 +9,7 @@ export interface UserPreferences {
   timezone: string;
   language: string;
   date_format: string;
+  has_seen_onboarding?: boolean;
   created_at: string;
   updated_at: string;
 }

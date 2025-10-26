@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Users, Briefcase, FileText, CreditCard, Calendar, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserPreferences, useUpdateUserPreferences } from '@/hooks/useUserPreferences';
 
 const ONBOARDING_STEPS = [
   {
@@ -54,15 +56,17 @@ export function Onboarding() {
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: preferences } = useUserPreferences(user?.id);
+  const updatePreferences = useUpdateUserPreferences();
 
   useEffect(() => {
-    // Check if user has seen onboarding
-    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-    if (!hasSeenOnboarding) {
+    // Check if user has seen onboarding from database
+    if (preferences && !preferences.has_seen_onboarding) {
       // Show onboarding after a short delay
       setTimeout(() => setOpen(true), 1000);
     }
-  }, []);
+  }, [preferences]);
 
   const handleNext = () => {
     if (currentStep < ONBOARDING_STEPS.length - 1) {
@@ -77,7 +81,13 @@ export function Onboarding() {
   };
 
   const handleComplete = () => {
-    localStorage.setItem('hasSeenOnboarding', 'true');
+    // Save to database that user has seen onboarding
+    if (user?.id) {
+      updatePreferences.mutate({
+        userId: user.id,
+        has_seen_onboarding: true,
+      });
+    }
     setOpen(false);
     setCurrentStep(0);
   };
