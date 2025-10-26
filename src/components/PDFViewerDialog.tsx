@@ -45,7 +45,7 @@ export function PDFViewerDialog({
 }: PDFViewerDialogProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
-  const [scale, setScale] = useState<number>(1.0);
+  const [scale, setScale] = useState<number>(1.4); // Increased initial scale for better visibility
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +73,7 @@ export function PDFViewerDialog({
         setError(null);
         setLoadTimeout(false);
         setPageNumber(1);
-        setScale(1.0);
+        setScale(1.4); // Reset to better initial scale
 
         // Clean up previous blob URL
         if (blobUrl) {
@@ -295,7 +295,7 @@ export function PDFViewerDialog({
 
   const resetAndClose = () => {
     setPageNumber(1);
-    setScale(1.0);
+    setScale(1.4); // Reset to better scale
     setIsLoading(true);
     onOpenChange(false);
   };
@@ -365,7 +365,7 @@ export function PDFViewerDialog({
         </div>
 
         {/* PDF Viewer */}
-        <div className="flex-1 overflow-auto bg-muted/10 flex flex-col items-center justify-center p-6">
+        <div className="flex-1 overflow-auto bg-muted/10 flex flex-col items-center p-6">
           {isGenerating ? (
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -409,13 +409,13 @@ export function PDFViewerDialog({
               </div>
             </div>
           ) : (
-            <div className="bg-white shadow-lg">
+            <div className="bg-white shadow-2xl rounded-sm overflow-hidden">
               <Document
                 file={currentPdfUrl}
                 onLoadSuccess={onDocumentLoadSuccess}
                 onLoadError={onDocumentLoadError}
                 loading={
-                  <div className="flex items-center justify-center h-[600px] w-[500px]">
+                  <div className="flex items-center justify-center h-[700px] w-[595px]">
                     <div className="text-center">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                       <p className="text-sm text-muted-foreground">Carregando PDF...</p>
@@ -434,7 +434,7 @@ export function PDFViewerDialog({
                   renderTextLayer={true}
                   renderAnnotationLayer={true}
                   loading={
-                    <div className="flex items-center justify-center h-[600px] w-[500px]">
+                    <div className="flex items-center justify-center h-[700px] w-[595px]">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
                   }

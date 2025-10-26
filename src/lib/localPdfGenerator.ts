@@ -894,51 +894,51 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
   yPos = 50;
 
   // Title
-  doc.setFontSize(18);
+  doc.setFontSize(22); // Increased from 18
   doc.setFont('helvetica', 'bold');
   doc.text('ORÇAMENTO', 105, yPos, { align: 'center' });
   
-  yPos += 8;
-  doc.setFontSize(10);
+  yPos += 10;
+  doc.setFontSize(11); // Increased from 10
   doc.setFont('helvetica', 'normal');
   const quoteNumber = `ORC-${quote.id.substring(0, 8).toUpperCase()}`;
   doc.text(`Nº ${quoteNumber}`, 105, yPos, { align: 'center' });
   
-  yPos += 5;
+  yPos += 6;
   doc.text(`Emitido em: ${new Date(quote.created_at).toLocaleDateString('pt-AO')}`, 105, yPos, { align: 'center' });
   
   if (quote.validity_date) {
-    yPos += 5;
+    yPos += 6;
     doc.text(`Válido até: ${new Date(quote.validity_date).toLocaleDateString('pt-AO')}`, 105, yPos, { align: 'center' });
   }
 
-  yPos += 15;
+  yPos += 18; // Increased spacing
 
   // Client Info Box
-  doc.setFillColor(240, 240, 240);
-  doc.rect(20, yPos, 170, quote.jobs?.title ? 25 : 20, 'F');
+  doc.setFillColor(245, 247, 250); // Lighter gray
+  doc.rect(20, yPos, 170, quote.jobs?.title ? 28 : 23, 'F'); // Increased height
   
-  doc.setFontSize(9);
+  doc.setFontSize(10); // Increased from 9
   doc.setFont('helvetica', 'bold');
-  doc.text('CLIENTE:', 25, yPos + 6);
+  doc.text('CLIENTE:', 25, yPos + 7);
   doc.setFont('helvetica', 'normal');
-  doc.text(quote.clients.name, 25, yPos + 11);
+  doc.text(quote.clients.name, 25, yPos + 13);
   if (quote.clients.email) {
-    doc.text(quote.clients.email, 25, yPos + 16);
+    doc.text(quote.clients.email, 25, yPos + 18);
   }
   if (quote.clients.phone) {
-    doc.text(quote.clients.phone, 25, yPos + 21);
+    doc.text(quote.clients.phone, 25, yPos + 23);
   }
 
   if (quote.jobs?.title) {
     doc.setFont('helvetica', 'bold');
-    doc.text('SERVIÇO:', 120, yPos + 6);
+    doc.text('SERVIÇO:', 120, yPos + 7);
     doc.setFont('helvetica', 'normal');
     const jobLines = doc.splitTextToSize(quote.jobs.title, 65);
-    doc.text(jobLines, 120, yPos + 11);
+    doc.text(jobLines, 120, yPos + 13);
   }
 
-  yPos += (quote.jobs?.title ? 35 : 30);
+  yPos += (quote.jobs?.title ? 38 : 33); // Increased spacing
 
   // Status Badge
   if (quote.status === 'accepted' && quote.accepted_at) {
@@ -977,10 +977,12 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
       fillColor: primaryColorRgb as [number, number, number],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
-      fontSize: 10,
+      fontSize: 11, // Increased from 10
+      cellPadding: 5, // Increased padding
     },
     bodyStyles: {
-      fontSize: 9,
+      fontSize: 10, // Increased from 9
+      cellPadding: 4, // Increased padding
     },
     columnStyles: {
       0: { cellWidth: 90 },
@@ -999,32 +1001,33 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
   const currency = String(quote.currency);
   const total = Number(quote.total) || 0;
 
-  let calcY = finalY + 15;
+  let calcY = finalY + 18; // Increased spacing
 
-  doc.setFontSize(10);
+  doc.setFontSize(11); // Increased from 10
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(0, 0, 0);
   doc.text('Subtotal:', 130, calcY);
   doc.text(`${currency} ${subtotal.toFixed(2)}`, 185, calcY, { align: 'right' });
 
   if (taxRate > 0) {
-    calcY += 7;
+    calcY += 8; // Increased from 7
     doc.text(`IVA (${taxRate}%):`, 130, calcY);
     doc.text(`${currency} ${taxAmount.toFixed(2)}`, 185, calcY, { align: 'right' });
   }
 
   if (discountAmount > 0) {
-    calcY += 7;
+    calcY += 8; // Increased from 7
     doc.text(`Desconto:`, 130, calcY);
     doc.text(`-${currency} ${discountAmount.toFixed(2)}`, 185, calcY, { align: 'right' });
   }
 
-  calcY += 10;
+  calcY += 12; // Increased from 10
   doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.5);
   doc.line(130, calcY, 190, calcY);
 
-  calcY += 8;
-  doc.setFontSize(14);
+  calcY += 9; // Increased from 8
+  doc.setFontSize(15); // Increased from 14
   doc.setFont('helvetica', 'bold');
   doc.text('TOTAL:', 130, calcY);
   doc.text(`${currency} ${total.toFixed(2)}`, 185, calcY, { align: 'right' });
