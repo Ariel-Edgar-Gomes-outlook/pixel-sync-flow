@@ -72,10 +72,17 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
   }, [quote]);
 
   const addItem = () => {
-    setFormData(prev => ({
-      ...prev,
-      items: [...prev.items, { description: "", quantity: 1, price: 0 }]
-    }));
+    console.log('Adding item, current items:', formData.items);
+    const newItem: QuoteItem = { description: "", quantity: 1, price: 0 };
+    setFormData(prev => {
+      const updatedItems = [...prev.items, newItem];
+      console.log('Updated items:', updatedItems);
+      return {
+        ...prev,
+        items: updatedItems
+      };
+    });
+    toast.success("Item adicionado! Preencha os detalhes.");
   };
 
   const removeItem = (index: number) => {
@@ -393,7 +400,17 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">Adicione os serviços ou produtos</p>
               </div>
-              <Button type="button" variant="default" size="sm" onClick={addItem} className="w-full sm:w-auto">
+              <Button 
+                type="button" 
+                variant="default" 
+                size="sm" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  addItem();
+                }} 
+                className="w-full sm:w-auto shrink-0"
+              >
                 <Plus className="h-4 w-4 mr-1" />
                 <span className="hidden sm:inline">Adicionar Item</span>
                 <span className="sm:hidden">Adicionar</span>
