@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChevronLeft, ChevronRight, Download, Printer, ZoomIn, ZoomOut, X, ExternalLink, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
@@ -57,12 +58,10 @@ export function PDFViewerDialog({
   // Generate PDF from local data or use provided URL/Blob
   useEffect(() => {
     if (!open) {
-      // Clean up blob URL when dialog closes
-      if (blobUrl) {
-        URL.revokeObjectURL(blobUrl);
-        setBlobUrl(null);
-      }
+      // Reset states but DON'T revoke blob URL yet - wait for dialog animation
       setCurrentPdfUrl(null);
+      setError(null);
+      setLoadTimeout(false);
       return;
     }
 
@@ -73,13 +72,7 @@ export function PDFViewerDialog({
         setError(null);
         setLoadTimeout(false);
         setPageNumber(1);
-        setScale(1.4); // Reset to better initial scale
-
-        // Clean up previous blob URL
-        if (blobUrl) {
-          URL.revokeObjectURL(blobUrl);
-          setBlobUrl(null);
-        }
+        setScale(1.4);
 
         // Determine PDF source (prioritize pdfSource over legacy pdfUrl)
         const source: PDFSource = pdfSource || (pdfUrl ? { type: 'url', url: pdfUrl } : null);
@@ -87,27 +80,22 @@ export function PDFViewerDialog({
         if (!source) {
           setCurrentPdfUrl(null);
           setIsGenerating(false);
+          setIsLoading(false);
           return;
         }
 
         let url: string;
+        let blob: Blob | null = null;
 
         if (source.type === 'url') {
           // Use existing URL
           url = source.url;
-          setPdfBlob(null);
-          setCurrentPdfUrl(url);
         } else if (source.type === 'blob') {
-          // Convert blob to URL
-          setPdfBlob(source.blob);
-          const objectUrl = URL.createObjectURL(source.blob);
-          setBlobUrl(objectUrl);
-          url = objectUrl;
-          setCurrentPdfUrl(url);
+          // Use provided blob
+          blob = source.blob;
+          url = URL.createObjectURL(blob);
         } else if (source.type === 'local') {
           // Generate PDF locally from database
-          let blob: Blob;
-
           switch (source.entityType) {
             case 'contract':
               blob = await generateContractPDFLocal(source.entityId);
@@ -124,23 +112,29 @@ export function PDFViewerDialog({
             default:
               throw new Error('Tipo de entidade desconhecido');
           }
-
-          setPdfBlob(blob);
-          const objectUrl = URL.createObjectURL(blob);
-          setBlobUrl(objectUrl);
-          url = objectUrl;
-          setCurrentPdfUrl(url);
+          url = URL.createObjectURL(blob);
         }
 
+        // Store blob and URL
+        if (blob) {
+          setPdfBlob(blob);
+          // Clean up old blob URL before setting new one
+          if (blobUrl && blobUrl !== url) {
+            URL.revokeObjectURL(blobUrl);
+          }
+          setBlobUrl(url);
+        }
+        
+        setCurrentPdfUrl(url);
         setIsGenerating(false);
 
-        // Set timeout for loading (15 seconds)
+        // Increased timeout for loading (60 seconds)
         const timeoutId = setTimeout(() => {
           if (isLoading) {
             setLoadTimeout(true);
             setError('O PDF está demorando muito para carregar. Tente abrir em nova aba ou fazer download.');
           }
-        }, 15000);
+        }, 60000);
 
         return () => clearTimeout(timeoutId);
       } catch (err) {
@@ -176,6 +170,11 @@ export function PDFViewerDialog({
   const onDocumentLoadError = (error: Error) => {
     console.error('Erro ao carregar PDF:', error);
     setIsLoading(false);
+    
+    // Ignore "Transport destroyed" error - it's harmless and happens during cleanup
+    if (error.message.includes('Transport destroyed')) {
+      return;
+    }
     
     let errorMessage = 'Erro ao carregar PDF. ';
     
@@ -295,10 +294,25 @@ export function PDFViewerDialog({
 
   const resetAndClose = () => {
     setPageNumber(1);
-    setScale(1.4); // Reset to better scale
+    setScale(1.4);
     setIsLoading(true);
     onOpenChange(false);
+    
+    // Clean up blob URL after dialog closes
+    setTimeout(() => {
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+        setBlobUrl(null);
+      }
+    }, 300); // Wait for dialog animation
   };
+
+  // Memoize PDF options to prevent unnecessary reloads
+  const pdfOptions = useMemo(() => ({
+    cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
+    cMapPacked: true,
+    standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/',
+  }), []);
 
   return (
     <Dialog open={open} onOpenChange={resetAndClose}>
@@ -364,85 +378,84 @@ export function PDFViewerDialog({
           </div>
         </div>
 
-        {/* PDF Viewer */}
-        <div className="flex-1 overflow-auto bg-muted/10 flex flex-col items-center p-6">
-          {isGenerating ? (
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-sm text-muted-foreground">Gerando PDF...</p>
-              <p className="text-xs text-muted-foreground mt-2">Buscando dados e criando documento</p>
-            </div>
-          ) : !currentPdfUrl ? (
-            <div className="text-center text-muted-foreground">
-              <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Nenhum PDF selecionado</p>
-            </div>
-          ) : error || loadTimeout ? (
-            <div className="max-w-md w-full space-y-4">
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  {error || 'O PDF está demorando muito para carregar.'}
-                </AlertDescription>
-              </Alert>
-              
-              <div className="flex flex-col gap-2">
-                <Button onClick={handleOpenInNewTab} className="w-full">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Abrir em Nova Aba
-                </Button>
-                <Button onClick={handleDownload} variant="outline" className="w-full">
-                  <Download className="h-4 w-4 mr-2" />
-                  Baixar PDF
-                </Button>
-                <Button 
-                  onClick={() => {
-                    setError(null);
-                    setLoadTimeout(false);
-                    setIsLoading(true);
-                  }} 
-                  variant="ghost" 
-                  className="w-full"
-                >
-                  Tentar Novamente
-                </Button>
+        {/* PDF Viewer with ScrollArea */}
+        <ScrollArea className="flex-1 bg-muted/10">
+          <div className="flex flex-col items-center p-6 min-h-full">
+            {isGenerating ? (
+              <div className="text-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-sm text-muted-foreground">Gerando PDF...</p>
+                <p className="text-xs text-muted-foreground mt-2">Buscando dados e criando documento</p>
               </div>
-            </div>
-          ) : (
-            <div className="bg-white shadow-2xl rounded-sm overflow-hidden">
-              <Document
-                file={currentPdfUrl}
-                onLoadSuccess={onDocumentLoadSuccess}
-                onLoadError={onDocumentLoadError}
-                loading={
-                  <div className="flex items-center justify-center h-[700px] w-[595px]">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                      <p className="text-sm text-muted-foreground">Carregando PDF...</p>
-                      <p className="text-xs text-muted-foreground mt-2">Isso pode levar alguns segundos</p>
-                    </div>
-                  </div>
-                }
-                options={{
-                  cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
-                  cMapPacked: true,
-                }}
-              >
-                <Page
-                  pageNumber={pageNumber}
-                  scale={scale}
-                  renderTextLayer={true}
-                  renderAnnotationLayer={true}
+            ) : !currentPdfUrl ? (
+              <div className="text-center text-muted-foreground py-20">
+                <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhum PDF selecionado</p>
+              </div>
+            ) : error || loadTimeout ? (
+              <div className="max-w-md w-full space-y-4 py-10">
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {error || 'O PDF está demorando muito para carregar.'}
+                  </AlertDescription>
+                </Alert>
+                
+                <div className="flex flex-col gap-2">
+                  <Button onClick={handleOpenInNewTab} className="w-full">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Abrir em Nova Aba
+                  </Button>
+                  <Button onClick={handleDownload} variant="outline" className="w-full">
+                    <Download className="h-4 w-4 mr-2" />
+                    Baixar PDF
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setError(null);
+                      setLoadTimeout(false);
+                      setIsLoading(true);
+                    }} 
+                    variant="ghost" 
+                    className="w-full"
+                  >
+                    Tentar Novamente
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white shadow-2xl rounded-sm">
+                <Document
+                  file={currentPdfUrl}
+                  onLoadSuccess={onDocumentLoadSuccess}
+                  onLoadError={onDocumentLoadError}
                   loading={
-                    <div className="flex items-center justify-center h-[700px] w-[595px]">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <div className="flex items-center justify-center p-20">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                        <p className="text-sm text-muted-foreground">Carregando PDF...</p>
+                        <p className="text-xs text-muted-foreground mt-2">Aguarde...</p>
+                      </div>
                     </div>
                   }
-                />
-              </Document>
-            </div>
-          )}
-        </div>
+                  options={pdfOptions}
+                >
+                  <Page
+                    pageNumber={pageNumber}
+                    scale={scale}
+                    renderTextLayer={true}
+                    renderAnnotationLayer={true}
+                    loading={
+                      <div className="flex items-center justify-center p-20">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      </div>
+                    }
+                  />
+                </Document>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
