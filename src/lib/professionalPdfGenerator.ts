@@ -89,13 +89,15 @@ export class ProfessionalPDFGenerator {
     const startY = this.margin;
 
     // Add logo if available
+    let logoWidth = 0;
     let logoHeight = 0;
     if (this.businessSettings.logo_url) {
       try {
         const logoData = await this.loadImage(this.businessSettings.logo_url);
         if (logoData) {
-          const logoSize = 28;
+          const logoSize = 30;
           this.doc.addImage(logoData, 'PNG', this.margin, startY, logoSize, logoSize, undefined, 'FAST');
+          logoWidth = logoSize + 8;
           logoHeight = logoSize;
         }
       } catch (error) {
@@ -103,70 +105,66 @@ export class ProfessionalPDFGenerator {
       }
     }
 
-    // Company name - left side
-    this.doc.setFontSize(16);
+    // Company name - left side, next to logo
+    const companyTextX = this.margin + logoWidth;
+    this.doc.setFontSize(14);
     this.doc.setTextColor(40, 40, 40);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text(this.businessSettings.business_name.toUpperCase(), this.margin, startY + (logoHeight > 0 ? logoHeight + 8 : 8));
+    this.doc.text(this.businessSettings.business_name, companyTextX, startY + 8);
 
-    // Company details - left side, smaller
+    // Company details - left side, below company name
     this.doc.setFontSize(8);
     this.doc.setTextColor(100, 100, 100);
     this.doc.setFont('helvetica', 'normal');
     
-    let yPos = startY + (logoHeight > 0 ? logoHeight + 14 : 14);
-    if (this.businessSettings.nif) {
-      this.doc.text(`NIF: ${this.businessSettings.nif}`, this.margin, yPos);
-      yPos += 4;
-    }
-    if (this.businessSettings.phone) {
-      this.doc.text(`Tel: ${this.businessSettings.phone}`, this.margin, yPos);
-      yPos += 4;
-    }
+    let yPos = startY + 14;
+    
     if (this.businessSettings.email) {
-      this.doc.text(`Email: ${this.businessSettings.email}`, this.margin, yPos);
+      this.doc.text(this.businessSettings.email, companyTextX, yPos);
+      yPos += 4;
+    }
+    
+    if (this.businessSettings.phone) {
+      this.doc.text(`Tel: ${this.businessSettings.phone}`, companyTextX, yPos);
+      yPos += 4;
+    }
+    
+    if (this.businessSettings.nif) {
+      this.doc.text(`NIF: ${this.businessSettings.nif}`, companyTextX, yPos);
       yPos += 4;
     }
 
     // Large INVOICE/PRO-FORMA title - right side
     const title = invoiceData.is_proforma ? 'PRO-FORMA' : 'FATURA';
-    this.doc.setFontSize(36);
+    this.doc.setFontSize(32);
     this.doc.setTextColor(...this.primaryColor);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text(title, this.pageWidth - this.margin, startY + 15, { align: 'right' });
+    this.doc.text(title, this.pageWidth - this.margin, startY + 12, { align: 'right' });
 
-    // Invoice number and date - right side
-    this.doc.setFontSize(9);
-    this.doc.setTextColor(40, 40, 40);
+    // Invoice number - right side, below title
+    this.doc.setFontSize(10);
+    this.doc.setTextColor(80, 80, 80);
     this.doc.setFont('helvetica', 'normal');
     
-    let rightY = startY + 24;
-    this.doc.text(`Número: ${invoiceData.invoice_number}`, this.pageWidth - this.margin, rightY, { align: 'right' });
-    rightY += 5;
-    this.doc.text(`Data: ${new Date(invoiceData.issue_date).toLocaleDateString('pt-PT')}`, this.pageWidth - this.margin, rightY, { align: 'right' });
-    
-    if (invoiceData.due_date) {
-      rightY += 5;
-      this.doc.text(`Vencimento: ${new Date(invoiceData.due_date).toLocaleDateString('pt-PT')}`, this.pageWidth - this.margin, rightY, { align: 'right' });
-    }
+    let rightY = startY + 22;
+    this.doc.text(invoiceData.invoice_number, this.pageWidth - this.margin, rightY, { align: 'right' });
 
-    return Math.max(yPos, rightY) + 15;
+    return Math.max(yPos, rightY, logoHeight + startY) + 15;
   }
 
   private addClientInfo(invoiceData: InvoiceData, startY: number) {
-    // Minimalist BILL TO section
-    this.doc.setFontSize(11);
-    this.doc.setTextColor(40, 40, 40);
+    const leftColumnWidth = 100;
+    const rightColumnX = this.pageWidth - this.margin - 80;
+
+    // CLIENTE section - left
+    this.doc.setFontSize(9);
+    this.doc.setTextColor(100, 100, 100);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text('FATURADO A:', this.margin, startY);
+    this.doc.text('CLIENTE', this.margin, startY);
 
-    // Thin line under header
-    this.doc.setDrawColor(40, 40, 40);
-    this.doc.setLineWidth(0.5);
-    this.doc.line(this.margin, startY + 2, this.margin + 50, startY + 2);
-
-    let yPos = startY + 8;
+    let yPos = startY + 6;
     this.doc.setFontSize(10);
+    this.doc.setTextColor(40, 40, 40);
     this.doc.setFont('helvetica', 'bold');
     this.doc.text(invoiceData.client.name, this.margin, yPos);
     yPos += 5;
@@ -175,23 +173,40 @@ export class ProfessionalPDFGenerator {
     this.doc.setFontSize(9);
     this.doc.setTextColor(80, 80, 80);
     
-    if (invoiceData.client.address) {
-      const addressLines = this.doc.splitTextToSize(invoiceData.client.address, 80);
-      this.doc.text(addressLines, this.margin, yPos);
-      yPos += addressLines.length * 4;
+    if (invoiceData.client.email) {
+      this.doc.text(invoiceData.client.email, this.margin, yPos);
+      yPos += 4;
     }
     
     if (invoiceData.client.phone) {
       this.doc.text(invoiceData.client.phone, this.margin, yPos);
       yPos += 4;
     }
+
+    // Dates section - right side
+    let rightY = startY;
+    this.doc.setFontSize(9);
+    this.doc.setTextColor(100, 100, 100);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.text('Data de Emissão:', rightColumnX, rightY);
     
-    if (invoiceData.client.email) {
-      this.doc.text(invoiceData.client.email, this.margin, yPos);
-      yPos += 4;
+    this.doc.setTextColor(40, 40, 40);
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.text(new Date(invoiceData.issue_date).toLocaleDateString('pt-PT'), this.pageWidth - this.margin, rightY, { align: 'right' });
+    rightY += 6;
+
+    if (invoiceData.due_date) {
+      this.doc.setFont('helvetica', 'bold');
+      this.doc.setTextColor(100, 100, 100);
+      this.doc.text('Data de Vencimento:', rightColumnX, rightY);
+      
+      this.doc.setTextColor(40, 40, 40);
+      this.doc.setFont('helvetica', 'normal');
+      this.doc.text(new Date(invoiceData.due_date).toLocaleDateString('pt-PT'), this.pageWidth - this.margin, rightY, { align: 'right' });
+      rightY += 6;
     }
 
-    return yPos + 10;
+    return Math.max(yPos, rightY) + 10;
   }
 
   private addItemsTable(invoiceData: InvoiceData, startY: number) {
