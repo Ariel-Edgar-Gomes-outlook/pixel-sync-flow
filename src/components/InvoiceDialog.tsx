@@ -39,8 +39,8 @@ const invoiceSchema = z.object({
   client_id: z.string().min(1, 'Cliente é obrigatório'),
   quote_id: z.string().optional(),
   is_proforma: z.boolean(),
-  issue_date: z.string(),
-  due_date: z.string().optional(),
+  issue_date: z.string().min(1, 'Data de emissão é obrigatória'),
+  due_date: z.string().optional().transform(val => val === '' ? undefined : val),
   items: z.array(z.object({
     description: z.string().min(1, 'Descrição é obrigatória'),
     quantity: z.number().min(1, 'Quantidade deve ser maior que 0'),
@@ -50,8 +50,8 @@ const invoiceSchema = z.object({
   discount_amount: z.number().min(0).default(0),
   tax_rate: z.number().default(14),
   currency: z.string().default('AOA'),
-  notes: z.string().optional(),
-  payment_instructions: z.string().optional(),
+  notes: z.string().optional().transform(val => val === '' ? undefined : val),
+  payment_instructions: z.string().optional().transform(val => val === '' ? undefined : val),
   status: z.enum(['issued', 'paid', 'overdue', 'cancelled', 'partial']).default('issued'),
 });
 
@@ -229,10 +229,22 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
         ? invoice.invoice_number 
         : await getNextInvoiceNumber(data.is_proforma);
 
-      const invoiceData = {
+      // Clean up data - convert empty strings to null for optional fields
+      const cleanedData = {
         ...data,
+        due_date: data.due_date && data.due_date.trim() !== '' ? data.due_date : null,
+        notes: data.notes && data.notes.trim() !== '' ? data.notes : null,
+        payment_instructions: data.payment_instructions && data.payment_instructions.trim() !== '' 
+          ? data.payment_instructions 
+          : null,
+        quote_id: data.quote_id && data.quote_id.trim() !== '' && data.quote_id !== 'none' 
+          ? data.quote_id 
+          : null,
+      };
+
+      const invoiceData = {
+        ...cleanedData,
         user_id: user.id,
-        quote_id: data.quote_id || null,
         invoice_number: invoiceNumber,
         subtotal,
         tax_amount: taxAmount,
