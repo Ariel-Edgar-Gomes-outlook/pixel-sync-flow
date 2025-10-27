@@ -88,264 +88,224 @@ export class ProfessionalPDFGenerator {
   private async addHeader(invoiceData: InvoiceData) {
     const startY = this.margin;
 
-    // Modern colored header bar
-    this.doc.setFillColor(...this.primaryColor);
-    this.doc.rect(0, 0, this.pageWidth, 8, 'F');
-
-    // Add logo with better sizing and positioning
-    let logoWidth = 0;
+    // Add logo if available
+    let logoHeight = 0;
     if (this.businessSettings.logo_url) {
       try {
         const logoData = await this.loadImage(this.businessSettings.logo_url);
         if (logoData) {
-          const logoSize = 35;
+          const logoSize = 28;
           this.doc.addImage(logoData, 'PNG', this.margin, startY, logoSize, logoSize, undefined, 'FAST');
-          logoWidth = logoSize + 10;
+          logoHeight = logoSize;
         }
       } catch (error) {
         console.error('Error loading logo:', error);
       }
     }
 
-    // Company name and details with better spacing
-    const detailsX = this.margin + logoWidth;
-    this.doc.setFontSize(18);
+    // Company name - left side
+    this.doc.setFontSize(16);
     this.doc.setTextColor(40, 40, 40);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text(this.businessSettings.business_name, detailsX, startY + 8);
+    this.doc.text(this.businessSettings.business_name.toUpperCase(), this.margin, startY + (logoHeight > 0 ? logoHeight + 8 : 8));
 
-    this.doc.setFontSize(9);
+    // Company details - left side, smaller
+    this.doc.setFontSize(8);
     this.doc.setTextColor(100, 100, 100);
     this.doc.setFont('helvetica', 'normal');
     
-    let yPos = startY + 14;
-    if (this.businessSettings.trade_name) {
-      this.doc.text(this.businessSettings.trade_name, detailsX, yPos);
-      yPos += 4;
-    }
+    let yPos = startY + (logoHeight > 0 ? logoHeight + 14 : 14);
     if (this.businessSettings.nif) {
-      this.doc.text(`NIF: ${this.businessSettings.nif}`, detailsX, yPos);
-      yPos += 4;
-    }
-    if (this.businessSettings.email) {
-      this.doc.text(`✉ ${this.businessSettings.email}`, detailsX, yPos);
+      this.doc.text(`NIF: ${this.businessSettings.nif}`, this.margin, yPos);
       yPos += 4;
     }
     if (this.businessSettings.phone) {
-      this.doc.text(`☎ ${this.businessSettings.phone}`, detailsX, yPos);
+      this.doc.text(`Tel: ${this.businessSettings.phone}`, this.margin, yPos);
+      yPos += 4;
+    }
+    if (this.businessSettings.email) {
+      this.doc.text(`Email: ${this.businessSettings.email}`, this.margin, yPos);
       yPos += 4;
     }
 
-    // Invoice title and number in elegant box
-    const boxWidth = 85;
-    const boxHeight = 28;
-    const boxX = this.pageWidth - this.margin - boxWidth;
-    const boxY = startY;
-
-    // Box with gradient effect (simulated with multiple rectangles)
-    this.doc.setFillColor(...this.primaryColor);
-    this.doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 2, 2, 'F');
-    
-    this.doc.setFillColor(255, 255, 255, 0.9);
-    this.doc.roundedRect(boxX + 2, boxY + 2, boxWidth - 4, boxHeight - 4, 1, 1, 'F');
-
-    this.doc.setFontSize(20);
+    // Large INVOICE/PRO-FORMA title - right side
+    const title = invoiceData.is_proforma ? 'PRO-FORMA' : 'FATURA';
+    this.doc.setFontSize(36);
     this.doc.setTextColor(...this.primaryColor);
     this.doc.setFont('helvetica', 'bold');
-    const title = invoiceData.is_proforma ? 'PRO-FORMA' : 'FATURA';
-    this.doc.text(title, boxX + boxWidth / 2, boxY + 12, { align: 'center' });
+    this.doc.text(title, this.pageWidth - this.margin, startY + 15, { align: 'right' });
 
-    this.doc.setFontSize(11);
-    this.doc.setTextColor(60, 60, 60);
-    this.doc.setFont('helvetica', 'bold');
-    this.doc.text(invoiceData.invoice_number, boxX + boxWidth / 2, boxY + 20, { align: 'center' });
+    // Invoice number and date - right side
+    this.doc.setFontSize(9);
+    this.doc.setTextColor(40, 40, 40);
+    this.doc.setFont('helvetica', 'normal');
+    
+    let rightY = startY + 24;
+    this.doc.text(`Número: ${invoiceData.invoice_number}`, this.pageWidth - this.margin, rightY, { align: 'right' });
+    rightY += 5;
+    this.doc.text(`Data: ${new Date(invoiceData.issue_date).toLocaleDateString('pt-PT')}`, this.pageWidth - this.margin, rightY, { align: 'right' });
+    
+    if (invoiceData.due_date) {
+      rightY += 5;
+      this.doc.text(`Vencimento: ${new Date(invoiceData.due_date).toLocaleDateString('pt-PT')}`, this.pageWidth - this.margin, rightY, { align: 'right' });
+    }
 
-    return Math.max(yPos, startY + boxHeight) + 10;
+    return Math.max(yPos, rightY) + 15;
   }
 
   private addClientInfo(invoiceData: InvoiceData, startY: number) {
-    const boxHeight = 32;
-    const boxWidth = (this.pageWidth - 2 * this.margin - 5) / 2;
-
-    // Client box with modern styling
-    this.doc.setFillColor(248, 250, 252);
-    this.doc.setDrawColor(...this.primaryColor);
-    this.doc.setLineWidth(0.5);
-    this.doc.roundedRect(this.margin, startY, boxWidth, boxHeight, 2, 2, 'FD');
-
-    // Client header with icon
-    this.doc.setFillColor(...this.primaryColor);
-    this.doc.rect(this.margin, startY, boxWidth, 7, 'F');
-    
-    this.doc.setFontSize(10);
-    this.doc.setTextColor(255, 255, 255);
-    this.doc.setFont('helvetica', 'bold');
-    this.doc.text('👤 CLIENTE', this.margin + 3, startY + 5);
-
-    this.doc.setFont('helvetica', 'normal');
-    this.doc.setFontSize(10);
+    // Minimalist BILL TO section
+    this.doc.setFontSize(11);
     this.doc.setTextColor(40, 40, 40);
-    let yPos = startY + 13;
-    
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text(invoiceData.client.name, this.margin + 3, yPos);
+    this.doc.text('FATURADO A:', this.margin, startY);
+
+    // Thin line under header
+    this.doc.setDrawColor(40, 40, 40);
+    this.doc.setLineWidth(0.5);
+    this.doc.line(this.margin, startY + 2, this.margin + 50, startY + 2);
+
+    let yPos = startY + 8;
+    this.doc.setFontSize(10);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.text(invoiceData.client.name, this.margin, yPos);
     yPos += 5;
-    
+
     this.doc.setFont('helvetica', 'normal');
-    this.doc.setFontSize(8);
-    if (invoiceData.client.email) {
-      this.doc.text(`✉ ${invoiceData.client.email}`, this.margin + 3, yPos);
+    this.doc.setFontSize(9);
+    this.doc.setTextColor(80, 80, 80);
+    
+    if (invoiceData.client.address) {
+      const addressLines = this.doc.splitTextToSize(invoiceData.client.address, 80);
+      this.doc.text(addressLines, this.margin, yPos);
+      yPos += addressLines.length * 4;
+    }
+    
+    if (invoiceData.client.phone) {
+      this.doc.text(invoiceData.client.phone, this.margin, yPos);
       yPos += 4;
     }
-    if (invoiceData.client.phone) {
-      this.doc.text(`☎ ${invoiceData.client.phone}`, this.margin + 3, yPos);
+    
+    if (invoiceData.client.email) {
+      this.doc.text(invoiceData.client.email, this.margin, yPos);
+      yPos += 4;
     }
 
-    // Dates box with modern styling
-    const dateBoxX = this.margin + boxWidth + 5;
-    this.doc.setFillColor(248, 250, 252);
-    this.doc.setDrawColor(...this.secondaryColor);
-    this.doc.roundedRect(dateBoxX, startY, boxWidth, boxHeight, 2, 2, 'FD');
-
-    // Dates header
-    this.doc.setFillColor(...this.secondaryColor);
-    this.doc.rect(dateBoxX, startY, boxWidth, 7, 'F');
-    
-    this.doc.setFontSize(10);
-    this.doc.setTextColor(255, 255, 255);
-    this.doc.setFont('helvetica', 'bold');
-    this.doc.text('📅 DATAS', dateBoxX + 3, startY + 5);
-
-    yPos = startY + 13;
-    this.doc.setFontSize(9);
-    this.doc.setTextColor(40, 40, 40);
-    
-    this.doc.setFont('helvetica', 'bold');
-    this.doc.text('Emissão:', dateBoxX + 3, yPos);
-    this.doc.setFont('helvetica', 'normal');
-    this.doc.text(new Date(invoiceData.issue_date).toLocaleDateString('pt-PT'), dateBoxX + 25, yPos);
-    
-    if (invoiceData.due_date) {
-      yPos += 5;
-      this.doc.setFont('helvetica', 'bold');
-      this.doc.text('Vencimento:', dateBoxX + 3, yPos);
-      this.doc.setFont('helvetica', 'normal');
-      this.doc.text(new Date(invoiceData.due_date).toLocaleDateString('pt-PT'), dateBoxX + 25, yPos);
-    }
-
-    return startY + boxHeight + 8;
+    return yPos + 10;
   }
 
   private addItemsTable(invoiceData: InvoiceData, startY: number) {
-    const tableData = invoiceData.items.map(item => [
+    const tableData = invoiceData.items.map((item, index) => [
+      (index + 1).toString(),
       item.description,
-      item.quantity.toString(),
-      `${item.unit_price.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`,
-      `${item.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`
+      `${item.unit_price.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
+      `${item.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`
     ]);
 
     autoTable(this.doc, {
       startY: startY,
-      head: [['Descrição', 'Qtd', 'Preço Unit.', 'Total']],
+      head: [['#', 'DESCRIÇÃO', 'PREÇO', 'TOTAL']],
       body: tableData,
-      theme: 'grid',
+      theme: 'plain',
       headStyles: {
-        fillColor: this.primaryColor,
+        fillColor: [40, 40, 40],
         textColor: [255, 255, 255],
-        fontSize: 10,
+        fontSize: 9,
         fontStyle: 'bold',
-        halign: 'center',
-        cellPadding: 4,
+        halign: 'left',
+        cellPadding: { top: 5, right: 5, bottom: 5, left: 5 },
       },
       styles: {
         fontSize: 9,
-        cellPadding: 4,
+        cellPadding: { top: 6, right: 5, bottom: 6, left: 5 },
         lineColor: [220, 220, 220],
         lineWidth: 0.1,
+        textColor: [60, 60, 60],
       },
       columnStyles: {
-        0: { cellWidth: 'auto', halign: 'left' },
-        1: { cellWidth: 20, halign: 'center' },
-        2: { cellWidth: 42, halign: 'right' },
-        3: { cellWidth: 42, halign: 'right', fontStyle: 'bold' },
+        0: { cellWidth: 15, halign: 'center' },
+        1: { cellWidth: 'auto', halign: 'left' },
+        2: { cellWidth: 35, halign: 'right' },
+        3: { cellWidth: 35, halign: 'right', fontStyle: 'bold' },
+      },
+      bodyStyles: {
+        fillColor: [255, 255, 255],
       },
       alternateRowStyles: {
-        fillColor: [248, 250, 252],
+        fillColor: [250, 250, 250],
       },
     });
 
-    return (this.doc as any).lastAutoTable.finalY + 10;
+    return (this.doc as any).lastAutoTable.finalY + 8;
   }
 
   private addTotalsSection(invoiceData: InvoiceData, startY: number) {
-    const boxWidth = 85;
     const rightX = this.pageWidth - this.margin;
-    const boxX = rightX - boxWidth;
-
-    let yPos = startY;
+    const labelX = rightX - 70;
+    
+    let yPos = startY + 5;
     const lineHeight = 6;
 
-    // Background box for totals
-    this.doc.setFillColor(248, 250, 252);
+    // Thin top line
     this.doc.setDrawColor(220, 220, 220);
-    this.doc.setLineWidth(0.1);
-    
-    const boxHeight = 35 + (invoiceData.discount_amount > 0 ? 6 : 0);
-    this.doc.roundedRect(boxX, yPos - 2, boxWidth, boxHeight, 1, 1, 'FD');
+    this.doc.setLineWidth(0.3);
+    this.doc.line(labelX - 5, startY, rightX, startY);
 
     this.doc.setFontSize(9);
-    this.doc.setTextColor(70, 70, 70);
+    this.doc.setTextColor(80, 80, 80);
     this.doc.setFont('helvetica', 'normal');
 
-    const labelX = boxX + 5;
-    const valueX = rightX - 5;
-
     // Subtotal
-    this.doc.text('Subtotal:', labelX, yPos);
+    this.doc.text('Sub Total:', labelX, yPos);
     this.doc.text(
-      `${invoiceData.subtotal.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`,
-      valueX,
+      `${invoiceData.currency} ${invoiceData.subtotal.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
+      rightX,
       yPos,
       { align: 'right' }
     );
     yPos += lineHeight;
 
-    // Discount
+    // Discount (if applicable)
     if (invoiceData.discount_amount > 0) {
-      this.doc.setTextColor(220, 38, 38);
       this.doc.text('Desconto:', labelX, yPos);
       this.doc.text(
-        `-${invoiceData.discount_amount.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`,
-        valueX,
+        `-${invoiceData.currency} ${invoiceData.discount_amount.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
+        rightX,
         yPos,
         { align: 'right' }
       );
-      this.doc.setTextColor(70, 70, 70);
       yPos += lineHeight;
     }
 
     // Tax
-    this.doc.text(`IVA (${invoiceData.tax_rate}%):`, labelX, yPos);
-    this.doc.text(
-      `${invoiceData.tax_amount.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`,
-      valueX,
-      yPos,
-      { align: 'right' }
-    );
-    yPos += lineHeight + 3;
+    if (invoiceData.tax_amount > 0) {
+      this.doc.text(`IVA (${invoiceData.tax_rate}%):`, labelX, yPos);
+      this.doc.text(
+        `${invoiceData.currency} ${invoiceData.tax_amount.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
+        rightX,
+        yPos,
+        { align: 'right' }
+      );
+      yPos += lineHeight + 2;
+    } else {
+      yPos += 2;
+    }
 
-    // Total with colored background
-    this.doc.setFillColor(...this.primaryColor);
-    this.doc.roundedRect(boxX + 2, yPos - 4, boxWidth - 4, 10, 1, 1, 'F');
+    // Bold line above total
+    this.doc.setDrawColor(40, 40, 40);
+    this.doc.setLineWidth(0.8);
+    this.doc.line(labelX - 5, yPos, rightX, yPos);
+    yPos += 6;
 
-    this.doc.setFontSize(12);
+    // TOTAL - Large and bold
+    this.doc.setFontSize(14);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.setTextColor(255, 255, 255);
-    this.doc.text('TOTAL:', labelX, yPos + 2);
+    this.doc.setTextColor(40, 40, 40);
+    this.doc.text('TOTAL:', labelX, yPos);
     this.doc.text(
-      `${invoiceData.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`,
-      valueX,
-      yPos + 2,
+      `${invoiceData.currency} ${invoiceData.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
+      rightX,
+      yPos,
       { align: 'right' }
     );
 
@@ -357,77 +317,84 @@ export class ProfessionalPDFGenerator {
       return startY;
     }
 
-    // Modern payment info box
-    this.doc.setFillColor(248, 250, 252);
-    this.doc.setDrawColor(...this.secondaryColor);
-    this.doc.setLineWidth(0.5);
-    this.doc.roundedRect(this.margin, startY, this.pageWidth - 2 * this.margin, 24, 2, 2, 'FD');
-
-    // Header bar
-    this.doc.setFillColor(...this.secondaryColor);
-    this.doc.rect(this.margin, startY, this.pageWidth - 2 * this.margin, 7, 'F');
-
+    // Clean payment information section
     this.doc.setFontSize(10);
-    this.doc.setTextColor(255, 255, 255);
+    this.doc.setTextColor(40, 40, 40);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text('🏦 DADOS BANCÁRIOS', this.margin + 3, startY + 5);
+    this.doc.text('INFORMAÇÕES DE PAGAMENTO:', this.margin, startY);
 
+    // Thin line
+    this.doc.setDrawColor(40, 40, 40);
+    this.doc.setLineWidth(0.5);
+    this.doc.line(this.margin, startY + 2, this.margin + 70, startY + 2);
+
+    let yPos = startY + 8;
     this.doc.setFont('helvetica', 'normal');
     this.doc.setFontSize(9);
-    this.doc.setTextColor(40, 40, 40);
-    let yPos = startY + 13;
+    this.doc.setTextColor(60, 60, 60);
 
     if (this.businessSettings.bank_name) {
       this.doc.setFont('helvetica', 'bold');
-      this.doc.text('Banco:', this.margin + 3, yPos);
+      this.doc.text('Banco:', this.margin, yPos);
       this.doc.setFont('helvetica', 'normal');
-      this.doc.text(this.businessSettings.bank_name, this.margin + 20, yPos);
+      this.doc.text(this.businessSettings.bank_name, this.margin + 22, yPos);
       yPos += 5;
     }
-    if (this.businessSettings.iban) {
-      this.doc.setFont('helvetica', 'bold');
-      this.doc.text('IBAN:', this.margin + 3, yPos);
-      this.doc.setFont('helvetica', 'normal');
-      this.doc.text(this.businessSettings.iban, this.margin + 20, yPos);
-      yPos += 5;
-    }
+    
     if (this.businessSettings.account_holder) {
       this.doc.setFont('helvetica', 'bold');
-      this.doc.text('Titular:', this.margin + 3, yPos);
+      this.doc.text('Nome:', this.margin, yPos);
       this.doc.setFont('helvetica', 'normal');
-      this.doc.text(this.businessSettings.account_holder, this.margin + 20, yPos);
+      this.doc.text(this.businessSettings.account_holder, this.margin + 22, yPos);
+      yPos += 5;
+    }
+    
+    if (this.businessSettings.iban) {
+      this.doc.setFont('helvetica', 'bold');
+      this.doc.text('Conta:', this.margin, yPos);
+      this.doc.setFont('helvetica', 'normal');
+      this.doc.text(this.businessSettings.iban, this.margin + 22, yPos);
+      yPos += 5;
     }
 
-    return startY + 28;
+    return yPos + 8;
   }
 
   private async addFooter(invoiceData: InvoiceData, startY: number) {
-    const footerY = this.pageHeight - 32;
+    const footerY = this.pageHeight - 30;
 
-    // Decorative line
-    this.doc.setDrawColor(...this.primaryColor);
-    this.doc.setLineWidth(0.5);
-    this.doc.line(this.margin, footerY - 5, this.pageWidth - this.margin, footerY - 5);
+    // Terms and Conditions section if exists
+    if (this.businessSettings.payment_terms || invoiceData.notes) {
+      this.doc.setFontSize(9);
+      this.doc.setTextColor(40, 40, 40);
+      this.doc.setFont('helvetica', 'bold');
+      this.doc.text('TERMOS E CONDIÇÕES:', this.margin, startY);
 
-    // Legal terms
-    if (this.businessSettings.terms_footer) {
-      this.doc.setFontSize(7);
-      this.doc.setTextColor(100, 100, 100);
-      this.doc.setFont('helvetica', 'italic');
-      const terms = this.doc.splitTextToSize(this.businessSettings.terms_footer, this.pageWidth - 2 * this.margin);
-      this.doc.text(terms, this.pageWidth / 2, footerY, { align: 'center' });
+      // Thin line
+      this.doc.setDrawColor(40, 40, 40);
+      this.doc.setLineWidth(0.5);
+      this.doc.line(this.margin, startY + 2, this.margin + 55, startY + 2);
+
+      this.doc.setFont('helvetica', 'normal');
+      this.doc.setFontSize(8);
+      this.doc.setTextColor(80, 80, 80);
+      
+      const termsText = invoiceData.notes || this.businessSettings.payment_terms || '';
+      const terms = this.doc.splitTextToSize(termsText, this.pageWidth - 2 * this.margin);
+      this.doc.text(terms, this.margin, startY + 8);
     }
 
-    // Bottom bar with page number
-    this.doc.setFillColor(...this.primaryColor);
-    this.doc.rect(0, this.pageHeight - 12, this.pageWidth, 12, 'F');
+    // Bottom bar - simple and clean
+    this.doc.setFillColor(40, 40, 40);
+    this.doc.rect(0, this.pageHeight - 15, this.pageWidth, 15, 'F');
     
     this.doc.setFontSize(7);
     this.doc.setTextColor(255, 255, 255);
+    this.doc.setFont('helvetica', 'normal');
     this.doc.text(
-      `Documento gerado eletronicamente | Página 1 de 1`,
+      `Documento gerado eletronicamente`,
       this.pageWidth / 2,
-      this.pageHeight - 6,
+      this.pageHeight - 8,
       { align: 'center' }
     );
   }
