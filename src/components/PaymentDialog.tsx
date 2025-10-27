@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCreatePayment, useUpdatePayment, usePayments, type Payment } from "@/hooks/usePayments";
 import { useClients } from "@/hooks/useClients";
 import { useQuotes } from "@/hooks/useQuotes";
+import { useInvoices } from "@/hooks/useInvoices";
 import { FileUpload } from "@/components/FileUpload";
 import { toast } from "sonner";
 import { Wallet, DollarSign, FileText, CreditCard, User, AlertCircle, History, Receipt } from "lucide-react";
@@ -26,6 +27,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
   const [formData, setFormData] = useState<{
     client_id: string;
     quote_id: string;
+    invoice_id: string;
     amount: string;
     type: string;
     status: 'pending' | 'paid' | 'partial' | 'refunded';
@@ -35,6 +37,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
   }>({
     client_id: "",
     quote_id: "",
+    invoice_id: "",
     amount: "",
     type: "servico",
     status: "pending",
@@ -47,6 +50,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
   const updatePayment = useUpdatePayment();
   const { data: clients } = useClients();
   const { data: quotes } = useQuotes();
+  const { data: invoices } = useInvoices();
   const { data: allPayments } = usePayments();
 
   // Calculate pending amount if quote is selected
@@ -55,11 +59,16 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
   const totalPaid = quotePayments.reduce((sum, p) => sum + Number(p.amount), 0);
   const pendingAmount = selectedQuote ? Number(selectedQuote.total) - totalPaid : 0;
 
+  // Calculate invoice pending amount if invoice is selected
+  const selectedInvoice = invoices?.find(i => i.id === formData.invoice_id);
+  const invoicePendingAmount = selectedInvoice ? Number(selectedInvoice.total) - Number(selectedInvoice.amount_paid) : 0;
+
   useEffect(() => {
     if (payment) {
       setFormData({
         client_id: payment.client_id || "",
         quote_id: payment.quote_id || "",
+        invoice_id: payment.invoice_id || "",
         amount: payment.amount?.toString() || "",
         type: payment.type || "servico",
         status: payment.status || "pending",
@@ -84,6 +93,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
       const paymentData = {
         client_id: formData.client_id,
         quote_id: formData.quote_id || null,
+        invoice_id: formData.invoice_id || null,
         amount: parseFloat(formData.amount),
         type: formData.type,
         status: formData.status,
@@ -113,6 +123,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
     setFormData({
       client_id: "",
       quote_id: "",
+      invoice_id: "",
       amount: "",
       type: "servico",
       status: "pending",
@@ -235,7 +246,66 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                 </Select>
                 <p className="text-xs text-muted-foreground">Vincule a um orçamento se aplicável</p>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="invoice_id" className="text-sm font-medium">
+                  Fatura Relacionada (Opcional)
+                </Label>
+                <Select
+                  value={formData.invoice_id || "none"}
+                  onValueChange={(value) => setFormData({ ...formData, invoice_id: value === "none" ? "" : value })}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Sem fatura" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="none">Nenhuma</SelectItem>
+                    {invoices?.map((invoice) => (
+                      <SelectItem key={invoice.id} value={invoice.id}>
+                        {invoice.invoice_number} - {Number(invoice.total).toFixed(2)} {invoice.currency}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Vincule a uma fatura se aplicável</p>
+              </div>
             </div>
+
+            {/* Show invoice info */}
+            {selectedInvoice && (
+              <Card className="p-3 mt-4 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
+                <div className="flex items-start gap-3">
+                  <Receipt className="h-5 w-5 text-green-600 mt-0.5" />
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-foreground">Informação da Fatura</span>
+                      <Badge variant="outline" className="bg-background">
+                        {selectedInvoice.status === 'paid' ? '✅ Paga' : 
+                         selectedInvoice.status === 'partial' ? '📊 Parcial' :
+                         selectedInvoice.status === 'overdue' ? '🚨 Vencida' : '📤 Emitida'}
+                      </Badge>
+                    </div>
+                    <div className="text-sm space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Valor Total:</span>
+                        <span className="font-medium">{Number(selectedInvoice.total).toFixed(2)} {selectedInvoice.currency}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Já Pago:</span>
+                        <span className="font-medium text-green-600">{Number(selectedInvoice.amount_paid).toFixed(2)} {selectedInvoice.currency}</span>
+                      </div>
+                      <Separator className="my-2" />
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-foreground">Valor Pendente:</span>
+                        <span className={`font-bold text-base ${invoicePendingAmount > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                          {invoicePendingAmount.toFixed(2)} {selectedInvoice.currency}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
 
             {/* Show payment history and pending amount */}
             {selectedQuote && (
