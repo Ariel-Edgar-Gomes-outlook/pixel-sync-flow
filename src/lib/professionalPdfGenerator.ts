@@ -87,69 +87,65 @@ export class ProfessionalPDFGenerator {
 
   private async addHeader(invoiceData: InvoiceData) {
     const startY = this.margin;
+    const logoSize = 35;
+    let maxLogoWidth = 0;
 
-    // Add logo if available
-    let logoWidth = 0;
-    let logoHeight = 0;
+    // Add logo if available (left side)
     if (this.businessSettings.logo_url) {
       try {
         const logoData = await this.loadImage(this.businessSettings.logo_url);
         if (logoData) {
-          const logoSize = 30;
           this.doc.addImage(logoData, 'PNG', this.margin, startY, logoSize, logoSize, undefined, 'FAST');
-          logoWidth = logoSize + 8;
-          logoHeight = logoSize;
+          maxLogoWidth = logoSize;
         }
       } catch (error) {
         console.error('Error loading logo:', error);
       }
     }
 
-    // Company name - left side, next to logo
-    const companyTextX = this.margin + logoWidth;
-    this.doc.setFontSize(14);
+    // Company name - right next to the logo
+    const companyNameX = this.margin + maxLogoWidth + 5;
+    this.doc.setFontSize(16);
     this.doc.setTextColor(40, 40, 40);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text(this.businessSettings.business_name, companyTextX, startY + 8);
+    this.doc.text(this.businessSettings.business_name, companyNameX, startY + 10);
 
-    // Company details - left side, below company name
+    // Company contact details - below logo and company name
     this.doc.setFontSize(8);
     this.doc.setTextColor(100, 100, 100);
     this.doc.setFont('helvetica', 'normal');
     
-    let yPos = startY + 14;
+    let detailsY = startY + logoSize + 5;
     
     if (this.businessSettings.email) {
-      this.doc.text(this.businessSettings.email, companyTextX, yPos);
-      yPos += 4;
+      this.doc.text(`Email: ${this.businessSettings.email}`, this.margin, detailsY);
+      detailsY += 4;
     }
     
     if (this.businessSettings.phone) {
-      this.doc.text(`Tel: ${this.businessSettings.phone}`, companyTextX, yPos);
-      yPos += 4;
+      this.doc.text(`Tel: ${this.businessSettings.phone}`, this.margin, detailsY);
+      detailsY += 4;
     }
     
     if (this.businessSettings.nif) {
-      this.doc.text(`NIF: ${this.businessSettings.nif}`, companyTextX, yPos);
-      yPos += 4;
+      this.doc.text(`NIF: ${this.businessSettings.nif}`, this.margin, detailsY);
+      detailsY += 4;
     }
 
     // Large INVOICE/PRO-FORMA title - right side
-    const title = invoiceData.is_proforma ? 'PRO-FORMA' : 'FATURA';
-    this.doc.setFontSize(32);
+    const title = invoiceData.is_proforma ? 'PRO-FORMA' : 'FACTURA';
+    this.doc.setFontSize(28);
     this.doc.setTextColor(...this.primaryColor);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text(title, this.pageWidth - this.margin, startY + 12, { align: 'right' });
+    this.doc.text(title, this.pageWidth - this.margin, startY + 15, { align: 'right' });
 
     // Invoice number - right side, below title
-    this.doc.setFontSize(10);
-    this.doc.setTextColor(80, 80, 80);
+    this.doc.setFontSize(11);
+    this.doc.setTextColor(100, 100, 100);
     this.doc.setFont('helvetica', 'normal');
-    
-    let rightY = startY + 22;
-    this.doc.text(invoiceData.invoice_number, this.pageWidth - this.margin, rightY, { align: 'right' });
+    this.doc.text(invoiceData.invoice_number, this.pageWidth - this.margin, startY + 25, { align: 'right' });
 
-    return Math.max(yPos, rightY, logoHeight + startY) + 15;
+    return detailsY + 10;
   }
 
   private addClientInfo(invoiceData: InvoiceData, startY: number) {
