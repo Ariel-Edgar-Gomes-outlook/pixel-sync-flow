@@ -59,19 +59,19 @@ export default function Layout() {
         sidebarOpen ? "block" : "hidden"
       )}>
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-        <div className="fixed inset-y-0 left-0 w-72 bg-sidebar">
-          <div className="flex h-16 items-center justify-between px-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                <Camera className="h-6 w-6 text-primary-foreground" />
+        <div className="fixed inset-y-0 left-0 w-72 bg-sidebar overflow-y-auto">
+          <div className="flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-primary">
+                <Camera className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
               </div>
-              <span className="text-lg font-semibold text-sidebar-foreground">PhotoFlow</span>
+              <span className="text-base sm:text-lg font-semibold text-sidebar-foreground">PhotoFlow</span>
             </div>
-            <button onClick={() => setSidebarOpen(false)} className="text-sidebar-foreground">
-              <X className="h-6 w-6" />
+            <button onClick={() => setSidebarOpen(false)} className="text-sidebar-foreground p-2 -mr-2">
+              <X className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
           </div>
-          <nav className="space-y-1 px-3 pt-4">
+          <nav className="space-y-1 px-3 pt-4 pb-6">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
@@ -80,13 +80,13 @@ export default function Layout() {
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors min-h-[44px]",
                     isActive
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/50 active:bg-sidebar-accent/70"
                   )}
                 >
-                  <item.icon className="h-5 w-5" />
+                  <item.icon className="h-5 w-5 shrink-0" />
                   {item.name}
                 </Link>
               );
@@ -99,7 +99,7 @@ export default function Layout() {
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50"
+              className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent/50 min-h-[44px]"
               onClick={signOut}
             >
               <LogOut className="mr-2 h-4 w-4" />
@@ -119,7 +119,7 @@ export default function Layout() {
             <span className="text-lg font-semibold text-sidebar-foreground">PhotoFlow</span>
           </div>
         </div>
-        <nav className="flex-1 space-y-1 px-3 pt-4">
+        <nav className="flex-1 space-y-1 px-3 pt-4 overflow-y-auto">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
             return (
@@ -157,18 +157,18 @@ export default function Layout() {
 
       {/* Main content */}
       <div className="lg:pl-72">
-        <header className="sticky top-0 z-40 flex h-14 sm:h-16 items-center gap-4 border-b border-border bg-card px-4 sm:px-6">
+        <header className="sticky top-0 z-40 flex h-14 sm:h-16 items-center gap-3 sm:gap-4 border-b border-border bg-card px-3 sm:px-6">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden text-foreground"
+            className="lg:hidden text-foreground p-2 -ml-2 min-h-[44px] min-w-[44px] flex items-center justify-center active:bg-accent rounded-md"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
           <div className="flex-1" />
           <GlobalSearch />
           <NotificationBell />
         </header>
-        <main className="p-4 sm:p-6">
+        <main className="p-3 sm:p-4 lg:p-6">
           <Outlet />
         </main>
       </div>
