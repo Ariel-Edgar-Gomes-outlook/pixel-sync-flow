@@ -49,8 +49,8 @@ export default function Leads() {
   const handleExport = () => {
     if (leads && leads.length > 0) {
       const formatted = formatLeadsForExport(leads);
-      exportToExcel(formatted, "leads.xlsx", "Leads");
-      toast.success("Leads exportados com sucesso!");
+      exportToExcel(formatted, "prospectos.xlsx", "Prospectos");
+      toast.success("Prospectos exportados com sucesso!");
     }
   };
 
@@ -97,7 +97,7 @@ export default function Leads() {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Pipeline de Leads</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Pipeline de Prospectos</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Gerencie oportunidades e acompanhe leads desde o primeiro contacto até conversão
           </p>

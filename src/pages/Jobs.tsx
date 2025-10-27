@@ -39,8 +39,8 @@ export default function Jobs() {
   const handleExport = () => {
     if (jobs && jobs.length > 0) {
       const formatted = formatJobsForExport(jobs);
-      exportToExcel(formatted, "jobs.xlsx", "Jobs");
-      toast.success("Jobs exportados com sucesso!");
+      exportToExcel(formatted, "trabalhos.xlsx", "Trabalhos");
+      toast.success("Trabalhos exportados com sucesso!");
     }
   };
 
@@ -78,7 +78,7 @@ export default function Jobs() {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col gap-3 sm:gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Jobs & Projetos</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Trabalhos & Projetos</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Gerencie eventos, sessões e produções
           </p>
@@ -95,7 +95,7 @@ export default function Jobs() {
             onClick={() => setQuickStartOpen(true)}
           >
             <Sparkles className="h-4 w-4" />
-            Quick Start
+            Início Rápido
           </Button>
           <JobDialog>
             <Button variant="outline" size="sm" className="gap-1.5 flex-1 sm:flex-none">

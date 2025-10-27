@@ -29,15 +29,15 @@ import { usePaymentReminders } from "@/hooks/usePaymentReminders";
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Clientes", href: "/clients", icon: Users },
-  { name: "Jobs", href: "/jobs", icon: Briefcase },
+  { name: "Trabalhos", href: "/jobs", icon: Briefcase },
   { name: "Agenda", href: "/calendar", icon: Calendar },
-  { name: "Leads", href: "/leads", icon: UserPlus },
+  { name: "Prospectos", href: "/leads", icon: UserPlus },
   { name: "Orçamentos", href: "/quotes", icon: FileText },
   { name: "Faturas", href: "/invoices", icon: FileText },
   { name: "Contratos", href: "/contracts", icon: FileText },
   { name: "Financeiro", href: "/payments", icon: CreditCard },
   { name: "Relatórios", href: "/reports", icon: BarChart3 },
-  { name: "Templates", href: "/templates", icon: Layers },
+  { name: "Modelos", href: "/templates", icon: Layers },
   { name: "Recursos", href: "/resources", icon: Wrench },
   { name: "Configurações", href: "/settings", icon: Settings },
 ];
