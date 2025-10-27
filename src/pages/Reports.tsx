@@ -86,7 +86,7 @@ export default function Reports() {
 
     return {
       month: format(month, 'MMM yyyy', { locale: pt }),
-      revenue: revenue / 1000, // Convert to thousands
+      revenue: revenue, // Show full number, not in thousands
     };
   });
 
@@ -103,7 +103,7 @@ export default function Reports() {
 
   const revenueByType = Object.values(jobsByType || {}).map(item => ({
     name: item.type,
-    value: item.revenue / 1000,
+    value: item.revenue, // Show full number, not in thousands
     count: item.count,
   }));
 
@@ -176,7 +176,7 @@ export default function Reports() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Receita Total</p>
-              <p className="text-2xl font-bold text-green-600 mt-1">{(totalRevenue / 1000).toFixed(1)}K Kz</p>
+              <p className="text-2xl font-bold text-green-600 mt-1">{totalRevenue.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
               <p className="text-xs text-muted-foreground mt-1">De {completedJobs} jobs concluídos</p>
             </div>
             <DollarSign className="h-10 w-10 text-green-500/30" />
@@ -187,7 +187,7 @@ export default function Reports() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Receita Pendente</p>
-              <p className="text-2xl font-bold text-orange-600 mt-1">{(pendingRevenue / 1000).toFixed(1)}K Kz</p>
+              <p className="text-2xl font-bold text-orange-600 mt-1">{pendingRevenue.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
               <p className="text-xs text-muted-foreground mt-1">Aguardando pagamento</p>
             </div>
             <Calendar className="h-10 w-10 text-orange-500/30" />
@@ -198,7 +198,7 @@ export default function Reports() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Ticket Médio</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">{(Number(avgJobValue) / 1000).toFixed(1)}K Kz</p>
+              <p className="text-2xl font-bold text-blue-600 mt-1">{Number(avgJobValue).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
               <p className="text-xs text-muted-foreground mt-1">Por job concluído</p>
             </div>
             <Briefcase className="h-10 w-10 text-blue-500/30" />
@@ -252,9 +252,9 @@ export default function Reports() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value) => `${Number(value).toFixed(1)}K Kz`} />
+              <Tooltip formatter={(value) => `${Number(value).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`} />
               <Legend />
-              <Line type="monotone" dataKey="revenue" name="Receita (mil Kz)" stroke="#10b981" strokeWidth={2} />
+              <Line type="monotone" dataKey="revenue" name="Receita (Kz)" stroke="#10b981" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </Card>
@@ -281,7 +281,7 @@ export default function Reports() {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => `${Number(value).toFixed(1)}K Kz`} />
+              <Tooltip formatter={(value) => `${Number(value).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`} />
             </PieChart>
           </ResponsiveContainer>
         </Card>
@@ -324,7 +324,7 @@ export default function Reports() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-sm">{(client.revenue / 1000).toFixed(1)}K Kz</p>
+                  <p className="font-semibold text-sm">{client.revenue.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
                 </div>
               </div>
             ))}
