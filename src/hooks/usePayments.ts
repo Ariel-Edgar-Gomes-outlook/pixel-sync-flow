@@ -95,16 +95,31 @@ export function useDeletePayment() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      console.log('🔄 useDeletePayment: Iniciando delete para ID:', id);
+      
+      const { data, error } = await supabase
         .from('payments')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
-      if (error) throw error;
+      console.log('📊 Resultado do delete:', { data, error });
+
+      if (error) {
+        console.error('❌ Erro do Supabase:', error);
+        throw error;
+      }
+      
+      console.log('✅ Delete executado com sucesso');
+      return data;
     },
     onSuccess: () => {
+      console.log('🔄 Invalidando queries...');
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
     },
+    onError: (error: any) => {
+      console.error('❌ Erro na mutação:', error);
+    }
   });
 }

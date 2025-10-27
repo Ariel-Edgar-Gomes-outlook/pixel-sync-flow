@@ -135,14 +135,23 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
   const handleDelete = async () => {
     if (!payment) return;
     
+    console.log('🗑️ Tentando eliminar pagamento:', payment.id);
+    
     try {
       await deletePayment.mutateAsync(payment.id);
+      console.log('✅ Pagamento eliminado com sucesso');
       toast.success("Pagamento eliminado com sucesso!");
       setShowDeleteDialog(false);
       onOpenChange?.(false);
-    } catch (error) {
-      toast.error("Erro ao eliminar pagamento");
-      console.error(error);
+    } catch (error: any) {
+      console.error('❌ Erro ao eliminar pagamento:', error);
+      console.error('Detalhes do erro:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
+      toast.error(`Erro ao eliminar pagamento: ${error.message || 'Erro desconhecido'}`);
     }
   };
 
