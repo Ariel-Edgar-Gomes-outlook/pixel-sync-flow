@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/select';
 import { InvoiceDialog } from '@/components/InvoiceDialog';
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
+import { InvoiceCard } from '@/components/InvoiceCard';
 import { EntityQuickLinks } from '@/components/EntityQuickLinks';
-import { useSmartBadges } from '@/hooks/useSmartBadges';
 import { useInvoices, useInvoiceStats, useUpdateInvoice } from '@/hooks/useInvoices';
 import {
   Plus,
@@ -233,113 +233,27 @@ export default function Invoices() {
         </Card>
       ) : (
         <div className="grid gap-4">
-          {filteredInvoices.map((invoice: any) => {
-            const status = statusConfig[invoice.status as keyof typeof statusConfig];
-            const StatusIcon = status.icon;
-            const smartBadges = useSmartBadges({ entityType: 'invoice', entity: invoice });
-
-            return (
-              <Card key={invoice.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex flex-col gap-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-lg font-semibold">{invoice.invoice_number}</h3>
-                      <Badge variant={status.variant}>
-                        <StatusIcon className="h-3 w-3 mr-1" />
-                        {status.label}
-                      </Badge>
-                      {invoice.is_proforma && <Badge variant="outline">Pro-Forma</Badge>}
-                      {smartBadges.map((badge) => (
-                        <Badge 
-                          key={badge.id} 
-                          variant={badge.variant}
-                          className="text-xs"
-                          title={badge.tooltip}
-                        >
-                          {badge.label}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    <div className="space-y-3">
-                      <EntityQuickLinks 
-                        links={[
-                          { type: 'client', id: invoice.client_id, name: invoice.clients?.name || 'Cliente' },
-                          ...(invoice.quote_id ? [{ type: 'quote' as const, id: invoice.quote_id, name: 'Orçamento', status: 'origem' }] : []),
-                          ...(invoice.job_id ? [{ type: 'job' as const, id: invoice.job_id, name: 'Job' }] : []),
-                        ]}
-                      />
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Data de Emissão:</span>
-                          <p className="font-medium">
-                            {new Date(invoice.issue_date).toLocaleDateString('pt-PT')}
-                          </p>
-                        </div>
-                        {invoice.due_date && (
-                          <div>
-                            <span className="text-muted-foreground">Vencimento:</span>
-                            <p className="font-medium">
-                              {new Date(invoice.due_date).toLocaleDateString('pt-PT')}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4 pt-2 border-t">
-                      <div>
-                        <span className="text-sm text-muted-foreground">Total:</span>
-                        <p className="text-xl font-bold">
-                          {invoice.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}{' '}
-                          {invoice.currency}
-                        </p>
-                      </div>
-                      {invoice.amount_paid > 0 && invoice.status !== 'paid' && (
-                        <div>
-                          <span className="text-sm text-muted-foreground">Pago:</span>
-                          <p className="text-lg font-semibold text-green-600">
-                            {invoice.amount_paid.toLocaleString('pt-PT', {
-                              minimumFractionDigits: 2,
-                            })}{' '}
-                            {invoice.currency}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 pt-2 border-t">
-                      <Button variant="outline" size="sm" onClick={() => handleViewPDF(invoice)}>
-                        <FileText className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Ver PDF</span>
-                      </Button>
-                      {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleMarkAsPaid(invoice)}
-                        >
-                          <CheckCircle className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Marcar Paga</span>
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(invoice)}>
-                        <Edit className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Editar</span>
-                      </Button>
-                      {invoice.status !== 'cancelled' && invoice.status !== 'paid' && (
-                        <Button variant="ghost" size="sm" onClick={() => handleCancel(invoice)}>
-                          <XCircle className="h-4 w-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Cancelar</span>
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {filteredInvoices.map((invoice: any) => (
+            <InvoiceCard
+              key={invoice.id}
+              invoice={invoice}
+              statusConfig={statusConfig}
+              onViewPDF={handleViewPDF}
+              onEdit={handleEdit}
+              onUpdateStatus={(id, status) => {
+                if (status === 'paid') {
+                  handleMarkAsPaid(invoice);
+                } else if (status === 'cancelled') {
+                  handleCancel(invoice);
+                } else if (status === 'overdue') {
+                  updateInvoice.mutate({
+                    id,
+                    status: 'overdue' as any,
+                  });
+                }
+              }}
+            />
+          ))}
         </div>
       )}
 
