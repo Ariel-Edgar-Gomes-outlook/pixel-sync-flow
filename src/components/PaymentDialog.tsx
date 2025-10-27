@@ -81,6 +81,16 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
     }
   }, [payment]);
 
+  // Auto-select client when invoice is selected
+  useEffect(() => {
+    if (formData.invoice_id && invoices) {
+      const invoice = invoices.find(inv => inv.id === formData.invoice_id);
+      if (invoice && invoice.client_id) {
+        setFormData(prev => ({ ...prev, client_id: invoice.client_id }));
+      }
+    }
+  }, [formData.invoice_id, invoices]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -209,6 +219,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                 <Select
                   value={formData.client_id}
                   onValueChange={(value) => setFormData({ ...formData, client_id: value })}
+                  disabled={!!formData.invoice_id}
                 >
                   <SelectTrigger className="bg-background">
                     <SelectValue placeholder="Selecione o cliente" />
@@ -221,7 +232,9 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">Quem está fazendo o pagamento</p>
+                <p className="text-xs text-muted-foreground">
+                  {formData.invoice_id ? "Cliente da fatura selecionada" : "Quem está fazendo o pagamento"}
+                </p>
               </div>
 
               <div className="space-y-2">
