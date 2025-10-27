@@ -98,30 +98,32 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div>
+    <div className="space-y-4 sm:space-y-6 pb-6">
+      <div className="px-1">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Configurações</h1>
         <p className="text-sm sm:text-base text-muted-foreground mt-1">Gerir preferências e conta</p>
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-7">
-          <TabsTrigger value="profile">Perfil</TabsTrigger>
-          <TabsTrigger value="business">Empresa</TabsTrigger>
-          <TabsTrigger value="notifications">Notificações</TabsTrigger>
-          <TabsTrigger value="security">Segurança</TabsTrigger>
-          <TabsTrigger value="preferences">Preferências</TabsTrigger>
-          <TabsTrigger value="integrations">Integrações</TabsTrigger>
-          <TabsTrigger value="audit">Auditoria</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-7 gap-1">
+            <TabsTrigger value="profile" className="whitespace-nowrap">Perfil</TabsTrigger>
+            <TabsTrigger value="business" className="whitespace-nowrap">Empresa</TabsTrigger>
+            <TabsTrigger value="notifications" className="whitespace-nowrap">Notificações</TabsTrigger>
+            <TabsTrigger value="security" className="whitespace-nowrap">Segurança</TabsTrigger>
+            <TabsTrigger value="preferences" className="whitespace-nowrap">Preferências</TabsTrigger>
+            <TabsTrigger value="integrations" className="whitespace-nowrap">Integrações</TabsTrigger>
+            <TabsTrigger value="audit" className="whitespace-nowrap">Auditoria</TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="profile" className="mt-6">
-          <div className="grid gap-6">
+        <TabsContent value="profile" className="mt-4 sm:mt-6">
+          <div className="grid gap-4 sm:gap-6">
             {/* Perfil */}
-            <Card className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <User className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Perfil</h2>
+            <Card className="p-4 sm:p-6">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <User className="h-5 w-5 text-primary flex-shrink-0" />
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground">Perfil</h2>
           </div>
 
           <div className="space-y-4">
@@ -158,7 +160,7 @@ export default function Settings() {
               />
             </div>
 
-            <Button onClick={handleProfileUpdate} disabled={updateProfile.isPending}>
+            <Button onClick={handleProfileUpdate} disabled={updateProfile.isPending} className="w-full sm:w-auto">
               Guardar Alterações
             </Button>
           </div>
@@ -166,49 +168,49 @@ export default function Settings() {
           </div>
         </TabsContent>
 
-        <TabsContent value="business" className="mt-6">
-          <Card className="p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Building2 className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold text-foreground">Configurações Empresariais</h2>
+        <TabsContent value="business" className="mt-4 sm:mt-6">
+          <Card className="p-4 sm:p-6">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <Building2 className="h-5 w-5 text-primary flex-shrink-0" />
+              <h2 className="text-lg sm:text-xl font-semibold text-foreground">Configurações Empresariais</h2>
             </div>
-            <p className="text-sm text-muted-foreground mb-6">
+            <p className="text-sm text-muted-foreground mb-4 sm:mb-6">
               Configure os dados da sua empresa para emitir faturas e contratos profissionais
             </p>
             <BusinessSettingsForm />
           </Card>
         </TabsContent>
 
-        <TabsContent value="notifications" className="mt-6">
+        <TabsContent value="notifications" className="mt-4 sm:mt-6">
           <NotificationSettings />
         </TabsContent>
 
-        <TabsContent value="security" className="mt-6">
-          <div className="grid gap-6">
+        <TabsContent value="security" className="mt-4 sm:mt-6">
+          <div className="grid gap-4 sm:gap-6">
             {/* Segurança */}
-            <Card className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Shield className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Segurança</h2>
+            <Card className="p-4 sm:p-6">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <Shield className="h-5 w-5 text-primary flex-shrink-0" />
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground">Segurança</h2>
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex-1">
                 <p className="font-medium text-foreground">Alterar Password</p>
                 <p className="text-sm text-muted-foreground">Atualizar a sua senha de acesso</p>
               </div>
-              <Button variant="outline" onClick={() => setPasswordDialogOpen(true)}>Alterar</Button>
+              <Button variant="outline" onClick={() => setPasswordDialogOpen(true)} className="w-full sm:w-auto">Alterar</Button>
             </div>
 
             <Separator />
 
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex-1">
                 <p className="font-medium text-foreground">Autenticação de Dois Fatores</p>
                 <p className="text-sm text-muted-foreground">Adicionar camada extra de segurança (em breve)</p>
               </div>
-              <Button variant="outline" disabled>Configurar</Button>
+              <Button variant="outline" disabled className="w-full sm:w-auto">Configurar</Button>
             </div>
           </div>
             </Card>
@@ -220,22 +222,22 @@ export default function Settings() {
           />
         </TabsContent>
 
-        <TabsContent value="preferences" className="mt-6">
-          <div className="grid gap-6">
+        <TabsContent value="preferences" className="mt-4 sm:mt-6">
+          <div className="grid gap-4 sm:gap-6">
             {/* Preferências */}
-            <Card className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <SettingsIcon className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Preferências</h2>
+            <Card className="p-4 sm:p-6">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <SettingsIcon className="h-5 w-5 text-primary flex-shrink-0" />
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground">Preferências</h2>
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
                 <p className="font-medium text-foreground">Modo Escuro</p>
                 <p className="text-sm text-muted-foreground">Ativar tema escuro</p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-shrink-0">
                 {theme === 'dark' ? (
                   <Moon className="h-4 w-4 text-muted-foreground" />
                 ) : (
@@ -321,11 +323,11 @@ export default function Settings() {
           </div>
         </TabsContent>
 
-        <TabsContent value="integrations" className="mt-6">
+        <TabsContent value="integrations" className="mt-4 sm:mt-6">
           {user && <GoogleCalendarIntegration userId={user.id} />}
         </TabsContent>
 
-        <TabsContent value="audit" className="mt-6">
+        <TabsContent value="audit" className="mt-4 sm:mt-6">
           <AuditLogViewer />
         </TabsContent>
       </Tabs>

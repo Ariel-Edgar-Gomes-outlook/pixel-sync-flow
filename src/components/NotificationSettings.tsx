@@ -71,27 +71,27 @@ export function NotificationSettings() {
   }
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <Bell className="h-5 w-5 text-primary" />
-        <div>
-          <h3 className="text-lg font-semibold">Notificações Automáticas</h3>
+    <Card className="p-4 sm:p-6">
+      <div className="flex items-center gap-3 mb-4 sm:mb-6">
+        <Bell className="h-5 w-5 text-primary flex-shrink-0" />
+        <div className="min-w-0">
+          <h3 className="text-base sm:text-lg font-semibold">Notificações Automáticas</h3>
           <p className="text-sm text-muted-foreground">Configure quando você deseja receber alertas</p>
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Job Reminders */}
         <div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-4 w-4 text-primary" />
-              <div>
-                <Label htmlFor="jobReminders" className="text-base font-medium">
-                  Lembretes de Jobs
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <Label htmlFor="jobReminders" className="text-sm sm:text-base font-medium">
+                  Lembretes de Trabalhos
                 </Label>
-                <p className="text-sm text-muted-foreground">
-                  Receber notificação 24h antes de um job começar
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Receber notificação 24h antes de um trabalho começar
                 </p>
               </div>
             </div>
@@ -99,6 +99,7 @@ export function NotificationSettings() {
               id="jobReminders"
               checked={settings.jobReminders}
               onCheckedChange={() => handleToggle('jobReminders')}
+              className="flex-shrink-0"
             />
           </div>
         </div>
@@ -107,15 +108,15 @@ export function NotificationSettings() {
 
         {/* Lead Follow-up */}
         <div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              <div>
-                <Label htmlFor="leadFollowUp" className="text-base font-medium">
-                  Follow-up de Leads
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <TrendingUp className="h-4 w-4 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <Label htmlFor="leadFollowUp" className="text-sm sm:text-base font-medium">
+                  Follow-up de Prospectos
                 </Label>
-                <p className="text-sm text-muted-foreground">
-                  Alertar quando um lead está sem contacto há 3+ dias
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Alertar quando um prospecto está sem contacto há 3+ dias
                 </p>
               </div>
             </div>
@@ -123,6 +124,7 @@ export function NotificationSettings() {
               id="leadFollowUp"
               checked={settings.leadFollowUp}
               onCheckedChange={() => handleToggle('leadFollowUp')}
+              className="flex-shrink-0"
             />
           </div>
         </div>
@@ -131,14 +133,14 @@ export function NotificationSettings() {
 
         {/* Payment Overdue */}
         <div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <DollarSign className="h-4 w-4 text-primary" />
-              <div>
-                <Label htmlFor="paymentOverdue" className="text-base font-medium">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <DollarSign className="h-4 w-4 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <Label htmlFor="paymentOverdue" className="text-sm sm:text-base font-medium">
                   Pagamentos Atrasados
                 </Label>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Notificar sobre pagamentos pendentes há 7+ dias
                 </p>
               </div>
@@ -147,6 +149,7 @@ export function NotificationSettings() {
               id="paymentOverdue"
               checked={settings.paymentOverdue}
               onCheckedChange={() => handleToggle('paymentOverdue')}
+              className="flex-shrink-0"
             />
           </div>
         </div>
@@ -155,14 +158,14 @@ export function NotificationSettings() {
 
         {/* Maintenance Reminders */}
         <div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Wrench className="h-4 w-4 text-primary" />
-              <div>
-                <Label htmlFor="maintenanceReminder" className="text-base font-medium">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Wrench className="h-4 w-4 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <Label htmlFor="maintenanceReminder" className="text-sm sm:text-base font-medium">
                   Manutenção de Equipamentos
                 </Label>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Alertar quando manutenção está próxima (7 dias ou menos)
                 </p>
               </div>
@@ -171,6 +174,7 @@ export function NotificationSettings() {
               id="maintenanceReminder"
               checked={settings.maintenanceReminder}
               onCheckedChange={() => handleToggle('maintenanceReminder')}
+              className="flex-shrink-0"
             />
           </div>
         </div>
@@ -179,15 +183,15 @@ export function NotificationSettings() {
 
         {/* New Lead */}
         <div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <Label htmlFor="newLead" className="text-base font-medium">
-                  Novos Leads
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <TrendingUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <div className="min-w-0">
+                <Label htmlFor="newLead" className="text-sm sm:text-base font-medium">
+                  Novos Prospectos
                 </Label>
-                <p className="text-sm text-muted-foreground">
-                  Notificação instantânea quando um novo lead for criado
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Notificação instantânea quando um novo prospecto for criado
                 </p>
               </div>
             </div>
@@ -195,6 +199,7 @@ export function NotificationSettings() {
               id="newLead"
               checked={settings.newLead}
               onCheckedChange={() => handleToggle('newLead')}
+              className="flex-shrink-0"
             />
           </div>
         </div>
@@ -203,15 +208,15 @@ export function NotificationSettings() {
 
         {/* Job Completed */}
         <div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <Label htmlFor="jobCompleted" className="text-base font-medium">
-                  Jobs Concluídos
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <div className="min-w-0">
+                <Label htmlFor="jobCompleted" className="text-sm sm:text-base font-medium">
+                  Trabalhos Concluídos
                 </Label>
-                <p className="text-sm text-muted-foreground">
-                  Confirmar quando um job for marcado como concluído
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Confirmar quando um trabalho for marcado como concluído
                 </p>
               </div>
             </div>
@@ -219,13 +224,14 @@ export function NotificationSettings() {
               id="jobCompleted"
               checked={settings.jobCompleted}
               onCheckedChange={() => handleToggle('jobCompleted')}
+              className="flex-shrink-0"
             />
           </div>
         </div>
       </div>
 
-      <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
-        <p className="text-sm text-muted-foreground">
+      <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-primary/5 rounded-lg border border-primary/20">
+        <p className="text-xs sm:text-sm text-muted-foreground">
           💡 <span className="font-medium">Dica:</span> As notificações são verificadas automaticamente a cada hora. 
           Você receberá alertas apenas uma vez por evento.
         </p>
