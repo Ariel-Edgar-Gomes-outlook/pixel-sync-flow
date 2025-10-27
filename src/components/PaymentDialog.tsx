@@ -11,11 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useCreatePayment, useUpdatePayment, useDeletePayment, usePayments, type Payment } from "@/hooks/usePayments";
 import { useClients } from "@/hooks/useClients";
-import { useQuotes } from "@/hooks/useQuotes";
 import { useInvoices } from "@/hooks/useInvoices";
 import { FileUpload } from "@/components/FileUpload";
 import { toast } from "sonner";
-import { Wallet, DollarSign, FileText, CreditCard, User, AlertCircle, History, Receipt, Trash2 } from "lucide-react";
+import { Wallet, DollarSign, FileText, CreditCard, User, Receipt, Trash2 } from "lucide-react";
 
 interface PaymentDialogProps {
   payment?: Payment | null;
@@ -52,15 +51,8 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
   const updatePayment = useUpdatePayment();
   const deletePayment = useDeletePayment();
   const { data: clients } = useClients();
-  const { data: quotes } = useQuotes();
   const { data: invoices } = useInvoices();
   const { data: allPayments } = usePayments();
-
-  // Calculate pending amount if quote is selected
-  const selectedQuote = quotes?.find(q => q.id === formData.quote_id);
-  const quotePayments = allPayments?.filter(p => p.quote_id === formData.quote_id && p.status === 'paid') || [];
-  const totalPaid = quotePayments.reduce((sum, p) => sum + Number(p.amount), 0);
-  const pendingAmount = selectedQuote ? Number(selectedQuote.total) - totalPaid : 0;
 
   // Calculate invoice pending amount if invoice is selected
   const selectedInvoice = invoices?.find(i => i.id === formData.invoice_id);
@@ -285,29 +277,6 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                 </Select>
                 <p className="text-xs text-muted-foreground">Vincule a uma fatura se aplicável</p>
               </div>
-
-               <div className="space-y-2">
-                <Label htmlFor="quote_id" className="text-sm font-medium">
-                  Orçamento Relacionado (Opcional)
-                </Label>
-                <Select
-                  value={formData.quote_id || "none"}
-                  onValueChange={(value) => setFormData({ ...formData, quote_id: value === "none" ? "" : value })}
-                >
-                  <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Sem orçamento" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover z-50">
-                    <SelectItem value="none">Nenhum</SelectItem>
-                    {quotes?.map((quote) => (
-                      <SelectItem key={quote.id} value={quote.id}>
-                        #{quote.id.slice(0, 8)} - {Number(quote.total).toFixed(2)} {quote.currency}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">Vincule a um orçamento se aplicável</p>
-              </div>
             </div>
 
             {/* Show invoice info */}
@@ -341,57 +310,6 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                         </span>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {/* Show payment history and pending amount */}
-            {selectedQuote && (
-              <Card className="p-3 mt-4 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-foreground">Informação do Orçamento</span>
-                      <Badge variant="outline" className="bg-background">
-                        {selectedQuote.status === 'accepted' ? '✅ Aceite' : 
-                         selectedQuote.status === 'sent' ? '📤 Enviado' : '📝 Rascunho'}
-                      </Badge>
-                    </div>
-                    <div className="text-sm space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Valor Total:</span>
-                        <span className="font-medium">{Number(selectedQuote.total).toFixed(2)} {selectedQuote.currency}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Já Pago:</span>
-                        <span className="font-medium text-green-600">{totalPaid.toFixed(2)} {selectedQuote.currency}</span>
-                      </div>
-                      <Separator className="my-2" />
-                      <div className="flex justify-between">
-                        <span className="font-semibold text-foreground">Valor Pendente:</span>
-                        <span className={`font-bold text-base ${pendingAmount > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                          {pendingAmount.toFixed(2)} {selectedQuote.currency}
-                        </span>
-                      </div>
-                    </div>
-                    {quotePayments.length > 0 && (
-                      <details className="mt-3">
-                        <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground flex items-center gap-1">
-                          <History className="h-3 w-3" />
-                          Ver histórico de pagamentos ({quotePayments.length})
-                        </summary>
-                        <div className="mt-2 space-y-1 text-xs">
-                          {quotePayments.map((p, i) => (
-                            <div key={p.id} className="flex justify-between py-1 border-t border-border/50">
-                              <span className="text-muted-foreground">Pagamento {i + 1}</span>
-                              <span className="font-medium">{Number(p.amount).toFixed(2)} {p.currency}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </details>
-                    )}
                   </div>
                 </div>
               </Card>
