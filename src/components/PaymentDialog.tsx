@@ -224,29 +224,6 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                 <p className="text-xs text-muted-foreground">Quem está fazendo o pagamento</p>
               </div>
 
-               <div className="space-y-2">
-                <Label htmlFor="quote_id" className="text-sm font-medium">
-                  Orçamento Relacionado (Opcional)
-                </Label>
-                <Select
-                  value={formData.quote_id || "none"}
-                  onValueChange={(value) => setFormData({ ...formData, quote_id: value === "none" ? "" : value })}
-                >
-                  <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Sem orçamento" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover z-50">
-                    <SelectItem value="none">Nenhum</SelectItem>
-                    {quotes?.map((quote) => (
-                      <SelectItem key={quote.id} value={quote.id}>
-                        #{quote.id.slice(0, 8)} - {Number(quote.total).toFixed(2)} {quote.currency}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">Vincule a um orçamento se aplicável</p>
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="invoice_id" className="text-sm font-medium">
                   Fatura Relacionada (Opcional)
@@ -268,6 +245,29 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">Vincule a uma fatura se aplicável</p>
+              </div>
+
+               <div className="space-y-2">
+                <Label htmlFor="quote_id" className="text-sm font-medium">
+                  Orçamento Relacionado (Opcional)
+                </Label>
+                <Select
+                  value={formData.quote_id || "none"}
+                  onValueChange={(value) => setFormData({ ...formData, quote_id: value === "none" ? "" : value })}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Sem orçamento" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="none">Nenhum</SelectItem>
+                    {quotes?.map((quote) => (
+                      <SelectItem key={quote.id} value={quote.id}>
+                        #{quote.id.slice(0, 8)} - {Number(quote.total).toFixed(2)} {quote.currency}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Vincule a um orçamento se aplicável</p>
               </div>
             </div>
 
