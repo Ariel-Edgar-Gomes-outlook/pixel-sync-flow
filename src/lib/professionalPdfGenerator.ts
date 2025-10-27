@@ -101,32 +101,32 @@ export class ProfessionalPDFGenerator {
       }
     }
 
-    // Company name - right next to the logo, vertically centered with logo
-    const companyNameX = this.margin + logoSize + 8;
+    // Company name - right next to the logo, at the top
+    const companyNameX = this.margin + logoSize + 10;
     this.doc.setFontSize(18);
     this.doc.setTextColor(...this.primaryColor);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text(this.businessSettings.business_name, companyNameX, startY + 12);
+    this.doc.text(this.businessSettings.business_name, companyNameX, startY + 10);
 
-    // Company contact details - BELOW the logo area
-    let detailsY = startY + logoSize + 8;
+    // Company contact details - BELOW the company name, same X position
+    let detailsY = startY + 18;
     
-    this.doc.setFontSize(9);
+    this.doc.setFontSize(8);
     this.doc.setTextColor(100, 100, 100);
     this.doc.setFont('helvetica', 'normal');
     
     if (this.businessSettings.email) {
-      this.doc.text(`Email: ${this.businessSettings.email}`, this.margin, detailsY);
+      this.doc.text(`Email: ${this.businessSettings.email}`, companyNameX, detailsY);
       detailsY += 5;
     }
     
     if (this.businessSettings.phone) {
-      this.doc.text(`Tel: ${this.businessSettings.phone}`, this.margin, detailsY);
+      this.doc.text(`Tel: ${this.businessSettings.phone}`, companyNameX, detailsY);
       detailsY += 5;
     }
     
     if (this.businessSettings.nif) {
-      this.doc.text(`NIF: ${this.businessSettings.nif}`, this.margin, detailsY);
+      this.doc.text(`NIF: ${this.businessSettings.nif}`, companyNameX, detailsY);
       detailsY += 5;
     }
 
@@ -143,7 +143,8 @@ export class ProfessionalPDFGenerator {
     this.doc.setFont('helvetica', 'bold');
     this.doc.text(invoiceData.invoice_number, this.pageWidth - this.margin, startY + 32, { align: 'right' });
 
-    return detailsY + 10;
+    // Return the max Y position (either from logo or from contact details)
+    return Math.max(startY + logoSize, detailsY) + 10;
   }
 
   private addClientInfo(invoiceData: InvoiceData, startY: number) {
