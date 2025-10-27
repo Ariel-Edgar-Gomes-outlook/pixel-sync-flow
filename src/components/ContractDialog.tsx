@@ -10,10 +10,10 @@ import { Card } from "@/components/ui/card";
 import { useCreateContract, useUpdateContract } from "@/hooks/useContracts";
 import { useClients } from "@/hooks/useClients";
 import { useJobs } from "@/hooks/useJobs";
-import { useContractTemplates } from "@/hooks/useTemplates";
+import { useContractTemplates, useCreateContractTemplate } from "@/hooks/useTemplates";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FileText, Sparkles, Send, Copy, FileSignature, FileDown } from "lucide-react";
+import { FileText, Sparkles, Send, Copy, FileSignature, FileDown, Save } from "lucide-react";
 import { z } from "zod";
 
 const contractSchema = z.object({
@@ -88,6 +88,7 @@ export function ContractDialog({ children, contract, open, onOpenChange }: Contr
 
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
+  const createTemplate = useCreateContractTemplate();
   const { data: clients } = useClients();
   const { data: jobs } = useJobs();
   const { data: contractTemplates } = useContractTemplates();
@@ -117,10 +118,18 @@ export function ContractDialog({ children, contract, open, onOpenChange }: Contr
     const template = contractTemplates?.find(t => t.id === templateId);
     if (!template) return;
 
+    const clauses = template.clauses as any || {};
+    
     setFormData(prev => ({
       ...prev,
       terms_text: template.terms_text,
       cancellation_fee: Number(template.cancellation_fee) || 0,
+      usage_rights_text: clauses.usage_rights_text || "",
+      cancellation_policy_text: clauses.cancellation_policy_text || "",
+      late_delivery_clause: clauses.late_delivery_clause || "",
+      copyright_notice: clauses.copyright_notice || "",
+      reschedule_policy: clauses.reschedule_policy || "",
+      revision_policy: clauses.revision_policy || "",
     }));
     toast.success("Template aplicado!");
   };
@@ -338,6 +347,30 @@ Valor total: [Valor acordado]`,
     }
   };
 
+  const handleSaveAsTemplate = async () => {
+    const templateName = prompt("Nome para o template:", "Novo Template de Contrato");
+    if (!templateName) return;
+
+    try {
+      await createTemplate.mutateAsync({
+        name: templateName,
+        terms_text: formData.terms_text,
+        cancellation_fee: formData.cancellation_fee,
+        clauses: {
+          usage_rights_text: formData.usage_rights_text,
+          cancellation_policy_text: formData.cancellation_policy_text,
+          late_delivery_clause: formData.late_delivery_clause,
+          copyright_notice: formData.copyright_notice,
+          reschedule_policy: formData.reschedule_policy,
+          revision_policy: formData.revision_policy,
+        },
+      });
+      toast.success("Template salvo! Você pode reutilizá-lo em novos contratos.");
+    } catch (error) {
+      toast.error("Erro ao salvar template");
+    }
+  };
+
   return (
     <Dialog open={actualOpen} onOpenChange={actualOnOpenChange}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
@@ -382,34 +415,57 @@ Valor total: [Valor acordado]`,
 
             <TabsContent value="basics" className="space-y-4 mt-4">
               <Card className="p-4 bg-muted/50">
-                <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => applyPhotographyTemplate('wedding')}
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Template </span>Casamento
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => applyPhotographyTemplate('event')}
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Template </span>Evento
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => applyPhotographyTemplate('portrait')}
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Template </span>Ensaio
-                  </Button>
+                <div className="mb-4 space-y-3">
+                  {contractTemplates && contractTemplates.length > 0 && (
+                    <div>
+                      <Label>Templates Salvos</Label>
+                      <Select onValueChange={handleUseTemplate}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Escolher template salvo..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {contractTemplates.map((template) => (
+                            <SelectItem key={template.id} value={template.id}>
+                              {template.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Templates Rápidos</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => applyPhotographyTemplate('wedding')}
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Template </span>Casamento
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => applyPhotographyTemplate('event')}
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Template </span>Evento
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => applyPhotographyTemplate('portrait')}
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Template </span>Ensaio
+                      </Button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -596,29 +652,43 @@ Valor total: [Valor acordado]`,
             </TabsContent>
           </Tabs>
 
-          <div className="flex gap-2 justify-end mt-6">
-            <Button type="button" variant="outline" onClick={() => actualOnOpenChange(false)}>
-              Cancelar
+          <div className="flex gap-2 justify-between mt-6">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleSaveAsTemplate}
+              disabled={!formData.terms_text || formData.terms_text.length < 50}
+              title="Salvar este contrato como template reutilizável"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Salvar como Template
             </Button>
-            <Button type="submit" disabled={createContract.isPending || updateContract.isPending || isGeneratingPDF}>
-              {isGeneratingPDF ? 'A gerar PDF...' : (contract ? "Atualizar" : "Criar") + ' Contrato'}
-            </Button>
-            {contract && formData.status === 'draft' && (
-              <Button
-                type="button"
-                variant="default"
-                onClick={async () => {
-                  await updateContract.mutateAsync({ 
-                    id: contract.id, 
-                    status: 'sent' as any 
-                  });
-                  toast.success("Contrato marcado como enviado!");
-                }}
-              >
-                <Send className="h-4 w-4 mr-2" />
-                Marcar como Enviado
+            
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => actualOnOpenChange(false)}>
+                Cancelar
               </Button>
-            )}
+              <Button type="submit" disabled={createContract.isPending || updateContract.isPending || isGeneratingPDF}>
+                {isGeneratingPDF ? 'A gerar PDF...' : (contract ? "Atualizar" : "Criar") + ' Contrato'}
+              </Button>
+              {contract && formData.status === 'draft' && (
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={async () => {
+                    await updateContract.mutateAsync({ 
+                      id: contract.id, 
+                      status: 'sent' as any 
+                    });
+                    toast.success("Contrato marcado como enviado!");
+                  }}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Marcar como Enviado
+                </Button>
+              )}
+            </div>
           </div>
         </form>
       </DialogContent>

@@ -30,6 +30,15 @@ export function TemplateManager({ type }: TemplateManagerProps) {
     job_type: 'Casamento',
     items: [],
     terms_text: '',
+    cancellation_fee: 0,
+    clauses: {
+      usage_rights_text: '',
+      cancellation_policy_text: '',
+      late_delivery_clause: '',
+      copyright_notice: '',
+      reschedule_policy: '',
+      revision_policy: '',
+    },
   });
 
   // Hooks based on type
@@ -76,7 +85,17 @@ export function TemplateManager({ type }: TemplateManagerProps) {
         },
       });
     } else {
-      createContract.mutate(formData, {
+      // For contracts, include job_type in clauses
+      const contractData = {
+        name: formData.name,
+        terms_text: formData.terms_text,
+        cancellation_fee: formData.cancellation_fee,
+        clauses: {
+          ...formData.clauses,
+          job_type: formData.job_type, // Save job_type in clauses
+        },
+      };
+      createContract.mutate(contractData, {
         onSuccess: () => {
           setOpen(false);
           resetForm();
@@ -103,6 +122,15 @@ export function TemplateManager({ type }: TemplateManagerProps) {
       job_type: 'Casamento',
       items: [],
       terms_text: '',
+      cancellation_fee: 0,
+      clauses: {
+        usage_rights_text: '',
+        cancellation_policy_text: '',
+        late_delivery_clause: '',
+        copyright_notice: '',
+        reschedule_policy: '',
+        revision_policy: '',
+      },
     });
   };
 
@@ -154,16 +182,115 @@ export function TemplateManager({ type }: TemplateManagerProps) {
               </div>
 
               {type === 'contract' && (
-                <div className="space-y-2">
-                  <Label htmlFor="terms">Termos e Condições</Label>
-                  <Textarea
-                    id="terms"
-                    value={formData.terms_text}
-                    onChange={(e) => setFormData({ ...formData, terms_text: e.target.value })}
-                    placeholder="Digite os termos do contrato..."
-                    rows={8}
-                    required
-                  />
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="terms">Termos e Condições Principais</Label>
+                    <Textarea
+                      id="terms"
+                      value={formData.terms_text}
+                      onChange={(e) => setFormData({ ...formData, terms_text: e.target.value })}
+                      placeholder="Digite os termos principais do contrato..."
+                      rows={6}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="usage_rights">Direitos de Uso de Imagem</Label>
+                    <Textarea
+                      id="usage_rights"
+                      value={formData.clauses.usage_rights_text}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        clauses: { ...formData.clauses, usage_rights_text: e.target.value }
+                      })}
+                      placeholder="Ex: O cliente terá direito de uso pessoal e não comercial..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="cancellation_policy">Política de Cancelamento</Label>
+                    <Textarea
+                      id="cancellation_policy"
+                      value={formData.clauses.cancellation_policy_text}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        clauses: { ...formData.clauses, cancellation_policy_text: e.target.value }
+                      })}
+                      placeholder="Ex: Cancelamento com mais de 15 dias: reembolso de 70%..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="cancellation_fee">Taxa de Cancelamento (Kz)</Label>
+                    <Input
+                      id="cancellation_fee"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.cancellation_fee}
+                      onChange={(e) => setFormData({ ...formData, cancellation_fee: parseFloat(e.target.value) || 0 })}
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="reschedule_policy">Política de Remarcação</Label>
+                    <Textarea
+                      id="reschedule_policy"
+                      value={formData.clauses.reschedule_policy}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        clauses: { ...formData.clauses, reschedule_policy: e.target.value }
+                      })}
+                      placeholder="Ex: Uma remarcação gratuita com aviso de 7 dias..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="revision_policy">Política de Revisões</Label>
+                    <Textarea
+                      id="revision_policy"
+                      value={formData.clauses.revision_policy}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        clauses: { ...formData.clauses, revision_policy: e.target.value }
+                      })}
+                      placeholder="Ex: Incluídas 3 rodadas de revisões..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="late_delivery">Cláusula de Entrega Tardia</Label>
+                    <Textarea
+                      id="late_delivery"
+                      value={formData.clauses.late_delivery_clause}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        clauses: { ...formData.clauses, late_delivery_clause: e.target.value }
+                      })}
+                      placeholder="Ex: Em caso de atraso, desconto de 10%..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="copyright">Aviso de Direitos Autorais</Label>
+                    <Textarea
+                      id="copyright"
+                      value={formData.clauses.copyright_notice}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        clauses: { ...formData.clauses, copyright_notice: e.target.value }
+                      })}
+                      placeholder="Ex: Todos os direitos autorais pertencem ao fotógrafo..."
+                      rows={2}
+                    />
+                  </div>
                 </div>
               )}
 
@@ -213,7 +340,10 @@ export function TemplateManager({ type }: TemplateManagerProps) {
                 )}
                 {type === 'contract' && (
                   <div className="text-sm text-muted-foreground">
-                    <p>{template.terms_text?.substring(0, 100)}...</p>
+                    {(template.clauses as any)?.job_type && (
+                      <p className="font-medium mb-1">{(template.clauses as any).job_type}</p>
+                    )}
+                    <p className="line-clamp-2">{template.terms_text?.substring(0, 100)}...</p>
                   </div>
                 )}
               </CardContent>
