@@ -9,7 +9,6 @@ import PaymentDialog from "@/components/PaymentDialog";
 import { PaymentReceiptDialog } from "@/components/PaymentReceiptDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
-import { useSmartBadges } from "@/hooks/useSmartBadges";
 import { exportToExcel, formatPaymentsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
 
@@ -78,6 +77,29 @@ export default function Payments() {
     .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
   const showEmptyState = !isLoading && (!payments || payments.length === 0);
+
+  // Pre-calculate badges for all filtered payments to avoid calling hooks in loops
+  const paymentBadgesMap = new Map();
+  filteredPayments.forEach(payment => {
+    const badges = [];
+    
+    // Payment overdue logic (duplicated from useSmartBadges to avoid hook call in loop)
+    if (payment.status === 'pending' && payment.due_date) {
+      const dueDate = new Date(payment.due_date);
+      if (dueDate < new Date()) {
+        const daysOverdue = Math.floor((new Date().getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+        badges.push({
+          id: 'payment-overdue',
+          label: `🚨 Vencido (${daysOverdue} dias)`,
+          variant: 'destructive' as const,
+          priority: 'urgent',
+          tooltip: 'Pagamento em atraso',
+        });
+      }
+    }
+    
+    paymentBadgesMap.set(payment.id, badges);
+  });
 
   if (isLoading) {
     return <div className="space-y-6">Carregando...</div>;
@@ -217,7 +239,7 @@ export default function Payments() {
               </div>
             ) : (
             filteredPayments.map((payment) => {
-              const smartBadges = useSmartBadges({ entityType: 'payment', entity: payment });
+              const smartBadges = paymentBadgesMap.get(payment.id) || [];
               
               return (
               <Card
