@@ -87,7 +87,7 @@ export class ProfessionalPDFGenerator {
 
   private async addHeader(invoiceData: InvoiceData) {
     const startY = this.margin;
-    const logoSize = 40;
+    const logoSize = 50;
 
     // Add logo if available (left side)
     if (this.businessSettings.logo_url) {
@@ -101,50 +101,51 @@ export class ProfessionalPDFGenerator {
       }
     }
 
-    // Company name - right next to the logo, at the top
-    const companyNameX = this.margin + logoSize + 10;
-    this.doc.setFontSize(18);
+    // Company name - right next to the logo
+    const companyInfoX = this.margin + logoSize + 10;
+    this.doc.setFontSize(20);
     this.doc.setTextColor(...this.primaryColor);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text(this.businessSettings.business_name, companyNameX, startY + 10);
+    this.doc.text(this.businessSettings.business_name, companyInfoX, startY + 12);
 
-    // Company contact details - BELOW the company name, same X position
-    let detailsY = startY + 18;
-    
-    this.doc.setFontSize(8);
+    // NIF - below company name
+    let detailsY = startY + 20;
+    this.doc.setFontSize(9);
     this.doc.setTextColor(100, 100, 100);
     this.doc.setFont('helvetica', 'normal');
     
-    if (this.businessSettings.email) {
-      this.doc.text(`Email: ${this.businessSettings.email}`, companyNameX, detailsY);
-      detailsY += 5;
-    }
-    
-    if (this.businessSettings.phone) {
-      this.doc.text(`Tel: ${this.businessSettings.phone}`, companyNameX, detailsY);
-      detailsY += 5;
-    }
-    
     if (this.businessSettings.nif) {
-      this.doc.text(`NIF: ${this.businessSettings.nif}`, companyNameX, detailsY);
+      this.doc.text(`NIF: ${this.businessSettings.nif}`, companyInfoX, detailsY);
+      detailsY += 5;
+    }
+    
+    // Email - below NIF
+    if (this.businessSettings.email) {
+      this.doc.text(`Email: ${this.businessSettings.email}`, companyInfoX, detailsY);
+      detailsY += 5;
+    }
+    
+    // Phone - below Email
+    if (this.businessSettings.phone) {
+      this.doc.text(`Tel: ${this.businessSettings.phone}`, companyInfoX, detailsY);
       detailsY += 5;
     }
 
     // Large INVOICE/PRO-FORMA title - right side
     const title = invoiceData.is_proforma ? 'PRO-FORMA' : 'FACTURA';
-    this.doc.setFontSize(32);
+    this.doc.setFontSize(36);
     this.doc.setTextColor(...this.primaryColor);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text(title, this.pageWidth - this.margin, startY + 20, { align: 'right' });
+    this.doc.text(title, this.pageWidth - this.margin, startY + 15, { align: 'right' });
 
     // Invoice number - right side, below title
-    this.doc.setFontSize(12);
+    this.doc.setFontSize(14);
     this.doc.setTextColor(80, 80, 80);
     this.doc.setFont('helvetica', 'bold');
-    this.doc.text(invoiceData.invoice_number, this.pageWidth - this.margin, startY + 32, { align: 'right' });
+    this.doc.text(invoiceData.invoice_number, this.pageWidth - this.margin, startY + 30, { align: 'right' });
 
-    // Return the max Y position (either from logo or from contact details)
-    return Math.max(startY + logoSize, detailsY) + 10;
+    // Return the max Y position
+    return Math.max(startY + logoSize, detailsY) + 15;
   }
 
   private addClientInfo(invoiceData: InvoiceData, startY: number) {
