@@ -7,13 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { useCreateContract, useUpdateContract } from "@/hooks/useContracts";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useCreateContract, useUpdateContract, useDeleteContract } from "@/hooks/useContracts";
 import { useClients } from "@/hooks/useClients";
 import { useJobs } from "@/hooks/useJobs";
 import { useContractTemplates, useCreateContractTemplate } from "@/hooks/useTemplates";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FileText, Sparkles, Send, Copy, FileSignature, FileDown, Save } from "lucide-react";
+import { FileText, Sparkles, Send, Copy, FileSignature, FileDown, Save, Trash2 } from "lucide-react";
 import { z } from "zod";
 
 const contractSchema = z.object({
@@ -72,6 +73,7 @@ interface ContractDialogProps {
 export function ContractDialog({ children, contract, open, onOpenChange }: ContractDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [formData, setFormData] = useState({
     client_id: "",
     job_id: null as string | null,
@@ -88,6 +90,7 @@ export function ContractDialog({ children, contract, open, onOpenChange }: Contr
 
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
+  const deleteContract = useDeleteContract();
   const createTemplate = useCreateContractTemplate();
   const { data: clients } = useClients();
   const { data: jobs } = useJobs();
@@ -653,17 +656,31 @@ Valor total: [Valor acordado]`,
           </Tabs>
 
           <div className="flex gap-2 justify-between mt-6">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleSaveAsTemplate}
-              disabled={!formData.terms_text || formData.terms_text.length < 50}
-              title="Salvar este contrato como template reutilizável"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Salvar como Template
-            </Button>
+            <div className="flex gap-2">
+              {contract && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={deleteContract.isPending}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Eliminar
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleSaveAsTemplate}
+                disabled={!formData.terms_text || formData.terms_text.length < 50}
+                title="Salvar este contrato como template reutilizável"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Salvar como Template
+              </Button>
+            </div>
             
             <div className="flex gap-2">
               <Button type="button" variant="outline" onClick={() => actualOnOpenChange(false)}>
@@ -692,6 +709,32 @@ Valor total: [Valor acordado]`,
           </div>
         </form>
       </DialogContent>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem a certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser revertida. O contrato será eliminado permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!contract) return;
+                await deleteContract.mutateAsync(contract.id);
+                toast.success("Contrato eliminado com sucesso!");
+                setShowDeleteDialog(false);
+                actualOnOpenChange(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

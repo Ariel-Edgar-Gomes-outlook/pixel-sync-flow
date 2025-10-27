@@ -9,6 +9,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Form,
   FormControl,
   FormField,
@@ -28,7 +38,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useClients } from '@/hooks/useClients';
 import { useQuotes } from '@/hooks/useQuotes';
-import { useCreateInvoice, useUpdateInvoice } from '@/hooks/useInvoices';
+import { useCreateInvoice, useUpdateInvoice, useDeleteInvoice } from '@/hooks/useInvoices';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,7 +80,9 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
   const { data: businessSettings } = useBusinessSettings(user?.id);
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
+  const deleteInvoice = useDeleteInvoice();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedQuoteId, setSelectedQuoteId] = useState<string>('');
 
   const form = useForm<InvoiceFormValues>({
@@ -622,34 +634,72 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
               )}
             />
 
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancelar
-              </Button>
+            <div className="flex justify-between gap-2">
               {invoice && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => handleGeneratePDF(invoice)}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Ver PDF
-              </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={deleteInvoice.isPending}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Eliminar
+                </Button>
               )}
-              <Button
-                type="submit"
-                disabled={createInvoice.isPending || updateInvoice.isPending || isGeneratingPDF}
-              >
-                {invoice ? 'Atualizar' : 'Criar Fatura'}
-              </Button>
+              <div className="flex gap-2 ml-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                >
+                  Cancelar
+                </Button>
+                {invoice && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleGeneratePDF(invoice)}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Ver PDF
+                </Button>
+                )}
+                <Button
+                  type="submit"
+                  disabled={createInvoice.isPending || updateInvoice.isPending || isGeneratingPDF}
+                >
+                  {invoice ? 'Atualizar' : 'Criar Fatura'}
+                </Button>
+              </div>
             </div>
           </form>
         </Form>
       </DialogContent>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem a certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser revertida. A fatura será eliminada permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!invoice) return;
+                await deleteInvoice.mutateAsync(invoice.id);
+                setShowDeleteDialog(false);
+                onOpenChange(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

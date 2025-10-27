@@ -86,3 +86,21 @@ export function useUpdateQuote() {
     },
   });
 }
+
+export function useDeleteQuote() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('quotes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quotes'] });
+    },
+  });
+}

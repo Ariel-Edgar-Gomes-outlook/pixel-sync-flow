@@ -7,11 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
-import { useCreateQuote, useUpdateQuote, Quote } from "@/hooks/useQuotes";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useCreateQuote, useUpdateQuote, useDeleteQuote, Quote } from "@/hooks/useQuotes";
 import { useClients } from "@/hooks/useClients";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Plus, X, FileText, Calculator, Percent, Tag, Briefcase, FileDown, Sparkles, Send } from "lucide-react";
+import { Plus, X, FileText, Calculator, Percent, Tag, Briefcase, FileDown, Sparkles, Send, Trash2 } from "lucide-react";
 import { useQuoteTemplates } from "@/hooks/useTemplates";
 import { useUpdateQuote as useUpdateQuoteMutation } from "@/hooks/useQuotes";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +33,7 @@ interface QuoteItem {
 
 export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [formData, setFormData] = useState({
     client_id: "",
     job_id: null as string | null,
@@ -46,6 +48,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
 
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
+  const deleteQuote = useDeleteQuote();
   const updateQuoteMutation = useUpdateQuoteMutation();
   const { data: clients } = useClients();
   const { data: quoteTemplates } = useQuoteTemplates();
@@ -601,26 +604,66 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
           )}
 
           {/* Botões de Ação */}
-          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => actualOnOpenChange(false)}
-              disabled={createQuote.isPending || updateQuote.isPending}
-              className="w-full sm:w-auto"
-            >
-              Cancelar
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={createQuote.isPending || updateQuote.isPending}
-              className="w-full sm:w-auto sm:min-w-32"
-            >
-              {createQuote.isPending || updateQuote.isPending ? "A guardar..." : quote ? "Atualizar Orçamento" : "Criar Orçamento"}
-            </Button>
+          <div className="flex flex-col sm:flex-row justify-between gap-3 pt-4">
+            {quote && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setShowDeleteDialog(true)}
+                disabled={deleteQuote.isPending}
+                className="w-full sm:w-auto"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Eliminar
+              </Button>
+            )}
+            <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => actualOnOpenChange(false)}
+                disabled={createQuote.isPending || updateQuote.isPending}
+                className="w-full sm:w-auto"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createQuote.isPending || updateQuote.isPending}
+                className="w-full sm:w-auto sm:min-w-32"
+              >
+                {createQuote.isPending || updateQuote.isPending ? "A guardar..." : quote ? "Atualizar Orçamento" : "Criar Orçamento"}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem a certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser revertida. O orçamento será eliminado permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!quote) return;
+                await deleteQuote.mutateAsync(quote.id);
+                toast.success("Orçamento eliminado com sucesso!");
+                setShowDeleteDialog(false);
+                actualOnOpenChange(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

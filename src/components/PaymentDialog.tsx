@@ -8,13 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useCreatePayment, useUpdatePayment, usePayments, type Payment } from "@/hooks/usePayments";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useCreatePayment, useUpdatePayment, useDeletePayment, usePayments, type Payment } from "@/hooks/usePayments";
 import { useClients } from "@/hooks/useClients";
 import { useQuotes } from "@/hooks/useQuotes";
 import { useInvoices } from "@/hooks/useInvoices";
 import { FileUpload } from "@/components/FileUpload";
 import { toast } from "sonner";
-import { Wallet, DollarSign, FileText, CreditCard, User, AlertCircle, History, Receipt } from "lucide-react";
+import { Wallet, DollarSign, FileText, CreditCard, User, AlertCircle, History, Receipt, Trash2 } from "lucide-react";
 
 interface PaymentDialogProps {
   payment?: Payment | null;
@@ -24,6 +25,7 @@ interface PaymentDialogProps {
 }
 
 export default function PaymentDialog({ payment, open, onOpenChange, children }: PaymentDialogProps) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [formData, setFormData] = useState<{
     client_id: string;
     quote_id: string;
@@ -48,6 +50,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
 
   const createPayment = useCreatePayment();
   const updatePayment = useUpdatePayment();
+  const deletePayment = useDeletePayment();
   const { data: clients } = useClients();
   const { data: quotes } = useQuotes();
   const { data: invoices } = useInvoices();
@@ -125,6 +128,20 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
       onOpenChange?.(false);
     } catch (error) {
       toast.error("Erro ao salvar pagamento");
+      console.error(error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!payment) return;
+    
+    try {
+      await deletePayment.mutateAsync(payment.id);
+      toast.success("Pagamento eliminado com sucesso!");
+      setShowDeleteDialog(false);
+      onOpenChange?.(false);
+    } catch (error) {
+      toast.error("Erro ao eliminar pagamento");
       console.error(error);
     }
   };
@@ -488,29 +505,60 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
           )}
 
           {/* Botões de Ação */}
-          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                resetForm();
-                onOpenChange?.(false);
-              }}
-              disabled={createPayment.isPending || updatePayment.isPending}
-              className="w-full sm:w-auto"
-            >
-              Cancelar
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={createPayment.isPending || updatePayment.isPending}
-              className="w-full sm:w-auto sm:min-w-32"
-            >
-              {createPayment.isPending || updatePayment.isPending ? "A guardar..." : payment ? "Atualizar Pagamento" : "Criar Pagamento"}
-            </Button>
+          <div className="flex flex-col sm:flex-row justify-between gap-3 pt-4">
+            {payment && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setShowDeleteDialog(true)}
+                disabled={deletePayment.isPending}
+                className="w-full sm:w-auto"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Eliminar
+              </Button>
+            )}
+            <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  resetForm();
+                  onOpenChange?.(false);
+                }}
+                disabled={createPayment.isPending || updatePayment.isPending}
+                className="w-full sm:w-auto"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createPayment.isPending || updatePayment.isPending}
+                className="w-full sm:w-auto sm:min-w-32"
+              >
+                {createPayment.isPending || updatePayment.isPending ? "A guardar..." : payment ? "Atualizar Pagamento" : "Criar Pagamento"}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem a certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser revertida. O pagamento será eliminado permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
