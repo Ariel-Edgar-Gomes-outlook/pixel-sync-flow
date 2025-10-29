@@ -55,7 +55,7 @@ export function JobDetailsDialog({ jobId, open, onOpenChange }: JobDetailsDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-3 sm:p-6">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-5xl max-h-[90vh] overflow-y-auto p-3 sm:p-6">
         <DialogHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2 sm:gap-3">
@@ -112,7 +112,7 @@ export function JobDetailsDialog({ jobId, open, onOpenChange }: JobDetailsDialog
 
           {/* Detalhes Tab */}
           <TabsContent value="details" className="space-y-4 mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {/* Date & Time */}
               <Card className="p-4">
                 <div className="flex items-start gap-3">

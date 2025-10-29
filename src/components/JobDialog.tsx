@@ -118,7 +118,7 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="w-[95vw] sm:w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-4xl max-h-[90vh] overflow-y-auto p-3 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2">
             <Briefcase className="h-6 w-6 text-primary" />
@@ -245,8 +245,8 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
         <h3 className="text-sm font-semibold text-foreground">Informações Básicas</h3>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="col-span-2 space-y-2">
+      <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-2">
           <Label htmlFor="title" className="text-sm font-medium flex items-center gap-2">
             <FileText className="h-3.5 w-3.5" />
             Título do Job <span className="text-destructive">*</span>
@@ -303,7 +303,7 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
           <p className="text-xs text-muted-foreground">Categoria do trabalho</p>
         </div>
 
-        <div className="col-span-2 space-y-2">
+        <div className="space-y-2">
           <Label className="text-sm font-medium flex items-center gap-2">
             <Tag className="h-3.5 w-3.5" />
             Tags/Categorias
@@ -348,7 +348,7 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
           <p className="text-xs text-muted-foreground">Local onde ocorrerá o trabalho</p>
         </div>
 
-        <div className="col-span-2 space-y-2">
+        <div className="space-y-2">
           <Label className="text-sm font-medium flex items-center gap-2">
             <MapPin className="h-3.5 w-3.5" />
             Mapa da Localização
@@ -371,7 +371,7 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
         <h3 className="text-sm font-semibold text-foreground">Agendamento</h3>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div className="space-y-2">
           <Label htmlFor="start_datetime" className="text-sm font-medium flex items-center gap-2">
             <Calendar className="h-3.5 w-3.5" />
