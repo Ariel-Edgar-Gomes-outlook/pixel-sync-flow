@@ -118,17 +118,19 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Users className="h-5 w-5" />
+          <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+            <Users className="h-4 w-4 sm:h-5 sm:w-5" />
             Equipa do Projeto
           </h3>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Adicione fotógrafos, assistentes e outros membros da sua equipe
           </p>
         </div>
-        <TeamMemberDialog />
+        <div className="flex-shrink-0">
+          <TeamMemberDialog />
+        </div>
       </div>
 
       {/* Alert if no team members available */}
@@ -143,10 +145,10 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
 
       {/* Add Member Form */}
       {availableUsers && availableUsers.length > 0 && (
-        <Card className="p-4">
+        <Card className="p-3 sm:p-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-              <SelectTrigger>
+              <SelectTrigger className="h-10 sm:h-11">
                 <SelectValue placeholder="Selecionar membro" />
               </SelectTrigger>
               <SelectContent>
@@ -159,7 +161,7 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
             </Select>
 
           <Select value={selectedRole} onValueChange={setSelectedRole}>
-            <SelectTrigger>
+            <SelectTrigger className="h-10 sm:h-11">
               <SelectValue placeholder="Função" />
             </SelectTrigger>
             <SelectContent>
@@ -174,10 +176,11 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
             <Button 
               onClick={handleAddMember}
               disabled={addMember.isPending}
-              className="gap-2"
+              className="gap-2 h-10 sm:h-11"
             >
               <UserPlus className="h-4 w-4" />
-              Adicionar ao Projeto
+              <span className="hidden sm:inline">Adicionar ao Projeto</span>
+              <span className="sm:hidden">Adicionar</span>
             </Button>
           </div>
         </Card>
@@ -187,27 +190,28 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
       <div className="space-y-2">
         {teamMembers && teamMembers.length > 0 ? (
           teamMembers.map((member: any) => (
-            <Card key={member.id} className="p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar>
+            <Card key={member.id} className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Avatar className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0">
                     <AvatarFallback>
                       {member.team_members?.name?.charAt(0).toUpperCase() || 'M'}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="font-medium text-sm">{member.team_members?.name || 'Membro'}</p>
-                    <p className="text-xs text-muted-foreground">{member.team_members?.email}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm truncate">{member.team_members?.name || 'Membro'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{member.team_members?.email}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  <Badge variant="outline" className="text-xs flex-shrink-0">
                     {member.team_members?.type || 'Tipo'}
                   </Badge>
-                  <Badge variant="secondary">{member.role || 'Função'}</Badge>
+                  <Badge variant="secondary" className="text-xs flex-shrink-0">{member.role || 'Função'}</Badge>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
+                    className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
                     onClick={() => removeMember.mutate(member.id)}
                     disabled={removeMember.isPending}
                   >
@@ -218,8 +222,8 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
             </Card>
           ))
         ) : (
-          <Card className="p-8">
-            <p className="text-center text-muted-foreground text-sm">
+          <Card className="p-6 sm:p-8">
+            <p className="text-center text-muted-foreground text-xs sm:text-sm">
               Nenhum membro da equipa atribuído a este projeto
             </p>
           </Card>

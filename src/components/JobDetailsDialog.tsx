@@ -55,16 +55,16 @@ export function JobDetailsDialog({ jobId, open, onOpenChange }: JobDetailsDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-3 sm:p-6">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Eye className="h-6 w-6 text-primary" />
-              <DialogTitle className="text-2xl">{job.title}</DialogTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+              <DialogTitle className="text-lg sm:text-xl lg:text-2xl line-clamp-2">{job.title}</DialogTitle>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
-              <Badge variant="outline">{job.type}</Badge>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Badge variant={statusInfo.variant} className="text-xs">{statusInfo.label}</Badge>
+              <Badge variant="outline" className="text-xs">{job.type}</Badge>
             </div>
           </div>
           {job.clients && (
@@ -75,38 +75,38 @@ export function JobDetailsDialog({ jobId, open, onOpenChange }: JobDetailsDialog
         </DialogHeader>
 
         <Tabs defaultValue="details" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
-            <TabsTrigger value="details" className="text-xs">
-              <FileText className="h-4 w-4 mr-1" />
-              Detalhes
+          <TabsList className="inline-flex w-full sm:w-auto overflow-x-auto flex-nowrap justify-start sm:justify-center h-auto p-1 gap-1">
+            <TabsTrigger value="details" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="whitespace-nowrap">Detalhes</span>
             </TabsTrigger>
-            <TabsTrigger value="team" className="text-xs">
-              <Users className="h-4 w-4 mr-1" />
-              Equipa
+            <TabsTrigger value="team" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="whitespace-nowrap">Equipa</span>
             </TabsTrigger>
-            <TabsTrigger value="time" className="text-xs">
-              <Timer className="h-4 w-4 mr-1" />
-              Tempo
+            <TabsTrigger value="time" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
+              <Timer className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="whitespace-nowrap">Tempo</span>
             </TabsTrigger>
-            <TabsTrigger value="deliverables" className="text-xs">
-              <Image className="h-4 w-4 mr-1" />
-              Entregáveis
+            <TabsTrigger value="deliverables" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
+              <Image className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="whitespace-nowrap">Entregáveis</span>
             </TabsTrigger>
-            <TabsTrigger value="gallery" className="text-xs">
-              <Image className="h-4 w-4 mr-1" />
-              Galeria
+            <TabsTrigger value="gallery" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
+              <Image className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="whitespace-nowrap">Galeria</span>
             </TabsTrigger>
-            <TabsTrigger value="equipment" className="text-xs">
-              <Package className="h-4 w-4 mr-1" />
-              Equipamentos
+            <TabsTrigger value="equipment" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
+              <Package className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="whitespace-nowrap">Equipamentos</span>
             </TabsTrigger>
-            <TabsTrigger value="checklist" className="text-xs">
-              <CheckSquare className="h-4 w-4 mr-1" />
-              Checklist
+            <TabsTrigger value="checklist" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
+              <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="whitespace-nowrap">Checklist</span>
             </TabsTrigger>
-            <TabsTrigger value="payment" className="text-xs">
-              <CreditCard className="h-4 w-4 mr-1" />
-              Pagamento
+            <TabsTrigger value="payment" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
+              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="whitespace-nowrap">Pagamento</span>
             </TabsTrigger>
           </TabsList>
 

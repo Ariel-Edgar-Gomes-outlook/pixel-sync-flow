@@ -134,16 +134,16 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
         
         {job ? (
           <Tabs defaultValue="details" className="w-full">
-            <div className="overflow-x-auto -mx-4 sm:mx-0">
-              <TabsList className="inline-flex w-auto min-w-full grid-cols-8 px-4 sm:px-0 sm:grid sm:w-full">
-                <TabsTrigger value="details" className="text-xs whitespace-nowrap">Detalhes</TabsTrigger>
-                <TabsTrigger value="time" className="text-xs whitespace-nowrap">Tempo</TabsTrigger>
-                <TabsTrigger value="deliverables" className="text-xs whitespace-nowrap">Entregáveis</TabsTrigger>
-                <TabsTrigger value="gallery" className="text-xs whitespace-nowrap">Galeria</TabsTrigger>
-                <TabsTrigger value="equipment" className="text-xs whitespace-nowrap">Equipamentos</TabsTrigger>
-                <TabsTrigger value="checklists" className="text-xs whitespace-nowrap">Checklists</TabsTrigger>
-                <TabsTrigger value="team" className="text-xs whitespace-nowrap">Equipa</TabsTrigger>
-                <TabsTrigger value="payment" className="text-xs whitespace-nowrap">Pagamento</TabsTrigger>
+            <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+              <TabsList className="inline-flex w-auto h-auto p-1 gap-1">
+                <TabsTrigger value="details" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Detalhes</TabsTrigger>
+                <TabsTrigger value="time" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Tempo</TabsTrigger>
+                <TabsTrigger value="deliverables" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Entregáveis</TabsTrigger>
+                <TabsTrigger value="gallery" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Galeria</TabsTrigger>
+                <TabsTrigger value="equipment" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Equipamentos</TabsTrigger>
+                <TabsTrigger value="checklists" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Checklists</TabsTrigger>
+                <TabsTrigger value="team" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Equipa</TabsTrigger>
+                <TabsTrigger value="payment" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Pagamento</TabsTrigger>
               </TabsList>
             </div>
 

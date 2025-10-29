@@ -124,13 +124,13 @@ export function JobResources({ jobId, startDatetime, endDatetime }: JobResources
   ) || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Adicionar Equipamento */}
-      <Card className="p-4 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-        <div className="flex items-center gap-3 mb-4">
-          <Plus className="h-5 w-5 text-primary" />
-          <div>
-            <h3 className="text-base font-semibold text-foreground">Adicionar Equipamento</h3>
+      <Card className="p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+        <div className="flex items-start sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+          <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0 mt-0.5 sm:mt-0" />
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm sm:text-base font-semibold text-foreground">Adicionar Equipamento</h3>
             <p className="text-xs text-muted-foreground">Reserve equipamentos para este job</p>
           </div>
         </div>
@@ -205,7 +205,7 @@ export function JobResources({ jobId, startDatetime, endDatetime }: JobResources
           <Button
             onClick={() => addResourceMutation.mutate()}
             disabled={!selectedResource || addResourceMutation.isPending}
-            className="w-full"
+            className="w-full h-10 sm:h-11"
           >
             {addResourceMutation.isPending ? "Adicionando..." : "Adicionar Equipamento"}
           </Button>
@@ -213,32 +213,32 @@ export function JobResources({ jobId, startDatetime, endDatetime }: JobResources
       </Card>
 
       {/* Lista de Equipamentos */}
-      <Card className="p-4 sm:p-6 bg-muted/50">
-        <div className="flex items-center gap-3 mb-4">
-          <Wrench className="h-5 w-5 text-primary" />
-          <div>
-            <h3 className="text-base font-semibold text-foreground">Equipamentos Reservados</h3>
+      <Card className="p-3 sm:p-4 lg:p-6 bg-muted/50">
+        <div className="flex items-start sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+          <Wrench className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0 mt-0.5 sm:mt-0" />
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm sm:text-base font-semibold text-foreground">Equipamentos Reservados</h3>
             <p className="text-xs text-muted-foreground">Lista de equipamentos para este job</p>
           </div>
         </div>
 
         {!jobResources || jobResources.length === 0 ? (
-          <div className="text-center py-8 border-2 border-dashed rounded-lg">
-            <Wrench className="h-12 w-12 mx-auto text-muted-foreground opacity-50 mb-2" />
-            <p className="text-sm text-muted-foreground">Nenhum equipamento reservado ainda</p>
+          <div className="text-center py-6 sm:py-8 border-2 border-dashed rounded-lg">
+            <Wrench className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground opacity-50 mb-2" />
+            <p className="text-xs sm:text-sm text-muted-foreground">Nenhum equipamento reservado ainda</p>
             <p className="text-xs text-muted-foreground mt-1">Adicione equipamentos necessários para este job</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {jobResources.map((jobResource) => (
-              <Card key={jobResource.id} className="p-4 bg-background hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">
+              <Card key={jobResource.id} className="p-3 sm:p-4 bg-background hover:shadow-md transition-shadow">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+                  <div className="flex-1 space-y-2 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="outline" className="text-xs flex-shrink-0">
                         {jobResource.resources.type}
                       </Badge>
-                      <span className="font-semibold text-foreground">
+                      <span className="font-semibold text-sm text-foreground truncate">
                         {jobResource.resources.name}
                       </span>
                       <Badge
@@ -247,7 +247,7 @@ export function JobResources({ jobId, startDatetime, endDatetime }: JobResources
                           jobResource.resources.status === 'in_use' ? 'warning' :
                           'secondary'
                         }
-                        className="text-xs"
+                        className="text-xs flex-shrink-0"
                       >
                         {jobResource.resources.status === 'available' ? '✅ Disponível' :
                          jobResource.resources.status === 'in_use' ? '🔄 Em Uso' :
@@ -256,9 +256,9 @@ export function JobResources({ jobId, startDatetime, endDatetime }: JobResources
                       </Badge>
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      <span>
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                      <Calendar className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">
                         {format(new Date(jobResource.reserved_from), "dd/MM/yyyy HH:mm")}
                         {' → '}
                         {format(new Date(jobResource.reserved_until), "dd/MM/yyyy HH:mm")}
@@ -266,7 +266,7 @@ export function JobResources({ jobId, startDatetime, endDatetime }: JobResources
                     </div>
 
                     {jobResource.notes && (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground break-words">
                         <span className="font-medium">Notas:</span> {jobResource.notes}
                       </p>
                     )}
@@ -275,6 +275,7 @@ export function JobResources({ jobId, startDatetime, endDatetime }: JobResources
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
                     onClick={() => removeResourceMutation.mutate(jobResource.id)}
                     disabled={removeResourceMutation.isPending}
                   >
@@ -289,15 +290,15 @@ export function JobResources({ jobId, startDatetime, endDatetime }: JobResources
 
       {/* Resumo */}
       {jobResources && jobResources.length > 0 && (
-        <Card className="p-4 bg-primary/5 border-primary/20">
+        <Card className="p-3 sm:p-4 bg-primary/5 border-primary/20">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-foreground">Total de Equipamentos</p>
-              <p className="text-2xl font-bold text-primary mt-1">
+              <p className="text-xs sm:text-sm font-medium text-foreground">Total de Equipamentos</p>
+              <p className="text-xl sm:text-2xl font-bold text-primary mt-1">
                 {jobResources.length}
               </p>
             </div>
-            <Wrench className="h-12 w-12 text-primary/30" />
+            <Wrench className="h-10 w-10 sm:h-12 sm:w-12 text-primary/30" />
           </div>
         </Card>
       )}
