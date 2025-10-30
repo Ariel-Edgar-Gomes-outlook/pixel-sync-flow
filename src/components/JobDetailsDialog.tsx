@@ -3,6 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
 import { 
   Calendar, 
   MapPin, 
@@ -46,12 +48,24 @@ const statusConfig = {
 
 export function JobDetailsDialog({ jobId, open, onOpenChange }: JobDetailsDialogProps) {
   const { data: job, isLoading } = useJob(jobId);
+  const [activeTab, setActiveTab] = useState("details");
 
   if (isLoading || !job) {
     return null;
   }
 
   const statusInfo = statusConfig[job.status as keyof typeof statusConfig] || statusConfig.scheduled;
+
+  const tabOptions = [
+    { value: "details", label: "Detalhes", icon: FileText },
+    { value: "team", label: "Equipa", icon: Users },
+    { value: "time", label: "Tempo", icon: Timer },
+    { value: "deliverables", label: "Entregáveis", icon: Image },
+    { value: "gallery", label: "Galeria", icon: Image },
+    { value: "equipment", label: "Equipamentos", icon: Package },
+    { value: "checklist", label: "Checklist", icon: CheckSquare },
+    { value: "payment", label: "Pagamento", icon: CreditCard },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -74,40 +88,34 @@ export function JobDetailsDialog({ jobId, open, onOpenChange }: JobDetailsDialog
           )}
         </DialogHeader>
 
-        <Tabs defaultValue="details" className="w-full">
-          <TabsList className="inline-flex w-full sm:w-auto overflow-x-auto flex-nowrap justify-start sm:justify-center h-auto p-1 gap-1">
-            <TabsTrigger value="details" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
-              <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span className="whitespace-nowrap">Detalhes</span>
-            </TabsTrigger>
-            <TabsTrigger value="team" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
-              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span className="whitespace-nowrap">Equipa</span>
-            </TabsTrigger>
-            <TabsTrigger value="time" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
-              <Timer className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span className="whitespace-nowrap">Tempo</span>
-            </TabsTrigger>
-            <TabsTrigger value="deliverables" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
-              <Image className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span className="whitespace-nowrap">Entregáveis</span>
-            </TabsTrigger>
-            <TabsTrigger value="gallery" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
-              <Image className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span className="whitespace-nowrap">Galeria</span>
-            </TabsTrigger>
-            <TabsTrigger value="equipment" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
-              <Package className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span className="whitespace-nowrap">Equipamentos</span>
-            </TabsTrigger>
-            <TabsTrigger value="checklist" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
-              <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span className="whitespace-nowrap">Checklist</span>
-            </TabsTrigger>
-            <TabsTrigger value="payment" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2">
-              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              <span className="whitespace-nowrap">Pagamento</span>
-            </TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          {/* Mobile: Dropdown Select */}
+          <div className="sm:hidden mb-4">
+            <Select value={activeTab} onValueChange={setActiveTab}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecione uma seção" />
+              </SelectTrigger>
+              <SelectContent>
+                {tabOptions.map((tab) => (
+                  <SelectItem key={tab.value} value={tab.value}>
+                    <div className="flex items-center gap-2">
+                      <tab.icon className="h-4 w-4" />
+                      {tab.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Desktop: Tabs */}
+          <TabsList className="hidden sm:inline-flex w-auto h-auto p-1 gap-1">
+            {tabOptions.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value} className="text-sm px-3 py-2">
+                <tab.icon className="h-4 w-4 mr-1" />
+                <span className="whitespace-nowrap">{tab.label}</span>
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           {/* Detalhes Tab */}

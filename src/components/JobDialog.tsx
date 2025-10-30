@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select as SelectUI, SelectContent as SelectUIContent, SelectItem as SelectUIItem, SelectTrigger as SelectUITrigger, SelectValue as SelectUIValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -33,6 +33,7 @@ interface JobDialogProps {
 
 export function JobDialog({ children, job, open: controlledOpen, onOpenChange: controlledOnOpenChange, initialDate }: JobDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
   
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
@@ -133,19 +134,37 @@ export function JobDialog({ children, job, open: controlledOpen, onOpenChange: c
         </DialogHeader>
         
         {job ? (
-          <Tabs defaultValue="details" className="w-full">
-            <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-              <TabsList className="inline-flex w-auto h-auto p-1 gap-1">
-                <TabsTrigger value="details" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Detalhes</TabsTrigger>
-                <TabsTrigger value="time" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Tempo</TabsTrigger>
-                <TabsTrigger value="deliverables" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Entregáveis</TabsTrigger>
-                <TabsTrigger value="gallery" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Galeria</TabsTrigger>
-                <TabsTrigger value="equipment" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Equipamentos</TabsTrigger>
-                <TabsTrigger value="checklists" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Checklists</TabsTrigger>
-                <TabsTrigger value="team" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Equipa</TabsTrigger>
-                <TabsTrigger value="payment" className="text-xs sm:text-sm flex-shrink-0 px-2 sm:px-3 py-2 whitespace-nowrap">Pagamento</TabsTrigger>
-              </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            {/* Mobile: Dropdown Select */}
+            <div className="sm:hidden mb-4">
+              <SelectUI value={activeTab} onValueChange={setActiveTab}>
+                <SelectUITrigger className="w-full">
+                  <SelectUIValue placeholder="Selecione uma seção" />
+                </SelectUITrigger>
+                <SelectUIContent>
+                  <SelectUIItem value="details">Detalhes</SelectUIItem>
+                  <SelectUIItem value="time">Tempo</SelectUIItem>
+                  <SelectUIItem value="deliverables">Entregáveis</SelectUIItem>
+                  <SelectUIItem value="gallery">Galeria</SelectUIItem>
+                  <SelectUIItem value="equipment">Equipamentos</SelectUIItem>
+                  <SelectUIItem value="checklists">Checklists</SelectUIItem>
+                  <SelectUIItem value="team">Equipa</SelectUIItem>
+                  <SelectUIItem value="payment">Pagamento</SelectUIItem>
+                </SelectUIContent>
+              </SelectUI>
             </div>
+
+            {/* Desktop: Tabs */}
+            <TabsList className="hidden sm:inline-flex w-auto h-auto p-1 gap-1">
+              <TabsTrigger value="details" className="text-sm px-3 py-2 whitespace-nowrap">Detalhes</TabsTrigger>
+              <TabsTrigger value="time" className="text-sm px-3 py-2 whitespace-nowrap">Tempo</TabsTrigger>
+              <TabsTrigger value="deliverables" className="text-sm px-3 py-2 whitespace-nowrap">Entregáveis</TabsTrigger>
+              <TabsTrigger value="gallery" className="text-sm px-3 py-2 whitespace-nowrap">Galeria</TabsTrigger>
+              <TabsTrigger value="equipment" className="text-sm px-3 py-2 whitespace-nowrap">Equipamentos</TabsTrigger>
+              <TabsTrigger value="checklists" className="text-sm px-3 py-2 whitespace-nowrap">Checklists</TabsTrigger>
+              <TabsTrigger value="team" className="text-sm px-3 py-2 whitespace-nowrap">Equipa</TabsTrigger>
+              <TabsTrigger value="payment" className="text-sm px-3 py-2 whitespace-nowrap">Pagamento</TabsTrigger>
+            </TabsList>
 
             <TabsContent value="details">
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -267,18 +286,18 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
             <User className="h-3.5 w-3.5" />
             Cliente
           </Label>
-          <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Selecionar cliente" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
+          <SelectUI value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
+            <SelectUITrigger className="bg-background">
+              <SelectUIValue placeholder="Selecionar cliente" />
+            </SelectUITrigger>
+            <SelectUIContent className="bg-popover z-50">
               {clients?.map((client: any) => (
-                <SelectItem key={client.id} value={client.id}>
+                <SelectUIItem key={client.id} value={client.id}>
                   {client.name}
-                </SelectItem>
+                </SelectUIItem>
               ))}
-            </SelectContent>
-          </Select>
+            </SelectUIContent>
+          </SelectUI>
           <p className="text-xs text-muted-foreground">Cliente associado ao job</p>
         </div>
 
@@ -287,19 +306,19 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
             <Tag className="h-3.5 w-3.5" />
             Tipo de Job <span className="text-destructive">*</span>
           </Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })} required>
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Selecionar tipo" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              <SelectItem value="Casamento">💒 Casamento</SelectItem>
-              <SelectItem value="Corporativo">🏢 Corporativo</SelectItem>
-              <SelectItem value="Evento">🎉 Evento</SelectItem>
-              <SelectItem value="Sessão Fotográfica">📸 Sessão Fotográfica</SelectItem>
-              <SelectItem value="Produto">📦 Produto</SelectItem>
-              <SelectItem value="Outro">➕ Outro</SelectItem>
-            </SelectContent>
-          </Select>
+          <SelectUI value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })} required>
+            <SelectUITrigger className="bg-background">
+              <SelectUIValue placeholder="Selecionar tipo" />
+            </SelectUITrigger>
+            <SelectUIContent className="bg-popover z-50">
+              <SelectUIItem value="Casamento">💒 Casamento</SelectUIItem>
+              <SelectUIItem value="Corporativo">🏢 Corporativo</SelectUIItem>
+              <SelectUIItem value="Evento">🎉 Evento</SelectUIItem>
+              <SelectUIItem value="Sessão Fotográfica">📸 Sessão Fotográfica</SelectUIItem>
+              <SelectUIItem value="Produto">📦 Produto</SelectUIItem>
+              <SelectUIItem value="Outro">➕ Outro</SelectUIItem>
+            </SelectUIContent>
+          </SelectUI>
           <p className="text-xs text-muted-foreground">Categoria do trabalho</p>
         </div>
 
@@ -318,18 +337,18 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
 
         <div className="space-y-2">
           <Label htmlFor="status" className="text-sm font-medium">Estado do Job <span className="text-destructive">*</span></Label>
-          <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as Job['status'] })} required>
-            <SelectTrigger className="bg-background">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              <SelectItem value="scheduled">📅 Agendado</SelectItem>
-              <SelectItem value="confirmed">✅ Confirmado</SelectItem>
-              <SelectItem value="in_production">🎬 Em Produção</SelectItem>
-              <SelectItem value="completed">🏆 Concluído</SelectItem>
-              <SelectItem value="cancelled">❌ Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
+          <SelectUI value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as Job['status'] })} required>
+            <SelectUITrigger className="bg-background">
+              <SelectUIValue />
+            </SelectUITrigger>
+            <SelectUIContent className="bg-popover z-50">
+              <SelectUIItem value="scheduled">📅 Agendado</SelectUIItem>
+              <SelectUIItem value="confirmed">✅ Confirmado</SelectUIItem>
+              <SelectUIItem value="in_production">🎬 Em Produção</SelectUIItem>
+              <SelectUIItem value="completed">🏆 Concluído</SelectUIItem>
+              <SelectUIItem value="cancelled">❌ Cancelado</SelectUIItem>
+            </SelectUIContent>
+          </SelectUI>
           <p className="text-xs text-muted-foreground">Estado atual do projeto</p>
         </div>
 
