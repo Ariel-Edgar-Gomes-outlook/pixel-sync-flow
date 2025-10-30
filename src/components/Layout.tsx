@@ -59,7 +59,7 @@ export default function Layout() {
         sidebarOpen ? "block" : "hidden"
       )}>
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-        <div className="fixed inset-y-0 left-0 w-72 bg-sidebar overflow-y-auto">
+        <div className="fixed inset-y-0 left-0 w-72 bg-sidebar overflow-y-auto scrollbar-hide">
           <div className="flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-primary">
@@ -119,7 +119,7 @@ export default function Layout() {
             <span className="text-lg font-semibold text-sidebar-foreground">PhotoFlow</span>
           </div>
         </div>
-        <nav className="flex-1 space-y-1 px-3 pt-4 overflow-y-auto">
+        <nav className="flex-1 space-y-1 px-3 pt-4 overflow-y-auto scrollbar-hide">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
             return (
