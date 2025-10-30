@@ -11,15 +11,28 @@ import { LeadConversionDialog } from "@/components/LeadConversionDialog";
 import { Lead } from "@/hooks/useLeads";
 import { exportToExcel, formatLeadsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
-
 const statusConfig = {
-  new: { label: "Novo", variant: "default" as const },
-  contacted: { label: "Contactado", variant: "secondary" as const },
-  proposal_sent: { label: "Proposta Enviada", variant: "accent" as const },
-  won: { label: "Ganho", variant: "success" as const },
-  lost: { label: "Perdido", variant: "destructive" as const },
+  new: {
+    label: "Novo",
+    variant: "default" as const
+  },
+  contacted: {
+    label: "Contactado",
+    variant: "secondary" as const
+  },
+  proposal_sent: {
+    label: "Proposta Enviada",
+    variant: "accent" as const
+  },
+  won: {
+    label: "Ganho",
+    variant: "success" as const
+  },
+  lost: {
+    label: "Perdido",
+    variant: "destructive" as const
+  }
 };
-
 export default function Leads() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>();
@@ -27,25 +40,24 @@ export default function Leads() {
   const [conversionDialogOpen, setConversionDialogOpen] = useState(false);
   const [sortBy, setSortBy] = useState<"date" | "probability">("date");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
-  const { data: leads, isLoading } = useLeads();
-
+  const {
+    data: leads,
+    isLoading
+  } = useLeads();
   const handleEdit = (lead: any) => {
     setSelectedLead(lead);
     setDialogOpen(true);
   };
-
   const handleConvert = (lead: any) => {
     setSelectedLead(lead);
     setConversionDialogOpen(true);
   };
-
   const handleOpenChange = (open: boolean) => {
     setDialogOpen(open);
     if (!open) {
       setSelectedLead(undefined);
     }
   };
-
   const handleExport = () => {
     if (leads && leads.length > 0) {
       const formatted = formatLeadsForExport(leads);
@@ -53,18 +65,14 @@ export default function Leads() {
       toast.success("Prospectos exportados com sucesso!");
     }
   };
-
   const sources = useMemo(() => {
     const uniqueSources = new Set(leads?.map(l => l.source).filter(Boolean));
     return Array.from(uniqueSources);
   }, [leads]);
-
   const filteredLeads = useMemo(() => {
-    let filtered = leads?.filter((lead) => {
+    let filtered = leads?.filter(lead => {
       const searchLower = searchQuery.toLowerCase();
-      const matchesSearch = lead.clients?.name?.toLowerCase().includes(searchLower) ||
-        lead.source?.toLowerCase().includes(searchLower) ||
-        lead.notes?.toLowerCase().includes(searchLower);
+      const matchesSearch = lead.clients?.name?.toLowerCase().includes(searchLower) || lead.source?.toLowerCase().includes(searchLower) || lead.notes?.toLowerCase().includes(searchLower);
       const matchesSource = sourceFilter === "all" || lead.source === sourceFilter;
       return matchesSearch && matchesSource;
     }) || [];
@@ -75,29 +83,23 @@ export default function Leads() {
     } else if (sortBy === "probability") {
       filtered.sort((a, b) => (b.probability || 0) - (a.probability || 0));
     }
-
     return filtered;
   }, [leads, searchQuery, sourceFilter, sortBy]);
-
   const leadsByStatus = {
     new: filteredLeads?.filter(l => l.status === 'new') || [],
     contacted: filteredLeads?.filter(l => l.status === 'contacted') || [],
     proposal_sent: filteredLeads?.filter(l => l.status === 'proposal_sent') || [],
     won: filteredLeads?.filter(l => l.status === 'won') || [],
-    lost: filteredLeads?.filter(l => l.status === 'lost') || [],
+    lost: filteredLeads?.filter(l => l.status === 'lost') || []
   };
-
   const showEmptyState = !isLoading && (!leads || leads.length === 0);
-
   if (isLoading) {
     return <div className="space-y-6">Carregando...</div>;
   }
-
-  return (
-    <div className="space-y-4 sm:space-y-6">
+  return <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Pipeline de Prospectos</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Funil de Pontencias Clientes</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Gerencie oportunidades e acompanhe leads desde o primeiro contacto até conversão
           </p>
@@ -116,8 +118,7 @@ export default function Leads() {
         </div>
       </div>
 
-      {showEmptyState ? (
-        <Card className="border-dashed">
+      {showEmptyState ? <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
             <div className="rounded-full bg-primary/10 p-6 mb-6">
               <TrendingUp className="h-12 w-12 text-primary" />
@@ -169,18 +170,11 @@ export default function Leads() {
               </p>
             </div>
           </CardContent>
-        </Card>
-      ) : (
-        <>
+        </Card> : <>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Pesquisar por cliente, fonte ou notas..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+              <Input placeholder="Pesquisar por cliente, fonte ou notas..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9" />
             </div>
             <Select value={sourceFilter} onValueChange={setSourceFilter}>
               <SelectTrigger className="w-full sm:w-[180px]">
@@ -188,9 +182,7 @@ export default function Leads() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as fontes</SelectItem>
-                {sources.map(source => (
-                  <SelectItem key={source} value={source!}>{source}</SelectItem>
-                ))}
+                {sources.map(source => <SelectItem key={source} value={source!}>{source}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
@@ -205,8 +197,7 @@ export default function Leads() {
           </div>
 
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-5">
-        {(Object.keys(statusConfig) as Array<keyof typeof statusConfig>).map((status) => (
-          <Card key={status} className="p-4">
+        {(Object.keys(statusConfig) as Array<keyof typeof statusConfig>).map(status => <Card key={status} className="p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-foreground">{statusConfig[status].label}</h3>
               <Badge variant={statusConfig[status].variant}>
@@ -214,71 +205,42 @@ export default function Leads() {
               </Badge>
             </div>
             <div className="space-y-3">
-              {leadsByStatus[status].map((lead) => (
-                <Card key={lead.id} className="p-3 bg-muted/50 hover:bg-muted transition-colors">
+              {leadsByStatus[status].map(lead => <Card key={lead.id} className="p-3 bg-muted/50 hover:bg-muted transition-colors">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm text-foreground truncate">
                         {lead.clients?.name || 'Sem cliente'}
                       </h4>
-                      {lead.source && (
-                        <p className="text-xs text-muted-foreground mt-1">
+                      {lead.source && <p className="text-xs text-muted-foreground mt-1">
                           via {lead.source}
-                        </p>
-                      )}
-                      {lead.probability && (
-                        <p className="text-xs text-muted-foreground mt-1">
+                        </p>}
+                      {lead.probability && <p className="text-xs text-muted-foreground mt-1">
                           Probabilidade: {lead.probability}%
-                        </p>
-                      )}
-                      {lead.notes && (
-                        <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                        </p>}
+                      {lead.notes && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
                           {lead.notes}
-                        </p>
-                      )}
+                        </p>}
                       <p className="text-xs text-muted-foreground mt-2">
                         {new Date(lead.created_at).toLocaleDateString('pt-PT')}
                       </p>
-                      {status === 'proposal_sent' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-2 w-full"
-                          onClick={() => handleConvert(lead)}
-                        >
+                      {status === 'proposal_sent' && <Button variant="outline" size="sm" className="mt-2 w-full" onClick={() => handleConvert(lead)}>
                           <UserCheck className="h-3 w-3 mr-1" />
                           Converter
-                        </Button>
-                      )}
+                        </Button>}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(lead)}
-                      className="h-8 w-8 p-0"
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(lead)} className="h-8 w-8 p-0">
                       <Edit className="h-3 w-3" />
                     </Button>
                   </div>
-                </Card>
-              ))}
-              {leadsByStatus[status].length === 0 && (
-                <p className="text-xs text-muted-foreground text-center py-4">
+                </Card>)}
+              {leadsByStatus[status].length === 0 && <p className="text-xs text-muted-foreground text-center py-4">
                   Nenhum lead
-                </p>
-              )}
+                </p>}
             </div>
-          </Card>
-        ))}
+          </Card>)}
       </div>
-        </>
-      )}
+        </>}
 
-      <LeadConversionDialog
-        lead={selectedLead || null}
-        open={conversionDialogOpen}
-        onOpenChange={setConversionDialogOpen}
-      />
-    </div>
-  );
+      <LeadConversionDialog lead={selectedLead || null} open={conversionDialogOpen} onOpenChange={setConversionDialogOpen} />
+    </div>;
 }
