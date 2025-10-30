@@ -231,7 +231,7 @@ export default function Leads() {
                     </Button>
                   </div>
                 </Card>)}
-              {leadsByStatus[status].length === 0 && <p className="text-xs text-muted-foreground text-center py-4">Nenhum Pontencias Clientes</p>}
+              {leadsByStatus[status].length === 0 && <p className="text-xs text-muted-foreground text-center py-4">Nenhum Pontencial Clientes</p>}
             </div>
           </Card>)}
       </div>
