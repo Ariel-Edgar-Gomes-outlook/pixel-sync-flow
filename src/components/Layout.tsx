@@ -31,7 +31,7 @@ const navigation = [
   { name: "Clientes", href: "/clients", icon: Users },
   { name: "Trabalhos", href: "/jobs", icon: Briefcase },
   { name: "Agenda", href: "/calendar", icon: Calendar },
-  { name: "Prospectos", href: "/leads", icon: UserPlus },
+  { name: "Potenciais Clientes", href: "/leads", icon: UserPlus },
   { name: "Orçamentos", href: "/quotes", icon: FileText },
   { name: "Faturas", href: "/invoices", icon: FileText },
   { name: "Contratos", href: "/contracts", icon: FileText },
