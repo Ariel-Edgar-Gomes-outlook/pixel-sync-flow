@@ -100,9 +100,7 @@ export default function Leads() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Funil de Pontencias Clientes</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Gerencie oportunidades e acompanhe leads desde o primeiro contacto até conversão
-          </p>
+          <p className="text-sm sm:text-base text-muted-foreground">Gerencie oportunidades e acompanhe Pontencias Clientes desde o primeiro contacto até conversão</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2" onClick={handleExport}>
