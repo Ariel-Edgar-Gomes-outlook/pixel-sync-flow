@@ -141,10 +141,19 @@ export function GoogleCalendarIntegration({ userId }: GoogleCalendarIntegrationP
           <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
             <div className="flex items-center gap-2 text-sm text-green-600 mb-2">
               <Check className="h-4 w-4" />
-              <span className="font-medium">Google Calendar conectado</span>
+              <span className="font-medium">Google Calendar conectado com sucesso!</span>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mb-1">
               Seus jobs serão automaticamente sincronizados com o Google Calendar
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Conectado em: {new Date(integration.created_at).toLocaleString('pt-PT', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
             </p>
           </div>
 
