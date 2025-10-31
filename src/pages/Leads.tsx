@@ -221,7 +221,7 @@ export default function Leads() {
                       <p className="text-xs text-muted-foreground mt-2">
                         {new Date(lead.created_at).toLocaleDateString('pt-PT')}
                       </p>
-                      {status === 'proposal_sent' && <Button variant="outline" size="sm" onClick={() => handleConvert(lead)} className="mt-2 w-full mx-0 px-[16px]">
+                      {status === 'proposal_sent' && <Button variant="outline" size="sm" onClick={() => handleConvert(lead)} className="mt-2 w-full mx-0 px-[49px] my-[9px]">
                           <UserCheck className="h-3 w-3 mr-1" />
                           Converter
                         </Button>}
