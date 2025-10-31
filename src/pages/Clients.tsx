@@ -157,7 +157,7 @@ export default function Clients() {
                 <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="font-medium mb-1">Nenhum cliente encontrado</p>
                 <p className="text-sm">Tente ajustar os termos de pesquisa</p>
-              </div> : filteredClients.map(client => <div key={client.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-border my-0 mx-0 py-[10px] px-[16px]">
+              </div> : filteredClients.map(client => <div key={client.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-border my-0 mx-0 px-[16px] py-[7px]">
                 <div className="flex-1">
                   <div className="flex items-start sm:items-center gap-3">
                     <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm sm:text-base shrink-0">
