@@ -85,14 +85,14 @@ serve(async (req) => {
           throw insertError;
         }
 
-        // Redirect back to settings page with success message
+        // Redirect back to home page with success message
         const appUrl = Deno.env.get('APP_URL') || 'https://a0c0e2de-e5bb-43a1-bbf9-26ccae7a8f31.lovableproject.com';
-        return Response.redirect(`${appUrl}/settings?tab=integrations&connected=true`, 302);
+        return Response.redirect(`${appUrl}/?connected=true`, 302);
         
       } catch (error) {
         console.error('OAuth callback error:', error);
         const appUrl = Deno.env.get('APP_URL') || 'https://a0c0e2de-e5bb-43a1-bbf9-26ccae7a8f31.lovableproject.com';
-        return Response.redirect(`${appUrl}/settings?tab=integrations&error=connection_failed`, 302);
+        return Response.redirect(`${appUrl}/?error=connection_failed`, 302);
       }
     }
 

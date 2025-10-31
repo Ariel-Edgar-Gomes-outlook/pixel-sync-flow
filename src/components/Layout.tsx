@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Outlet, Link, useLocation, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import { 
   LayoutDashboard, 
   Users, 
@@ -46,10 +47,27 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const { signOut, user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   // Enable notification automation and payment reminders
   useNotificationAutomation();
   usePaymentReminders();
+
+  // Handle Google Calendar OAuth callback
+  useEffect(() => {
+    const connected = searchParams.get('connected');
+    const error = searchParams.get('error');
+    
+    if (connected === 'true') {
+      toast.success('Google Calendar conectado com sucesso!');
+      searchParams.delete('connected');
+      setSearchParams(searchParams, { replace: true });
+    } else if (error === 'connection_failed') {
+      toast.error('Erro ao conectar ao Google Calendar. Tente novamente.');
+      searchParams.delete('error');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   return (
     <div className="min-h-screen bg-background">
