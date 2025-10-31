@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { Calendar, Check, ExternalLink, Loader2, RefreshCw } from "lucide-react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 
 interface GoogleCalendarIntegrationProps {
   userId: string;
@@ -14,6 +15,28 @@ interface GoogleCalendarIntegrationProps {
 export function GoogleCalendarIntegration({ userId }: GoogleCalendarIntegrationProps) {
   const [isConnecting, setIsConnecting] = useState(false);
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Check for OAuth callback success/error
+  useEffect(() => {
+    const connected = searchParams.get('connected');
+    const error = searchParams.get('error');
+    
+    if (connected === 'true') {
+      toast.success('Google Calendar conectado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['calendar_integration'] });
+      // Remove the query params from URL
+      searchParams.delete('connected');
+      searchParams.delete('tab');
+      setSearchParams(searchParams, { replace: true });
+    } else if (error === 'connection_failed') {
+      toast.error('Erro ao conectar ao Google Calendar. Tente novamente.');
+      // Remove the query params from URL
+      searchParams.delete('error');
+      searchParams.delete('tab');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, queryClient]);
 
   // Check if user has Google Calendar connected
   const { data: integration, isLoading } = useQuery({

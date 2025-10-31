@@ -23,6 +23,80 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    const url = new URL(req.url);
+    
+    // Handle OAuth callback from Google (GET request with code parameter)
+    if (req.method === 'GET' && url.searchParams.has('code')) {
+      const code = url.searchParams.get('code');
+      const state = url.searchParams.get('state'); // This is the user_id
+      
+      if (!code || !state) {
+        return new Response('Invalid OAuth callback', { status: 400 });
+      }
+
+      const userId = state;
+      
+      try {
+        const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
+        const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
+        const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-sync`;
+
+        if (!clientId || !clientSecret) {
+          throw new Error('Credenciais do Google não configuradas');
+        }
+
+        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            code,
+            client_id: clientId,
+            client_secret: clientSecret,
+            redirect_uri: redirectUri,
+            grant_type: 'authorization_code',
+          }),
+        });
+
+        const tokens = await tokenResponse.json();
+        
+        if (!tokens.access_token) {
+          throw new Error('Falha ao obter tokens do Google');
+        }
+
+        // Save tokens to calendar_integrations table
+        const expiresAt = new Date();
+        expiresAt.setSeconds(expiresAt.getSeconds() + tokens.expires_in);
+
+        const { error: insertError } = await supabase
+          .from('calendar_integrations')
+          .upsert({
+            user_id: userId,
+            provider: 'google',
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
+            token_expires_at: expiresAt.toISOString(),
+            is_active: true,
+          }, {
+            onConflict: 'user_id,provider'
+          });
+
+        if (insertError) {
+          console.error('Error saving integration:', insertError);
+          throw insertError;
+        }
+
+        // Redirect back to settings page with success message
+        const appUrl = Deno.env.get('APP_URL') || 'https://a0c0e2de-e5bb-43a1-bbf9-26ccae7a8f31.lovableproject.com';
+        return Response.redirect(`${appUrl}/settings?tab=integrations&connected=true`, 302);
+        
+      } catch (error) {
+        console.error('OAuth callback error:', error);
+        const appUrl = Deno.env.get('APP_URL') || 'https://a0c0e2de-e5bb-43a1-bbf9-26ccae7a8f31.lovableproject.com';
+        return Response.redirect(`${appUrl}/settings?tab=integrations&error=connection_failed`, 302);
+      }
+    }
+
+    // For all other requests, require authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       throw new Error('Autorização necessária');
@@ -41,80 +115,27 @@ serve(async (req) => {
 
     switch (action) {
       case 'connect': {
-        if (!code) {
-          // Step 1: Generate OAuth URL
-          const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
-          const redirectUri = Deno.env.get('GOOGLE_REDIRECT_URI') || `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-sync`;
-          
-          if (!clientId) {
-            throw new Error('GOOGLE_CLIENT_ID não configurado');
-          }
-
-          const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-            `client_id=${clientId}&` +
-            `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-            `response_type=code&` +
-            `scope=${encodeURIComponent('https://www.googleapis.com/auth/calendar.events')}&` +
-            `access_type=offline&` +
-            `prompt=consent&` +
-            `state=${user.id}`;
-
-          return new Response(
-            JSON.stringify({ authUrl }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        } else {
-          // Step 2: Exchange code for tokens
-          const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
-          const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
-          const redirectUri = Deno.env.get('GOOGLE_REDIRECT_URI') || `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-sync`;
-
-          if (!clientId || !clientSecret) {
-            throw new Error('Credenciais do Google não configuradas');
-          }
-
-          const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-              code,
-              client_id: clientId,
-              client_secret: clientSecret,
-              redirect_uri: redirectUri,
-              grant_type: 'authorization_code',
-            }),
-          });
-
-          const tokens = await tokenResponse.json();
-          
-          if (!tokens.access_token) {
-            throw new Error('Falha ao obter tokens do Google');
-          }
-
-          // Save tokens to calendar_integrations table
-          const expiresAt = new Date();
-          expiresAt.setSeconds(expiresAt.getSeconds() + tokens.expires_in);
-
-          const { error: insertError } = await supabase
-            .from('calendar_integrations')
-            .upsert({
-              user_id: user.id,
-              provider: 'google',
-              access_token: tokens.access_token,
-              refresh_token: tokens.refresh_token,
-              token_expires_at: expiresAt.toISOString(),
-              is_active: true,
-            }, {
-              onConflict: 'user_id,provider'
-            });
-
-          if (insertError) throw insertError;
-
-          return new Response(
-            JSON.stringify({ success: true, message: 'Conectado com sucesso!' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+        // Generate OAuth URL
+        const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
+        const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-sync`;
+        
+        if (!clientId) {
+          throw new Error('GOOGLE_CLIENT_ID não configurado');
         }
+
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+          `client_id=${clientId}&` +
+          `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+          `response_type=code&` +
+          `scope=${encodeURIComponent('https://www.googleapis.com/auth/calendar.events')}&` +
+          `access_type=offline&` +
+          `prompt=consent&` +
+          `state=${user.id}`;
+
+        return new Response(
+          JSON.stringify({ authUrl }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       case 'disconnect': {

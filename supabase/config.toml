@@ -1,7 +1,7 @@
 project_id = "vcrsuvzsqivcamzlvluz"
 
 [functions.google-calendar-sync]
-verify_jwt = true
+verify_jwt = false
 
 [functions.send-deliverable-notification]
 verify_jwt = true
