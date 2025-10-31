@@ -203,7 +203,7 @@ export default function Leads() {
               </Badge>
             </div>
             <div className="space-y-3">
-              {leadsByStatus[status].map(lead => <Card key={lead.id} className="p-3 bg-muted/50 hover:bg-muted transition-colors">
+              {leadsByStatus[status].map(lead => <Card key={lead.id} className="p-3 bg-muted/50 hover:bg-muted transition-colors px-[4px]">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm text-foreground truncate">
