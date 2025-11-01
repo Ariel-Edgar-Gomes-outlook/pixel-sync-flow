@@ -265,7 +265,7 @@ export default function Settings() {
                 <SelectTrigger id="currency">
                   <SelectValue placeholder="Selecione a moeda" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover">
                   <SelectItem value="AOA">AOA - Kwanza Angolano (Kz)</SelectItem>
                   <SelectItem value="USD">USD - Dólar Americano ($)</SelectItem>
                   <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
@@ -284,7 +284,7 @@ export default function Settings() {
                 <SelectTrigger id="timezone">
                   <SelectValue placeholder="Selecione o fuso horário" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover">
                   <SelectItem value="Africa/Luanda">Africa/Luanda (WAT +01:00)</SelectItem>
                   <SelectItem value="Europe/Lisbon">Europe/Lisbon (WET +00:00)</SelectItem>
                   <SelectItem value="Europe/London">Europe/London (GMT +00:00)</SelectItem>
@@ -311,7 +311,7 @@ export default function Settings() {
                 <SelectTrigger id="language">
                   <SelectValue placeholder="Selecione o idioma" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover">
                   <SelectItem value="pt-PT">Português (Portugal)</SelectItem>
                   <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
                   <SelectItem value="en-US">English (US)</SelectItem>

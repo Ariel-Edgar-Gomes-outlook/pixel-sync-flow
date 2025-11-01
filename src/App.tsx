@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
@@ -30,40 +31,42 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Onboarding />
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            {/* Public Routes */}
-            <Route path="/gallery/:token" element={<ClientGallery />} />
-            <Route path="/contract/sign/:token" element={<ContractSign />} />
-            <Route path="/quote/review/:quoteId" element={<QuoteReview />} />
-            
-            {/* Protected Routes */}
-            <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<Dashboard />} />
-              <Route path="clients" element={<Clients />} />
-              <Route path="jobs" element={<Jobs />} />
-              <Route path="calendar" element={<CalendarView />} />
-              <Route path="leads" element={<Leads />} />
-              <Route path="quotes" element={<Quotes />} />
-              <Route path="invoices" element={<Invoices />} />
-              <Route path="payments" element={<Payments />} />
-              <Route path="resources" element={<Resources />} />
-              <Route path="contracts" element={<Contracts />} />
-              <Route path="reports" element={<Reports />} />
-              <Route path="templates" element={<Templates />} />
-              <Route path="settings" element={<Settings />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Onboarding />
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              {/* Public Routes */}
+              <Route path="/gallery/:token" element={<ClientGallery />} />
+              <Route path="/contract/sign/:token" element={<ContractSign />} />
+              <Route path="/quote/review/:quoteId" element={<QuoteReview />} />
+              
+              {/* Protected Routes */}
+              <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                <Route index element={<Dashboard />} />
+                <Route path="clients" element={<Clients />} />
+                <Route path="jobs" element={<Jobs />} />
+                <Route path="calendar" element={<CalendarView />} />
+                <Route path="leads" element={<Leads />} />
+                <Route path="quotes" element={<Quotes />} />
+                <Route path="invoices" element={<Invoices />} />
+                <Route path="payments" element={<Payments />} />
+                <Route path="resources" element={<Resources />} />
+                <Route path="contracts" element={<Contracts />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="templates" element={<Templates />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
