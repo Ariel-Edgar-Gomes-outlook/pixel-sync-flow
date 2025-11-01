@@ -87,6 +87,7 @@ export default function Settings() {
         userId: user.id,
         [key]: value,
       });
+      toast.success("Preferência atualizada com sucesso!");
     } catch (error) {
       toast.error("Erro ao atualizar preferências");
       console.error(error);
@@ -245,7 +246,10 @@ export default function Settings() {
                 )}
                 <Switch
                   checked={theme === 'dark'}
-                  onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                  onCheckedChange={(checked) => {
+                    setTheme(checked ? 'dark' : 'light');
+                    toast.success(`Tema ${checked ? 'escuro' : 'claro'} ativado`);
+                  }}
                 />
               </div>
             </div>
