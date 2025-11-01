@@ -10,6 +10,8 @@ export interface Profile {
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
+  subscription_start_date: string | null;
+  subscription_end_date: string | null;
 }
 
 export function useProfile(userId: string | undefined) {

@@ -9,6 +9,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { useNotificationAutomation } from "@/hooks/useNotificationAutomation";
 import { usePaymentReminders } from "@/hooks/usePaymentReminders";
+import { SubscriptionBanner, SubscriptionWarning } from "@/components/SubscriptionBanner";
 const navigation = [{
   name: "Dashboard",
   href: "/",
@@ -171,6 +172,8 @@ export default function Layout() {
           <NotificationBell />
         </header>
         <main className="p-3 sm:p-4 lg:p-6">
+          <SubscriptionBanner />
+          <SubscriptionWarning />
           <Outlet />
         </main>
       </div>

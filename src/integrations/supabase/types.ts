@@ -1158,6 +1158,8 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          subscription_end_date: string | null
+          subscription_start_date: string | null
           type: string | null
           updated_at: string
           user_id: string
@@ -1169,6 +1171,8 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
+          subscription_end_date?: string | null
+          subscription_start_date?: string | null
           type?: string | null
           updated_at?: string
           user_id: string
@@ -1180,6 +1184,8 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          subscription_end_date?: string | null
+          subscription_start_date?: string | null
           type?: string | null
           updated_at?: string
           user_id?: string
@@ -1481,6 +1487,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      user_has_active_subscription: {
+        Args: { user_id: string }
         Returns: boolean
       }
     }
