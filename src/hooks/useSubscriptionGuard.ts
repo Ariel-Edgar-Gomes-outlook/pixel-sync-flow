@@ -5,7 +5,7 @@ export function useSubscriptionGuard() {
   const { data: subscription } = useSubscription();
 
   const checkAccess = (action: string = 'realizar esta ação'): boolean => {
-    if (subscription?.isReadOnly) {
+    if (subscription?.isExpired) {
       toast.error('Período de teste expirado', {
         description: `Você não pode ${action} no modo de visualização. Entre em contato para renovar.`,
       });
@@ -19,7 +19,7 @@ export function useSubscriptionGuard() {
     canUpdate: () => checkAccess('editar registros'),
     canDelete: () => checkAccess('excluir registros'),
     checkAccess,
-    isReadOnly: subscription?.isReadOnly ?? false,
+    isReadOnly: subscription?.isExpired ?? false,
     subscription,
   };
 }

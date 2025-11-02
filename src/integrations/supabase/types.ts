@@ -1490,7 +1490,7 @@ export type Database = {
         Returns: boolean
       }
       user_has_active_subscription: {
-        Args: { user_id: string }
+        Args: { p_user_id: string }
         Returns: boolean
       }
     }

@@ -4,10 +4,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export interface SubscriptionStatus {
   isActive: boolean;
-  startDate: string | null;
-  endDate: string | null;
+  isExpired: boolean;
+  subscriptionStartDate: string | null;
+  subscriptionEndDate: string | null;
   daysRemaining: number;
-  isReadOnly: boolean;
 }
 
 export function useSubscription() {
@@ -19,10 +19,10 @@ export function useSubscription() {
       if (!user?.id) {
         return {
           isActive: false,
-          startDate: null,
-          endDate: null,
+          isExpired: true,
+          subscriptionStartDate: null,
+          subscriptionEndDate: null,
           daysRemaining: 0,
-          isReadOnly: true,
         };
       }
 
@@ -30,37 +30,38 @@ export function useSubscription() {
         .from('profiles')
         .select('subscription_start_date, subscription_end_date')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error || !profile) {
+      if (error) throw error;
+
+      if (!profile?.subscription_end_date) {
+        // Sem data de fim = acesso completo
         return {
-          isActive: false,
-          startDate: null,
-          endDate: null,
-          daysRemaining: 0,
-          isReadOnly: true,
+          isActive: true,
+          isExpired: false,
+          subscriptionStartDate: profile?.subscription_start_date || null,
+          subscriptionEndDate: null,
+          daysRemaining: -1, // -1 indica acesso ilimitado
         };
       }
 
       const now = new Date();
-      const endDate = profile.subscription_end_date ? new Date(profile.subscription_end_date) : null;
-      const isActive = endDate ? now <= endDate : false;
-      
-      let daysRemaining = 0;
-      if (endDate && isActive) {
-        const diff = endDate.getTime() - now.getTime();
-        daysRemaining = Math.ceil(diff / (1000 * 60 * 60 * 24));
-      }
+      const endDate = new Date(profile.subscription_end_date);
+      const isActive = now <= endDate;
+      const daysRemaining = Math.max(
+        0,
+        Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      );
 
       return {
         isActive,
-        startDate: profile.subscription_start_date,
-        endDate: profile.subscription_end_date,
+        isExpired: !isActive,
+        subscriptionStartDate: profile.subscription_start_date,
+        subscriptionEndDate: profile.subscription_end_date,
         daysRemaining,
-        isReadOnly: !isActive,
       };
     },
     enabled: !!user?.id,
-    refetchInterval: 60000, // Atualiza a cada minuto
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
 }

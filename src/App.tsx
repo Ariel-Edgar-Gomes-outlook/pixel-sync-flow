@@ -5,9 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "./contexts/AuthContext";
+import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import { Onboarding } from "./components/Onboarding";
+import { SubscriptionBanner } from "./components/SubscriptionBanner";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import Jobs from "./pages/Jobs";
@@ -37,8 +39,10 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <Onboarding />
-            <Routes>
+            <SubscriptionProvider>
+              <SubscriptionBanner />
+              <Onboarding />
+              <Routes>
               <Route path="/auth" element={<Auth />} />
               {/* Public Routes */}
               <Route path="/gallery/:token" element={<ClientGallery />} />
@@ -63,6 +67,7 @@ const App = () => (
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </SubscriptionProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
