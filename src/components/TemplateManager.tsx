@@ -31,6 +31,11 @@ export function TemplateManager({ type }: TemplateManagerProps) {
     items: [],
     terms_text: '',
     cancellation_fee: 0,
+    tax: 14,
+    discount: 0,
+    currency: 'AOA',
+    notes: '',
+    estimated_time: null,
     clauses: {
       usage_rights_text: '',
       cancellation_policy_text: '',
@@ -123,6 +128,11 @@ export function TemplateManager({ type }: TemplateManagerProps) {
       items: [],
       terms_text: '',
       cancellation_fee: 0,
+      tax: 14,
+      discount: 0,
+      currency: 'AOA',
+      notes: '',
+      estimated_time: null,
       clauses: {
         usage_rights_text: '',
         cancellation_policy_text: '',
@@ -180,6 +190,76 @@ export function TemplateManager({ type }: TemplateManagerProps) {
                   </SelectContent>
                 </Select>
               </div>
+
+              {type === 'quote' && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tax">IVA (%)</Label>
+                    <Input
+                      id="tax"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={formData.tax}
+                      onChange={(e) => setFormData({ ...formData, tax: parseFloat(e.target.value) || 0 })}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="discount">Desconto (%)</Label>
+                    <Input
+                      id="discount"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={formData.discount}
+                      onChange={(e) => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Moeda</Label>
+                    <Select value={formData.currency} onValueChange={(value) => setFormData({ ...formData, currency: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AOA">Kwanza (AOA)</SelectItem>
+                        <SelectItem value="USD">Dólar (USD)</SelectItem>
+                        <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notas/Observações</Label>
+                    <Textarea
+                      id="notes"
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      placeholder="Observações gerais do orçamento..."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {type === 'checklist' && (
+                <div className="space-y-2">
+                  <Label htmlFor="estimated_time">Tempo Estimado (minutos)</Label>
+                  <Input
+                    id="estimated_time"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={formData.estimated_time || ''}
+                    onChange={(e) => setFormData({ ...formData, estimated_time: parseInt(e.target.value) || null })}
+                    placeholder="Ex: 120"
+                  />
+                </div>
+              )}
 
               {type === 'contract' && (
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
