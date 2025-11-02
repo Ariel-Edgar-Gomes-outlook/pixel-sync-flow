@@ -58,6 +58,7 @@ export function useUnreadNotificationsCount() {
 
 export function useMarkNotificationAsRead() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (notificationId: string) => {
@@ -68,7 +69,43 @@ export function useMarkNotificationAsRead() {
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onMutate: async (notificationId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['notifications'] });
+
+      // Snapshot the previous value
+      const previousNotifications = queryClient.getQueryData(['notifications', user?.id]);
+      const previousUnreadCount = queryClient.getQueryData(['notifications', 'unread', user?.id]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(['notifications', user?.id], (old: any) => {
+        if (!old) return old;
+        return old.map((n: any) => 
+          n.id === notificationId ? { ...n, read: true } : n
+        );
+      });
+
+      queryClient.setQueryData(['notifications', 'unread', user?.id], (old: any) => {
+        if (typeof old === 'number' && old > 0) {
+          return old - 1;
+        }
+        return old;
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousNotifications, previousUnreadCount };
+    },
+    onError: (err, notificationId, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousNotifications) {
+        queryClient.setQueryData(['notifications', user?.id], context.previousNotifications);
+      }
+      if (context?.previousUnreadCount !== undefined) {
+        queryClient.setQueryData(['notifications', 'unread', user?.id], context.previousUnreadCount);
+      }
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we're in sync
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
@@ -90,7 +127,36 @@ export function useMarkAllNotificationsAsRead() {
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['notifications'] });
+
+      // Snapshot the previous values
+      const previousNotifications = queryClient.getQueryData(['notifications', user?.id]);
+      const previousUnreadCount = queryClient.getQueryData(['notifications', 'unread', user?.id]);
+
+      // Optimistically update all notifications to read
+      queryClient.setQueryData(['notifications', user?.id], (old: any) => {
+        if (!old) return old;
+        return old.map((n: any) => ({ ...n, read: true }));
+      });
+
+      // Set unread count to 0
+      queryClient.setQueryData(['notifications', 'unread', user?.id], 0);
+
+      return { previousNotifications, previousUnreadCount };
+    },
+    onError: (err, variables, context) => {
+      // Roll back on error
+      if (context?.previousNotifications) {
+        queryClient.setQueryData(['notifications', user?.id], context.previousNotifications);
+      }
+      if (context?.previousUnreadCount !== undefined) {
+        queryClient.setQueryData(['notifications', 'unread', user?.id], context.previousUnreadCount);
+      }
+    },
+    onSettled: () => {
+      // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });

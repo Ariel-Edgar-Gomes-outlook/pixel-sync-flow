@@ -86,24 +86,25 @@ export function SmartNotificationPanel() {
   }
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Bell className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">Notificações</h2>
+    <Card className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground">Notificações</h2>
           {unreadCount && unreadCount > 0 && (
-            <Badge variant="destructive" className="rounded-full">
+            <Badge variant="destructive" className="rounded-full h-5 w-5 flex items-center justify-center p-0 text-xs">
               {unreadCount}
             </Badge>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border border-border p-1">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex rounded-lg border border-border p-1 flex-1 sm:flex-initial">
             <Button
               variant={filter === "all" ? "default" : "ghost"}
               size="sm"
               onClick={() => setFilter("all")}
+              className="flex-1 sm:flex-initial text-xs sm:text-sm"
             >
               Todas
             </Button>
@@ -111,6 +112,7 @@ export function SmartNotificationPanel() {
               variant={filter === "unread" ? "default" : "ghost"}
               size="sm"
               onClick={() => setFilter("unread")}
+              className="flex-1 sm:flex-initial text-xs sm:text-sm"
             >
               Não lidas
             </Button>
@@ -122,16 +124,17 @@ export function SmartNotificationPanel() {
               size="sm"
               onClick={handleMarkAllAsRead}
               disabled={markAllAsRead.isPending}
+              className="text-xs sm:text-sm shrink-0"
             >
-              <CheckCheck className="h-4 w-4 mr-2" />
-              Marcar lidas
+              <CheckCheck className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Marcar lidas</span>
             </Button>
           )}
         </div>
       </div>
 
-      <ScrollArea className="h-[400px] pr-4">
-        <div className="space-y-3">
+      <ScrollArea className="h-[300px] sm:h-[400px] pr-2 sm:pr-4">
+        <div className="space-y-2 sm:space-y-3">
           {filteredNotifications.length > 0 ? (
             filteredNotifications.map((notification) => {
               const Icon = notificationIcons[notification.type as keyof typeof notificationIcons] || notificationIcons.default;
@@ -142,39 +145,39 @@ export function SmartNotificationPanel() {
               return (
                 <Card
                   key={notification.id}
-                  className={`p-4 transition-all hover:shadow-md ${
+                  className={`p-3 sm:p-4 transition-all hover:shadow-md ${
                     notification.read ? "bg-muted/20" : "bg-primary/5 border-primary/20"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className={`p-2 rounded-lg bg-muted/50 ${iconColor}`}>
-                        <Icon className="h-5 w-5" />
+                  <div className="flex items-start justify-between gap-2 sm:gap-3">
+                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                      <div className={`p-1.5 sm:p-2 rounded-lg bg-muted/50 ${iconColor} shrink-0`}>
+                        <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-foreground text-sm">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h3 className="font-semibold text-foreground text-xs sm:text-sm">
                             {title}
                           </h3>
                           {!notification.read && (
-                            <Badge variant="default" className="h-5 px-2 text-xs">
+                            <Badge variant="default" className="h-4 sm:h-5 px-1.5 sm:px-2 text-[10px] sm:text-xs">
                               Nova
                             </Badge>
                           )}
                         </div>
 
-                        <p className="text-sm text-muted-foreground mb-2">
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2 break-words">
                           {payload?.message || payload?.title || "Sem mensagem"}
                         </p>
 
                         {payload?.entity_name && (
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span className="font-medium">{payload.entity_name}</span>
+                          <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground mb-1">
+                            <span className="font-medium truncate">{payload.entity_name}</span>
                           </div>
                         )}
 
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                        <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground mt-1 sm:mt-2">
                           <span>
                             {formatDistanceToNow(new Date(notification.created_at), {
                               addSuffix: true,
@@ -192,8 +195,9 @@ export function SmartNotificationPanel() {
                         onClick={() => handleMarkAsRead(notification.id)}
                         disabled={markAsRead.isPending}
                         title="Marcar como lida"
+                        className="shrink-0 h-8 w-8 sm:h-9 sm:w-9 p-0"
                       >
-                        <Check className="h-4 w-4" />
+                        <Check className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                     )}
                   </div>
@@ -201,12 +205,12 @@ export function SmartNotificationPanel() {
               );
             })
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="font-medium mb-1">
+            <div className="text-center py-8 sm:py-12 text-muted-foreground">
+              <Bell className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+              <p className="font-medium mb-1 text-sm sm:text-base">
                 {filter === "unread" ? "Nenhuma notificação não lida" : "Nenhuma notificação"}
               </p>
-              <p className="text-sm">
+              <p className="text-xs sm:text-sm px-4">
                 {filter === "unread"
                   ? "Você está em dia com todas as notificações"
                   : "Notificações aparecerão aqui quando houver atualizações"}
