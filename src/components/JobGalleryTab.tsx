@@ -49,7 +49,7 @@ export function JobGalleryTab({
       <div className="flex items-center justify-between mx-[5px]">
         <h3 className="text-lg font-semibold">Galerias de Cliente</h3>
         <GalleryDialog jobId={jobId} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <Button className="mx-[110px]">
+          <Button className="my-0 px-[9px] py-0 mx-[240px]">
             <Plus className="mr-2 h-4 w-4" />
             Nova Galeria
           </Button>
@@ -90,11 +90,7 @@ export function JobGalleryTab({
                   Ver Fotos
                 </Button>
                 
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => copyShareLink(gallery.share_token)}
-                >
+                <Button variant="outline" size="sm" onClick={() => copyShareLink(gallery.share_token)}>
                   <Copy className="h-4 w-4 mr-2" />
                   Copiar Link
                 </Button>
@@ -161,17 +157,13 @@ export function JobGalleryTab({
                       {link.access_instructions && <p className="text-sm text-muted-foreground">{link.access_instructions}</p>}
                     </div>
                     <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          navigator.clipboard.writeText(link.url);
-                          toast({
-                            title: "Link Copiado!",
-                            description: "O link foi copiado para a área de transferência"
-                          });
-                        }}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => {
+                navigator.clipboard.writeText(link.url);
+                toast({
+                  title: "Link Copiado!",
+                  description: "O link foi copiado para a área de transferência"
+                });
+              }}>
                         <Copy className="h-4 w-4" />
                       </Button>
                       <Button variant="outline" size="sm" asChild>
