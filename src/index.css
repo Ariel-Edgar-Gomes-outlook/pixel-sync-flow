@@ -143,8 +143,43 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html,
   body {
     @apply bg-background text-foreground antialiased;
+    overflow-x: hidden;
+    max-width: 100vw;
+    position: relative;
+  }
+
+  /* Prevent horizontal scroll on containers */
+  #root,
+  main,
+  .container,
+  section,
+  article {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* Prevent horizontal overflow on mobile */
+  @media (max-width: 768px) {
+    * {
+      overflow-x: hidden !important;
+    }
+    
+    img,
+    video,
+    iframe {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+    
+    table {
+      display: block;
+      overflow-x: auto;
+      overflow-y: hidden;
+      max-width: 100%;
+    }
   }
 
   /* Hide scrollbar but keep functionality */
