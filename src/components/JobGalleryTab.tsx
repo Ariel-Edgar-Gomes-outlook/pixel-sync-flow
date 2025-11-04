@@ -90,15 +90,10 @@ export function JobGalleryTab({
                   Ver Fotos
                 </Button>
                 
-                <Button variant="outline" size="sm" onClick={() => copyShareLink(gallery.share_token)}>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copiar Link
-                </Button>
+                
                 
                 <Button variant="outline" size="sm" asChild>
-                  <a href={`${window.location.origin}/gallery/${gallery.share_token}`} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
+                  
                 </Button>
               </div>
             </Card>)}
