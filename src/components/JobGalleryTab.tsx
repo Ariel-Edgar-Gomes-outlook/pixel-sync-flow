@@ -149,11 +149,26 @@ export function JobGalleryTab({
                         </p>}
                       {link.access_instructions && <p className="text-sm text-muted-foreground">{link.access_instructions}</p>}
                     </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={link.url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(link.url);
+                          toast({
+                            title: "Link Copiado!",
+                            description: "O link foi copiado para a área de transferência"
+                          });
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={link.url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    </div>
                   </div>
                 </Card>)}
             </div>}
