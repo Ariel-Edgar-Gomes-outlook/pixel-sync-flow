@@ -132,7 +132,7 @@ export function GalleryLinksManager({
             </div>
           </div>
 
-          <Button type="button" onClick={handleAddLink} disabled={!newLink.name?.trim() || !newLink.url?.trim()} className="w-full" variant="secondary">
+          <Button type="button" onClick={handleAddLink} disabled={!newLink.name?.trim() || !newLink.url?.trim()} variant="secondary" className="w-full bg-violet-600 hover:bg-violet-500">
             <Plus className="h-4 w-4 mr-2" />
             Adicionar Link à Galeria
           </Button>
