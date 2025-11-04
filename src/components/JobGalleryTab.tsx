@@ -49,7 +49,7 @@ export function JobGalleryTab({
       <div className="flex items-center justify-between mx-[5px]">
         <h3 className="text-lg font-semibold">Galerias de Cliente</h3>
         <GalleryDialog jobId={jobId} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <Button className="my-0 px-[9px] py-0 mx-[240px]">
+          <Button className="my-0 mx-0 px-[16px] py-[16px]">
             <Plus className="mr-2 h-4 w-4" />
             Nova Galeria
           </Button>
