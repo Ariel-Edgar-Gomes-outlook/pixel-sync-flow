@@ -112,10 +112,7 @@ export function JobGalleryTab({
                   Editar Links
                 </Button>
               </GalleryDialog>
-              <Button variant="outline" size="sm" onClick={() => copyShareLink(selectedGallery.share_token)}>
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar Link
-              </Button>
+              
               <Button variant="outline" size="sm" onClick={() => setSelectedGalleryId(null)}>
                 Fechar
               </Button>
