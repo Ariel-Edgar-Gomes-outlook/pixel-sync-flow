@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNotifications, useUnreadNotificationsCount, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from "@/hooks/useNotifications";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -221,109 +222,129 @@ export function NotificationBell() {
         {/* Notifications List */}
         <ScrollArea className="h-[420px]">
           {sortedNotifications && sortedNotifications.length > 0 ? (
-            <div className="p-2 space-y-1">
-              {sortedNotifications.map((notification) => {
-                const priority = (notification as any).priority || 'medium';
-                const showPriorityBadge = priority === 'urgent' || priority === 'high';
-                const hasAction = getNotificationRoute(notification) !== null;
-                
-                return (
-                  <Card
-                    key={notification.id}
-                    className={cn(
-                      "p-3 transition-all border cursor-pointer",
-                      notification.read 
-                        ? "bg-background hover:bg-accent/50" 
-                        : "bg-primary/5 border-primary/20 hover:bg-primary/10",
-                      hasAction && "hover:shadow-sm"
-                    )}
-                    onClick={() => handleNotificationClick(notification)}
-                  >
-                    <div className="flex items-start gap-3">
-                      {/* Unread indicator */}
-                      {!notification.read && (
-                        <div className="mt-1.5">
-                          <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                        </div>
+            <TooltipProvider>
+              <div className="divide-y divide-border">
+                {sortedNotifications.map((notification) => {
+                  const priority = (notification as any).priority || 'medium';
+                  const showPriorityBadge = priority === 'urgent' || priority === 'high';
+                  const hasAction = getNotificationRoute(notification) !== null;
+                  
+                  return (
+                    <div
+                      key={notification.id}
+                      className={cn(
+                        "p-4 transition-all hover:bg-accent/50 group relative",
+                        !notification.read && "bg-primary/5"
                       )}
-                      
-                      <div className="flex-1 min-w-0">
-                        {/* Title and badges */}
-                        <div className="flex items-start gap-2 mb-1">
-                          <p className="font-medium text-sm line-clamp-1 flex-1">
-                            {getNotificationTitle(notification)}
-                          </p>
-                          {!notification.read && (
-                            <Badge className="shrink-0 h-5 text-[10px]">Nova</Badge>
-                          )}
-                          {showPriorityBadge && (
-                            <Badge 
-                              variant="outline" 
-                              className={cn(
-                                "text-[10px] px-1.5 h-5 border-0 text-white shrink-0",
-                                priorityColors[priority]
-                              )}
-                            >
-                              {priorityLabels[priority]}
-                            </Badge>
+                    >
+                      <div className="flex gap-3">
+                        {/* Unread indicator dot */}
+                        <div className="flex-shrink-0 pt-1">
+                          {!notification.read ? (
+                            <div className="h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-primary/20" />
+                          ) : (
+                            <div className="h-2.5 w-2.5 rounded-full bg-muted" />
                           )}
                         </div>
                         
-                        {/* Message */}
-                        <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5">
-                          {getNotificationMessage(notification)}
-                        </p>
-                        
-                        {/* Time */}
-                        <div className="flex items-center justify-between">
-                          <p className="text-[11px] text-muted-foreground">
-                            {formatDistanceToNow(new Date(notification.created_at), {
-                              addSuffix: true,
-                              locale: pt,
-                            })}
-                          </p>
-                          {hasAction && (
-                            <p className="text-[11px] text-primary font-medium">
-                              Ver detalhes →
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Mark as read button */}
-                      {!notification.read && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 shrink-0"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            try {
-                              await markAsRead.mutateAsync(notification.id);
-                            } catch (error) {
-                              console.error('Error marking as read:', error);
-                            }
-                          }}
+                        {/* Content */}
+                        <div 
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => handleNotificationClick(notification)}
                         >
-                          <Check className="h-4 w-4" />
-                        </Button>
-                      )}
+                          {/* Title and badges */}
+                          <div className="flex items-start gap-2 mb-1.5">
+                            <p className={cn(
+                              "text-sm line-clamp-1 flex-1",
+                              !notification.read ? "font-semibold text-foreground" : "font-medium text-muted-foreground"
+                            )}>
+                              {getNotificationTitle(notification)}
+                            </p>
+                            <div className="flex gap-1.5 shrink-0">
+                              {!notification.read && (
+                                <Badge className="h-5 px-2 text-[10px] font-semibold">Nova</Badge>
+                              )}
+                              {showPriorityBadge && (
+                                <Badge 
+                                  variant="outline" 
+                                  className={cn(
+                                    "text-[10px] px-2 h-5 border-0 text-white font-semibold",
+                                    priorityColors[priority]
+                                  )}
+                                >
+                                  {priorityLabels[priority]}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Message */}
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
+                            {getNotificationMessage(notification)}
+                          </p>
+                          
+                          {/* Footer */}
+                          <div className="flex items-center justify-between">
+                            <p className="text-[11px] text-muted-foreground font-medium">
+                              {formatDistanceToNow(new Date(notification.created_at), {
+                                addSuffix: true,
+                                locale: pt,
+                              })}
+                            </p>
+                            {hasAction && (
+                              <p className="text-[11px] text-primary font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                                Ver detalhes →
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Mark as read button - only for unread */}
+                        {!notification.read && (
+                          <div className="flex-shrink-0">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      await markAsRead.mutateAsync(notification.id);
+                                      toast.success("Marcada como lida");
+                                    } catch (error) {
+                                      console.error('Error marking as read:', error);
+                                      toast.error("Erro ao marcar");
+                                    }
+                                  }}
+                                >
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="left">
+                                <p className="text-xs">Marcar como lida</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </Card>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="p-8 text-center">
-              <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                <Bell className="h-6 w-6 text-muted-foreground" />
+                  );
+                })}
               </div>
-              <p className="text-sm font-medium mb-1">
+            </TooltipProvider>
+          ) : (
+            <div className="p-12 text-center">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
+                <Bell className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+              <p className="text-sm font-semibold mb-1.5 text-foreground">
                 {filter === "unread" ? "Nenhuma notificação não lida" : "Nenhuma notificação"}
               </p>
               <p className="text-xs text-muted-foreground">
                 {filter === "unread"
-                  ? "Você está em dia com tudo!"
+                  ? "Você está em dia com tudo! 🎉"
                   : "Notificações aparecerão aqui"}
               </p>
             </div>
