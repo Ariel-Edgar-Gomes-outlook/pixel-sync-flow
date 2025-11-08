@@ -9,6 +9,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { useNotificationAutomation } from "@/hooks/useNotificationAutomation";
 import { usePaymentReminders } from "@/hooks/usePaymentReminders";
+import { useWorkflowAutomation } from "@/hooks/useWorkflowAutomation";
 import { SubscriptionBanner, SubscriptionWarning } from "@/components/SubscriptionBanner";
 const navigation = [{
   name: "Dashboard",
@@ -72,9 +73,10 @@ export default function Layout() {
   } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Enable notification automation and payment reminders
+  // FASE 4: Centralize all automations in Layout (removed from Dashboard)
   useNotificationAutomation();
   usePaymentReminders();
+  useWorkflowAutomation();
 
   // Handle Google Calendar OAuth callback
   useEffect(() => {

@@ -954,6 +954,7 @@ export type Database = {
           delivered: boolean | null
           id: string
           payload: Json | null
+          priority: Database["public"]["Enums"]["notification_priority"] | null
           read: boolean | null
           recipient_id: string
           sent_at: string
@@ -964,6 +965,7 @@ export type Database = {
           delivered?: boolean | null
           id?: string
           payload?: Json | null
+          priority?: Database["public"]["Enums"]["notification_priority"] | null
           read?: boolean | null
           recipient_id: string
           sent_at?: string
@@ -974,6 +976,7 @@ export type Database = {
           delivered?: boolean | null
           id?: string
           payload?: Json | null
+          priority?: Database["public"]["Enums"]["notification_priority"] | null
           read?: boolean | null
           recipient_id?: string
           sent_at?: string
@@ -1505,6 +1508,20 @@ export type Database = {
         | "completed"
         | "cancelled"
       lead_status: "new" | "contacted" | "proposal_sent" | "won" | "lost"
+      notification_priority: "low" | "medium" | "high" | "urgent"
+      notification_type:
+        | "job_reminder"
+        | "job_completed"
+        | "lead_follow_up"
+        | "lead_new"
+        | "payment_reminder"
+        | "payment_overdue"
+        | "maintenance_reminder"
+        | "contract_signed"
+        | "contract_pending"
+        | "quote_sent"
+        | "invoice_overdue"
+        | "delivery_ready"
       payment_status: "pending" | "partial" | "paid" | "refunded"
       quote_status: "draft" | "sent" | "accepted" | "rejected"
     }
@@ -1645,6 +1662,21 @@ export const Constants = {
         "cancelled",
       ],
       lead_status: ["new", "contacted", "proposal_sent", "won", "lost"],
+      notification_priority: ["low", "medium", "high", "urgent"],
+      notification_type: [
+        "job_reminder",
+        "job_completed",
+        "lead_follow_up",
+        "lead_new",
+        "payment_reminder",
+        "payment_overdue",
+        "maintenance_reminder",
+        "contract_signed",
+        "contract_pending",
+        "quote_sent",
+        "invoice_overdue",
+        "delivery_ready",
+      ],
       payment_status: ["pending", "partial", "paid", "refunded"],
       quote_status: ["draft", "sent", "accepted", "rejected"],
     },
