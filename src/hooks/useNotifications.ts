@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
 
 export interface Notification {
   id: string;
@@ -16,34 +15,6 @@ export interface Notification {
 
 export function useNotifications() {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const channel = supabase
-      .channel('notifications-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `recipient_id=eq.${user.id}`
-        },
-        (payload) => {
-          // Invalidate queries when notifications change
-          queryClient.invalidateQueries({ queryKey: ['notifications', user.id] });
-          queryClient.invalidateQueries({ queryKey: ['notifications', 'unread', user.id] });
-          queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-list', user.id] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id, queryClient]);
 
   return useQuery({
     queryKey: ['notifications', user?.id],
@@ -66,33 +37,6 @@ export function useNotifications() {
 
 export function useUnreadNotifications() {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const channel = supabase
-      .channel('unread-notifications-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `recipient_id=eq.${user.id}`
-        },
-        (payload) => {
-          // Invalidate unread notifications query when notifications change
-          queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-list', user.id] });
-          queryClient.invalidateQueries({ queryKey: ['notifications', 'unread', user.id] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id, queryClient]);
 
   return useQuery({
     queryKey: ['notifications', 'unread-list', user?.id],
@@ -141,22 +85,35 @@ export function useMarkNotificationAsRead() {
 
   return useMutation({
     mutationFn: async (notificationId: string) => {
-      const { error } = await supabase
+      if (!user?.id) throw new Error('User not authenticated');
+
+      console.log('🔄 Marking notification as read:', notificationId);
+      
+      const { data, error } = await supabase
         .from('notifications')
         .update({ read: true })
-        .eq('id', notificationId);
+        .eq('id', notificationId)
+        .eq('recipient_id', user.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error marking notification as read:', error);
+        throw error;
+      }
+      
+      console.log('✅ Notification marked as read:', data);
+      return data;
     },
-    onMutate: async (notificationId) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['notifications'] });
+    onSuccess: (data, notificationId) => {
+      console.log('✅ Mutation success, invalidating queries');
+      
+      // Remove from unread list immediately
+      queryClient.setQueryData(['notifications', 'unread-list', user?.id], (old: any) => {
+        if (!old) return old;
+        return old.filter((n: any) => n.id !== notificationId);
+      });
 
-      // Snapshot the previous value
-      const previousNotifications = queryClient.getQueryData(['notifications', user?.id]);
-      const previousUnreadCount = queryClient.getQueryData(['notifications', 'unread', user?.id]);
-
-      // Optimistically update to the new value
+      // Update in all notifications list
       queryClient.setQueryData(['notifications', user?.id], (old: any) => {
         if (!old) return old;
         return old.map((n: any) => 
@@ -164,29 +121,22 @@ export function useMarkNotificationAsRead() {
         );
       });
 
+      // Update count
       queryClient.setQueryData(['notifications', 'unread', user?.id], (old: any) => {
         if (typeof old === 'number' && old > 0) {
           return old - 1;
         }
         return old;
       });
-
-      // Return a context object with the snapshotted value
-      return { previousNotifications, previousUnreadCount };
     },
-    onError: (err, notificationId, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.previousNotifications) {
-        queryClient.setQueryData(['notifications', user?.id], context.previousNotifications);
-      }
-      if (context?.previousUnreadCount !== undefined) {
-        queryClient.setQueryData(['notifications', 'unread', user?.id], context.previousUnreadCount);
-      }
+    onError: (error) => {
+      console.error('❌ Mutation error:', error);
     },
     onSettled: () => {
-      // Always refetch after error or success to ensure we're in sync
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-list'] });
+      // Refetch to ensure sync
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-list', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread', user?.id] });
     },
   });
 }
@@ -197,48 +147,48 @@ export function useMarkAllNotificationsAsRead() {
 
   return useMutation({
     mutationFn: async () => {
-      if (!user?.id) return;
+      if (!user?.id) throw new Error('User not authenticated');
 
-      const { error } = await supabase
+      console.log('🔄 Marking all notifications as read');
+
+      const { data, error } = await supabase
         .from('notifications')
         .update({ read: true })
         .eq('recipient_id', user.id)
-        .eq('read', false);
+        .eq('read', false)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error marking all notifications as read:', error);
+        throw error;
+      }
+
+      console.log('✅ All notifications marked as read:', data);
+      return data;
     },
-    onMutate: async () => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['notifications'] });
+    onSuccess: () => {
+      console.log('✅ Mark all mutation success');
+      
+      // Clear unread list
+      queryClient.setQueryData(['notifications', 'unread-list', user?.id], []);
 
-      // Snapshot the previous values
-      const previousNotifications = queryClient.getQueryData(['notifications', user?.id]);
-      const previousUnreadCount = queryClient.getQueryData(['notifications', 'unread', user?.id]);
-
-      // Optimistically update all notifications to read
+      // Update all notifications to read
       queryClient.setQueryData(['notifications', user?.id], (old: any) => {
         if (!old) return old;
         return old.map((n: any) => ({ ...n, read: true }));
       });
 
-      // Set unread count to 0
+      // Set count to 0
       queryClient.setQueryData(['notifications', 'unread', user?.id], 0);
-
-      return { previousNotifications, previousUnreadCount };
     },
-    onError: (err, variables, context) => {
-      // Roll back on error
-      if (context?.previousNotifications) {
-        queryClient.setQueryData(['notifications', user?.id], context.previousNotifications);
-      }
-      if (context?.previousUnreadCount !== undefined) {
-        queryClient.setQueryData(['notifications', 'unread', user?.id], context.previousUnreadCount);
-      }
+    onError: (error) => {
+      console.error('❌ Mark all mutation error:', error);
     },
     onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-list'] });
+      // Refetch to ensure sync
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-list', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread', user?.id] });
     },
   });
 }
