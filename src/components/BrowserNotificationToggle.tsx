@@ -1,11 +1,29 @@
-import { Bell, BellOff } from "lucide-react";
+import { Bell, BellOff, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
+import { testNotificationSound } from "@/lib/notificationSounds";
+import { useState } from "react";
 
 export function BrowserNotificationToggle() {
-  const { isSupported, permission, requestPermission } = useBrowserNotifications();
+  const [soundEnabled, setSoundEnabled] = useState(
+    localStorage.getItem('notificationSoundsEnabled') !== 'false'
+  );
+  const { isSupported, permission, requestPermission } = useBrowserNotifications(soundEnabled);
+
+  const handleSoundToggle = (enabled: boolean) => {
+    setSoundEnabled(enabled);
+    localStorage.setItem('notificationSoundsEnabled', String(enabled));
+    
+    // Test sound when enabling
+    if (enabled) {
+      testNotificationSound('info');
+    }
+  };
 
   if (!isSupported) {
     return (
@@ -78,9 +96,73 @@ export function BrowserNotificationToggle() {
           </div>
         )}
         {permission === 'granted' && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-            <Bell className="h-4 w-4 text-green-600 dark:text-green-400" />
-            <p>Você receberá notificações em tempo real sobre pagamentos, jobs e muito mais!</p>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+              <Bell className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
+              <p>Você receberá notificações em tempo real sobre pagamentos, jobs e muito mais!</p>
+            </div>
+
+            <Separator />
+
+            {/* Sound Settings */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Volume2 className="h-4 w-4 text-primary" />
+                  <Label htmlFor="sound-toggle" className="cursor-pointer">
+                    Sons de Notificação
+                  </Label>
+                </div>
+                <Switch
+                  id="sound-toggle"
+                  checked={soundEnabled}
+                  onCheckedChange={handleSoundToggle}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground pl-6">
+                Reproduzir sons diferentes para cada tipo de notificação
+              </p>
+
+              {soundEnabled && (
+                <div className="pl-6 space-y-2 pt-2">
+                  <p className="text-xs font-medium text-foreground">Tipos de sons:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => testNotificationSound('urgent')}
+                      className="text-xs"
+                    >
+                      🚨 Urgente
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => testNotificationSound('important')}
+                      className="text-xs"
+                    >
+                      ⚠️ Importante
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => testNotificationSound('info')}
+                      className="text-xs"
+                    >
+                      ℹ️ Info
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => testNotificationSound('success')}
+                      className="text-xs"
+                    >
+                      ✅ Sucesso
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </CardContent>

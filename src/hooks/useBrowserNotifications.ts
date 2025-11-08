@@ -2,8 +2,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { playNotificationSound, getNotificationSoundType } from '@/lib/notificationSounds';
 
-export function useBrowserNotifications() {
+export function useBrowserNotifications(soundEnabled: boolean = true) {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [isSupported, setIsSupported] = useState(false);
   const { user } = useAuth();
@@ -41,15 +42,21 @@ export function useBrowserNotifications() {
     }
   };
 
-  const showNotification = useCallback((title: string, options?: NotificationOptions) => {
+  const showNotification = useCallback((title: string, options?: NotificationOptions, notificationType?: string) => {
     if (permission !== 'granted') {
       console.log('Cannot show notification: permission not granted');
       return;
     }
 
+    // Play sound if enabled
+    if (soundEnabled && notificationType) {
+      const soundType = getNotificationSoundType(notificationType);
+      playNotificationSound(soundType);
+    }
+
     // Check if the page is in focus
     if (document.hasFocus()) {
-      // Don't show browser notification if user is on the page
+      // Don't show browser notification if user is on the page, but still play sound
       return;
     }
 
@@ -73,7 +80,7 @@ export function useBrowserNotifications() {
     } catch (error) {
       console.error('Error showing notification:', error);
     }
-  }, [permission]);
+  }, [permission, soundEnabled]);
 
   useEffect(() => {
     if (!user || permission !== 'granted') return;
@@ -92,14 +99,15 @@ export function useBrowserNotifications() {
         (payload) => {
           const notification = payload.new as any;
           
-          // Show browser notification
+          // Show browser notification with sound
           showNotification(
             getNotificationTitle(notification.type),
             {
               body: notification.payload?.message || 'Nova notificação',
               tag: notification.id,
               requireInteraction: false,
-            }
+            },
+            notification.type // Pass notification type for sound
           );
         }
       )
