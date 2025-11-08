@@ -3,8 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bell, Check, CheckCheck, AlertCircle, Calendar, DollarSign, Wrench, Briefcase, TrendingUp } from "lucide-react";
-import { useNotifications, useUnreadNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useUnreadNotificationsCount } from "@/hooks/useNotifications";
+import { Bell, Check, CheckCheck, AlertCircle, Calendar, DollarSign, Wrench, Briefcase, TrendingUp, Trash2 } from "lucide-react";
+import { useNotifications, useUnreadNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useUnreadNotificationsCount, useDeleteAllNotifications } from "@/hooks/useNotifications";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -82,6 +82,7 @@ export function SmartNotificationPanel() {
   const { data: unreadCount } = useUnreadNotificationsCount();
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();
+  const deleteAll = useDeleteAllNotifications();
   const navigate = useNavigate();
 
   // Select the right data source based on filter
@@ -129,6 +130,20 @@ export function SmartNotificationPanel() {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (!window.confirm("Tem certeza que deseja limpar todo o histórico de notificações? Esta ação não pode ser desfeita.")) {
+      return;
+    }
+    
+    try {
+      await deleteAll.mutateAsync();
+      toast.success("Histórico de notificações limpo");
+    } catch (error) {
+      console.error('Error deleting notifications:', error);
+      toast.error("Erro ao limpar histórico");
+    }
+  };
+
   if (isLoading) {
     return (
       <Card className="p-6">
@@ -149,7 +164,7 @@ export function SmartNotificationPanel() {
           <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
           <h2 className="text-lg sm:text-xl font-semibold text-foreground">Notificações</h2>
           {unreadCount && unreadCount > 0 && (
-            <Badge variant="destructive" className="rounded-full h-5 w-5 flex items-center justify-center p-0 text-xs">
+            <Badge variant="destructive" className="rounded-full h-5 w-5 flex items-center justify-center p-0 text-xs animate-pulse">
               {unreadCount}
             </Badge>
           )}
@@ -187,6 +202,19 @@ export function SmartNotificationPanel() {
               <span className="hidden sm:inline">Marcar lidas</span>
             </Button>
           )}
+          
+          {notifications && notifications.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDeleteAll}
+              disabled={deleteAll.isPending}
+              className="text-xs sm:text-sm shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+              title="Limpar histórico"
+            >
+              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -203,12 +231,15 @@ export function SmartNotificationPanel() {
               return (
                 <div
                   key={notification.id}
-                  className={`relative p-3 sm:p-4 rounded-lg border transition-all group ${
+                  className={`relative p-3 sm:p-4 rounded-lg border transition-all group animate-fade-in ${
                     notification.read 
                       ? "bg-card border-border hover:bg-accent/30" 
                       : "bg-accent/10 border-accent hover:bg-accent/20 border-l-4 border-l-primary"
                   } ${hasAction ? "cursor-pointer" : ""}`}
                   onClick={() => hasAction && handleNotificationClick(notification)}
+                  style={{
+                    animationDelay: `${notifications.indexOf(notification) * 50}ms`
+                  }}
                 >
                   <div className="flex items-start justify-between gap-3 sm:gap-4">
                     <div className="flex items-start gap-3 flex-1 min-w-0">

@@ -231,11 +231,14 @@ export function NotificationBell() {
                     
                     return (
                       <div
-                        key={notification.id}
-                        className={cn(
-                          "p-4 transition-all hover:bg-accent/30 group relative",
-                          !notification.read && "bg-accent/10 border-l-2 border-primary"
-                        )}
+                      key={notification.id}
+                      className={cn(
+                        "p-4 transition-all hover:bg-accent/30 group relative animate-fade-in",
+                        !notification.read && "bg-accent/10 border-l-2 border-primary"
+                      )}
+                      style={{
+                        animationDelay: `${sortedNotifications.indexOf(notification) * 30}ms`
+                      }}
                       >
                         <div className="flex gap-3 items-start">
                           {/* Unread indicator dot */}
