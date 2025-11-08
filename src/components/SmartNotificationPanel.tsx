@@ -260,10 +260,10 @@ export function SmartNotificationPanel() {
                         size="sm"
                         onClick={(e) => handleMarkAsReadOnly(e, notification.id)}
                         disabled={markAsRead.isPending}
-                        className="shrink-0 h-8 sm:h-9 px-2 sm:px-3 text-xs opacity-0 group-hover:opacity-100 transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                        className="shrink-0 h-9 px-3 text-xs group-hover:opacity-100 sm:opacity-0 transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary"
                       >
-                        <Check className="h-3.5 w-3.5 sm:mr-1.5" />
-                        <span className="hidden sm:inline">Lida</span>
+                        <Check className="h-3.5 w-3.5 mr-1.5" />
+                        <span className="inline">Lida</span>
                       </Button>
                     )}
                   </div>
