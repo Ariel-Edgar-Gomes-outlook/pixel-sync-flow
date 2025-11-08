@@ -43,11 +43,40 @@ const getNotificationMessage = (notification: any) => {
   return messageMap[notification.type] || 'Nova notificação';
 };
 
+// Priority order and colors
+const priorityOrder: Record<string, number> = { 
+  urgent: 0, 
+  high: 1, 
+  medium: 2, 
+  low: 3 
+};
+
+const priorityColors: Record<string, string> = {
+  urgent: 'bg-destructive',
+  high: 'bg-orange-500',
+  medium: 'bg-primary',
+  low: 'bg-muted'
+};
+
+const priorityLabels: Record<string, string> = {
+  urgent: 'Urgente',
+  high: 'Alta',
+  medium: 'Média',
+  low: 'Baixa'
+};
+
 export function NotificationBell() {
   const { data: notifications } = useNotifications();
   const { data: unreadCount } = useUnreadNotificationsCount();
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();
+
+  // Sort notifications by priority
+  const sortedNotifications = notifications ? [...notifications].sort((a, b) => {
+    const priorityA = priorityOrder[(a as any).priority || 'medium'];
+    const priorityB = priorityOrder[(b as any).priority || 'medium'];
+    return priorityA - priorityB;
+  }) : [];
 
   const handleNotificationClick = (notificationId: string, isRead: boolean) => {
     if (!isRead) {
@@ -89,9 +118,13 @@ export function NotificationBell() {
           ) : null}
         </div>
         <ScrollArea className="h-[400px]">
-          {notifications && notifications.length > 0 ? (
+          {sortedNotifications && sortedNotifications.length > 0 ? (
             <div className="p-2">
-              {notifications.map((notification) => (
+              {sortedNotifications.map((notification) => {
+                const priority = (notification as any).priority || 'medium';
+                const showPriorityBadge = priority === 'urgent' || priority === 'high';
+                
+                return (
                 <div
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification.id, notification.read)}
@@ -102,13 +135,23 @@ export function NotificationBell() {
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">
-                      {getNotificationTitle(notification)}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {getNotificationMessage(notification)}
-                    </p>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm font-medium">
+                          {getNotificationTitle(notification)}
+                        </p>
+                        {showPriorityBadge && (
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs px-1.5 py-0 h-5 ${priorityColors[priority]} text-white border-0`}
+                          >
+                            {priorityLabels[priority]}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {getNotificationMessage(notification)}
+                      </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {format(new Date(notification.created_at), "dd 'de' MMM 'às' HH:mm", { locale: pt })}
                       </p>
@@ -118,7 +161,8 @@ export function NotificationBell() {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="p-8 text-center text-muted-foreground">
