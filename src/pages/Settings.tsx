@@ -14,6 +14,7 @@ import { Settings as SettingsIcon, User, Bell, Shield, Activity, Moon, Sun, Buil
 import { AuditLogViewer } from "@/components/AuditLogViewer";
 import { GoogleCalendarIntegration } from "@/components/GoogleCalendarIntegration";
 import { NotificationSettings } from "@/components/NotificationSettings";
+import { BrowserNotificationToggle } from "@/components/BrowserNotificationToggle";
 import { BusinessSettingsForm } from "@/components/BusinessSettingsForm";
 import { PasswordChangeDialog } from "@/components/PasswordChangeDialog";
 import { useTheme } from "next-themes";
@@ -183,7 +184,10 @@ export default function Settings() {
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-4 sm:mt-6">
-          <NotificationSettings />
+          <div className="space-y-6">
+            <BrowserNotificationToggle />
+            <NotificationSettings />
+          </div>
         </TabsContent>
 
         <TabsContent value="security" className="mt-4 sm:mt-6">
