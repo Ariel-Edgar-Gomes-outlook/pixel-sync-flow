@@ -59,18 +59,29 @@ export function SmartNotificationPanel() {
   const isLoading = filter === "all" ? allLoading : unreadLoading;
 
   const handleMarkAsRead = async (notificationId: string) => {
+    console.log('🎯 HANDLE MARK AS READ CALLED:', notificationId);
+    toast.info("Marcando notificação...");
+    
     try {
-      await markAsRead.mutateAsync(notificationId);
+      const result = await markAsRead.mutateAsync(notificationId);
+      console.log('🎯 MARK AS READ RESULT:', result);
+      toast.success("Notificação marcada como lida!");
     } catch (error) {
+      console.error('🎯 MARK AS READ ERROR:', error);
       toast.error("Erro ao marcar como lida");
     }
   };
 
   const handleMarkAllAsRead = async () => {
+    console.log('🎯 HANDLE MARK ALL AS READ CALLED');
+    toast.info("Marcando todas...");
+    
     try {
-      await markAllAsRead.mutateAsync();
+      const result = await markAllAsRead.mutateAsync();
+      console.log('🎯 MARK ALL AS READ RESULT:', result);
       toast.success("Todas as notificações marcadas como lidas");
     } catch (error) {
+      console.error('🎯 MARK ALL AS READ ERROR:', error);
       toast.error("Erro ao marcar todas como lidas");
     }
   };

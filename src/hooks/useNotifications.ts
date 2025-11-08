@@ -85,58 +85,39 @@ export function useMarkNotificationAsRead() {
 
   return useMutation({
     mutationFn: async (notificationId: string) => {
-      if (!user?.id) throw new Error('User not authenticated');
+      console.log('🔥 MUTATION FUNCTION STARTED:', notificationId);
+      
+      if (!user?.id) {
+        console.error('🔥 NO USER ID');
+        throw new Error('User not authenticated');
+      }
 
-      console.log('🔄 Marking notification as read:', notificationId);
+      console.log('🔥 USER ID:', user.id);
+      console.log('🔥 NOTIFICATION ID:', notificationId);
       
       const { data, error } = await supabase
         .from('notifications')
         .update({ read: true })
         .eq('id', notificationId)
-        .eq('recipient_id', user.id)
         .select();
 
+      console.log('🔥 SUPABASE RESPONSE:', { data, error });
+
       if (error) {
-        console.error('❌ Error marking notification as read:', error);
+        console.error('🔥 SUPABASE ERROR:', error);
         throw error;
       }
       
-      console.log('✅ Notification marked as read:', data);
+      console.log('🔥 SUCCESS, DATA:', data);
       return data;
     },
-    onSuccess: (data, notificationId) => {
-      console.log('✅ Mutation success, invalidating queries');
-      
-      // Remove from unread list immediately
-      queryClient.setQueryData(['notifications', 'unread-list', user?.id], (old: any) => {
-        if (!old) return old;
-        return old.filter((n: any) => n.id !== notificationId);
-      });
-
-      // Update in all notifications list
-      queryClient.setQueryData(['notifications', user?.id], (old: any) => {
-        if (!old) return old;
-        return old.map((n: any) => 
-          n.id === notificationId ? { ...n, read: true } : n
-        );
-      });
-
-      // Update count
-      queryClient.setQueryData(['notifications', 'unread', user?.id], (old: any) => {
-        if (typeof old === 'number' && old > 0) {
-          return old - 1;
-        }
-        return old;
-      });
+    onSuccess: () => {
+      console.log('🔥 ON SUCCESS CALLBACK');
+      // Simplesmente invalidar tudo
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
     onError: (error) => {
-      console.error('❌ Mutation error:', error);
-    },
-    onSettled: () => {
-      // Refetch to ensure sync
-      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-list', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread', user?.id] });
+      console.error('🔥 ON ERROR CALLBACK:', error);
     },
   });
 }
@@ -147,9 +128,12 @@ export function useMarkAllNotificationsAsRead() {
 
   return useMutation({
     mutationFn: async () => {
-      if (!user?.id) throw new Error('User not authenticated');
-
-      console.log('🔄 Marking all notifications as read');
+      console.log('🔥 MARK ALL MUTATION STARTED');
+      
+      if (!user?.id) {
+        console.error('🔥 NO USER ID FOR MARK ALL');
+        throw new Error('User not authenticated');
+      }
 
       const { data, error } = await supabase
         .from('notifications')
@@ -158,37 +142,23 @@ export function useMarkAllNotificationsAsRead() {
         .eq('read', false)
         .select();
 
+      console.log('🔥 MARK ALL RESPONSE:', { data, error });
+
       if (error) {
-        console.error('❌ Error marking all notifications as read:', error);
+        console.error('🔥 MARK ALL ERROR:', error);
         throw error;
       }
 
-      console.log('✅ All notifications marked as read:', data);
+      console.log('🔥 MARK ALL SUCCESS:', data);
       return data;
     },
     onSuccess: () => {
-      console.log('✅ Mark all mutation success');
-      
-      // Clear unread list
-      queryClient.setQueryData(['notifications', 'unread-list', user?.id], []);
-
-      // Update all notifications to read
-      queryClient.setQueryData(['notifications', user?.id], (old: any) => {
-        if (!old) return old;
-        return old.map((n: any) => ({ ...n, read: true }));
-      });
-
-      // Set count to 0
-      queryClient.setQueryData(['notifications', 'unread', user?.id], 0);
+      console.log('🔥 MARK ALL ON SUCCESS');
+      // Simplesmente invalidar tudo
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
     onError: (error) => {
-      console.error('❌ Mark all mutation error:', error);
-    },
-    onSettled: () => {
-      // Refetch to ensure sync
-      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-list', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread', user?.id] });
+      console.error('🔥 MARK ALL ON ERROR:', error);
     },
   });
 }
