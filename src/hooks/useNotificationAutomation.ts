@@ -86,7 +86,7 @@ export function useNotificationAutomation() {
               const hoursUntil = differenceInHours(startDate, now);
 
               if (hoursUntil > 0 && hoursUntil <= 24) {
-                // Check if notification already exists for this job
+                // Check if notification already exists for this job (last 7 days)
                 const { data: existing } = await supabase
                   .from('notifications')
                   .select('id')
@@ -94,6 +94,7 @@ export function useNotificationAutomation() {
                   .eq('recipient_id', user.id)
                   .eq('read', false)
                   .contains('payload', { job_id: job.id })
+                  .gte('created_at', new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
                   .maybeSingle();
 
                 if (!existing) {
@@ -134,7 +135,7 @@ export function useNotificationAutomation() {
                   .eq('recipient_id', user.id)
                   .eq('read', false)
                   .contains('payload', { lead_id: lead.id })
-                  .gte('created_at', new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString())
+                  .gte('created_at', new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
                   .maybeSingle();
 
                 if (!existing) {
@@ -246,12 +247,12 @@ export function useNotificationAutomation() {
       }
     };
 
-    // Check notifications every 1 hour (optimized from 6 hours)
+    // Check notifications every 6 hours (changed from 1 hour to prevent spam)
     checkNotifications();
-    const interval = setInterval(checkNotifications, 60 * 60 * 1000);
+    const interval = setInterval(checkNotifications, 6 * 60 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [jobs, leads, payments, resources, createNotification]);
+  }, [jobs, leads, payments, resources]); // REMOVED createNotification from deps to prevent infinite loop
 
   return { createNotification };
 }

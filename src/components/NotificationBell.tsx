@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 // Helper functions for notification display
 const getNotificationTitle = (notification: any) => {
@@ -160,12 +161,12 @@ export function NotificationBell() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative hover:bg-accent">
           <Bell className="h-5 w-5" />
           {unreadCount && unreadCount > 0 ? (
             <Badge 
               variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] font-bold"
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </Badge>
@@ -173,53 +174,54 @@ export function NotificationBell() {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0" align="end">
-        <div className="p-4 border-b">
+        {/* Header */}
+        <div className="p-4 border-b bg-muted/30">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold">Notificações</h3>
-              {unreadCount > 0 && (
-                <Badge variant="destructive" className="rounded-full">
-                  {unreadCount}
-                </Badge>
-              )}
-            </div>
+            <h3 className="font-semibold text-lg">Notificações</h3>
             {unreadCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleMarkAllAsRead}
                 disabled={markAllAsRead.isPending}
+                className="h-8 text-xs"
               >
-                <CheckCheck className="h-4 w-4 mr-2" />
+                <CheckCheck className="h-3.5 w-3.5 mr-1.5" />
                 Marcar todas
               </Button>
             )}
           </div>
           
-          {/* Filtros */}
+          {/* Filters */}
           <div className="flex gap-2">
             <Button
               variant={filter === "unread" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilter("unread")}
-              className="flex-1"
+              className="flex-1 h-9"
             >
-              Não lidas ({unreadCount})
+              Não lidas
+              {unreadCount > 0 && (
+                <Badge variant="secondary" className="ml-2 h-5 px-1.5">
+                  {unreadCount}
+                </Badge>
+              )}
             </Button>
             <Button
               variant={filter === "all" ? "default" : "outline"}
               size="sm"
               onClick={() => setFilter("all")}
-              className="flex-1"
+              className="flex-1 h-9"
             >
               Todas
             </Button>
           </div>
         </div>
 
-        <ScrollArea className="h-[400px]">
+        {/* Notifications List */}
+        <ScrollArea className="h-[420px]">
           {sortedNotifications && sortedNotifications.length > 0 ? (
-            <div className="p-2 space-y-2">
+            <div className="p-2 space-y-1">
               {sortedNotifications.map((notification) => {
                 const priority = (notification as any).priority || 'medium';
                 const showPriorityBadge = priority === 'urgent' || priority === 'high';
@@ -228,48 +230,83 @@ export function NotificationBell() {
                 return (
                   <Card
                     key={notification.id}
-                    className={`p-3 transition-all ${
-                      notification.read ? "bg-muted/20" : "bg-primary/5 border-primary/20"
-                    } ${hasAction ? "hover:bg-accent hover:shadow-md cursor-pointer" : ""}`}
+                    className={cn(
+                      "p-3 transition-all border cursor-pointer",
+                      notification.read 
+                        ? "bg-background hover:bg-accent/50" 
+                        : "bg-primary/5 border-primary/20 hover:bg-primary/10",
+                      hasAction && "hover:shadow-sm"
+                    )}
                     onClick={() => handleNotificationClick(notification)}
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      {/* Unread indicator */}
+                      {!notification.read && (
+                        <div className="mt-1.5">
+                          <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                        </div>
+                      )}
+                      
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-sm line-clamp-1">
+                        {/* Title and badges */}
+                        <div className="flex items-start gap-2 mb-1">
+                          <p className="font-medium text-sm line-clamp-1 flex-1">
                             {getNotificationTitle(notification)}
                           </p>
                           {!notification.read && (
-                            <Badge variant="default" className="shrink-0">Nova</Badge>
+                            <Badge className="shrink-0 h-5 text-[10px]">Nova</Badge>
                           )}
                           {showPriorityBadge && (
                             <Badge 
                               variant="outline" 
-                              className={`text-xs px-1.5 py-0 h-5 ${priorityColors[priority]} text-white border-0`}
+                              className={cn(
+                                "text-[10px] px-1.5 h-5 border-0 text-white shrink-0",
+                                priorityColors[priority]
+                              )}
                             >
                               {priorityLabels[priority]}
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2 mb-1">
+                        
+                        {/* Message */}
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5">
                           {getNotificationMessage(notification)}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(notification.created_at), {
-                            addSuffix: true,
-                            locale: pt,
-                          })}
-                        </p>
-                        {hasAction && (
-                          <p className="text-xs text-primary mt-1 font-medium">
-                            Clique para ver detalhes →
+                        
+                        {/* Time */}
+                        <div className="flex items-center justify-between">
+                          <p className="text-[11px] text-muted-foreground">
+                            {formatDistanceToNow(new Date(notification.created_at), {
+                              addSuffix: true,
+                              locale: pt,
+                            })}
                           </p>
-                        )}
-                      </div>
-                      {!notification.read && (
-                        <div className="shrink-0 mt-1">
-                          <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                          {hasAction && (
+                            <p className="text-[11px] text-primary font-medium">
+                              Ver detalhes →
+                            </p>
+                          )}
                         </div>
+                      </div>
+
+                      {/* Mark as read button */}
+                      {!notification.read && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 shrink-0"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await markAsRead.mutateAsync(notification.id);
+                            } catch (error) {
+                              console.error('Error marking as read:', error);
+                            }
+                          }}
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
                       )}
                     </div>
                   </Card>
@@ -277,12 +314,14 @@ export function NotificationBell() {
               })}
             </div>
           ) : (
-            <div className="p-8 text-center text-muted-foreground">
-              <Bell className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <div className="p-8 text-center">
+              <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                <Bell className="h-6 w-6 text-muted-foreground" />
+              </div>
               <p className="text-sm font-medium mb-1">
                 {filter === "unread" ? "Nenhuma notificação não lida" : "Nenhuma notificação"}
               </p>
-              <p className="text-xs">
+              <p className="text-xs text-muted-foreground">
                 {filter === "unread"
                   ? "Você está em dia com tudo!"
                   : "Notificações aparecerão aqui"}
