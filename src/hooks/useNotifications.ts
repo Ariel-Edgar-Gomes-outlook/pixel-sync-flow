@@ -35,6 +35,7 @@ export function useNotifications() {
           // Invalidate queries when notifications change
           queryClient.invalidateQueries({ queryKey: ['notifications', user.id] });
           queryClient.invalidateQueries({ queryKey: ['notifications', 'unread', user.id] });
+          queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-list', user.id] });
         }
       )
       .subscribe();
@@ -55,6 +56,56 @@ export function useNotifications() {
         .eq('recipient_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
+
+      if (error) throw error;
+      return data as Notification[];
+    },
+    enabled: !!user?.id,
+  });
+}
+
+export function useUnreadNotifications() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('unread-notifications-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `recipient_id=eq.${user.id}`
+        },
+        (payload) => {
+          // Invalidate unread notifications query when notifications change
+          queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-list', user.id] });
+          queryClient.invalidateQueries({ queryKey: ['notifications', 'unread', user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
+  return useQuery({
+    queryKey: ['notifications', 'unread-list', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('recipient_id', user.id)
+        .eq('read', false)
+        .order('created_at', { ascending: false })
+        .limit(20);
 
       if (error) throw error;
       return data as Notification[];
@@ -135,6 +186,7 @@ export function useMarkNotificationAsRead() {
     onSettled: () => {
       // Always refetch after error or success to ensure we're in sync
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-list'] });
     },
   });
 }
@@ -186,6 +238,7 @@ export function useMarkAllNotificationsAsRead() {
     onSettled: () => {
       // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-list'] });
     },
   });
 }

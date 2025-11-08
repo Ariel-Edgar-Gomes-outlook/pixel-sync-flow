@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { useNotifications, useUnreadNotificationsCount, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from "@/hooks/useNotifications";
+import { useUnreadNotifications, useUnreadNotificationsCount, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from "@/hooks/useNotifications";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 
@@ -66,7 +66,7 @@ const priorityLabels: Record<string, string> = {
 };
 
 export function NotificationBell() {
-  const { data: notifications } = useNotifications();
+  const { data: notifications } = useUnreadNotifications();
   const { data: unreadCount } = useUnreadNotificationsCount();
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();
@@ -78,10 +78,8 @@ export function NotificationBell() {
     return priorityA - priorityB;
   }) : [];
 
-  const handleNotificationClick = (notificationId: string, isRead: boolean) => {
-    if (!isRead) {
-      markAsRead.mutate(notificationId);
-    }
+  const handleNotificationClick = (notificationId: string) => {
+    markAsRead.mutate(notificationId);
   };
 
   const handleMarkAllAsRead = () => {
@@ -127,12 +125,8 @@ export function NotificationBell() {
                 return (
                 <div
                   key={notification.id}
-                  onClick={() => handleNotificationClick(notification.id, notification.read)}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                    notification.read 
-                      ? 'bg-transparent hover:bg-muted' 
-                      : 'bg-primary/5 hover:bg-primary/10'
-                  }`}
+                  onClick={() => handleNotificationClick(notification.id)}
+                  className="p-3 rounded-lg cursor-pointer transition-colors bg-primary/5 hover:bg-primary/10"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
@@ -156,9 +150,7 @@ export function NotificationBell() {
                         {format(new Date(notification.created_at), "dd 'de' MMM 'às' HH:mm", { locale: pt })}
                       </p>
                     </div>
-                    {!notification.read && (
-                      <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1" />
-                    )}
+                    <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1" />
                   </div>
                 </div>
                 );
