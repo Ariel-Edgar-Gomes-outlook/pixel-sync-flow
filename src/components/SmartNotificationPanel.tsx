@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bell, Check, CheckCheck, AlertCircle, Calendar, DollarSign, Wrench, Briefcase, TrendingUp } from "lucide-react";
-import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useUnreadNotificationsCount } from "@/hooks/useNotifications";
+import { useNotifications, useUnreadNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useUnreadNotificationsCount } from "@/hooks/useNotifications";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -46,10 +46,17 @@ const notificationTitles: Record<string, string> = {
 
 export function SmartNotificationPanel() {
   const [filter, setFilter] = useState<"all" | "unread">("unread");
-  const { data: notifications, isLoading } = useNotifications();
+  
+  // Use the correct hook based on filter
+  const { data: allNotifications, isLoading: allLoading } = useNotifications();
+  const { data: unreadNotifications, isLoading: unreadLoading } = useUnreadNotifications();
   const { data: unreadCount } = useUnreadNotificationsCount();
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();
+
+  // Select the right data source based on filter
+  const notifications = filter === "all" ? allNotifications : unreadNotifications;
+  const isLoading = filter === "all" ? allLoading : unreadLoading;
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
@@ -68,10 +75,6 @@ export function SmartNotificationPanel() {
     }
   };
 
-  const filteredNotifications = notifications?.filter(n => 
-    filter === "all" ? true : !n.read
-  ) || [];
-
   if (isLoading) {
     return (
       <Card className="p-6">
@@ -81,7 +84,7 @@ export function SmartNotificationPanel() {
   }
 
   // Don't show empty panel if no unread notifications
-  if (filter === "unread" && filteredNotifications.length === 0) {
+  if (filter === "unread" && (!notifications || notifications.length === 0)) {
     return null;
   }
 
@@ -135,8 +138,8 @@ export function SmartNotificationPanel() {
 
       <ScrollArea className="h-[300px] sm:h-[400px] pr-2 sm:pr-4">
         <div className="space-y-2 sm:space-y-3">
-          {filteredNotifications.length > 0 ? (
-            filteredNotifications.map((notification) => {
+          {notifications && notifications.length > 0 ? (
+            notifications.map((notification) => {
               const Icon = notificationIcons[notification.type as keyof typeof notificationIcons] || notificationIcons.default;
               const iconColor = notificationColors[notification.type as keyof typeof notificationColors] || notificationColors.default;
               const title = notificationTitles[notification.type] || "Notificação";
