@@ -201,71 +201,73 @@ export function SmartNotificationPanel() {
               const hasAction = getNotificationRoute(notification) !== null;
 
               return (
-                <Card
+                <div
                   key={notification.id}
-                  className={`p-3 sm:p-4 transition-all hover:shadow-md ${
-                    notification.read ? "bg-muted/20" : "bg-primary/5 border-primary/20"
-                  } ${hasAction ? "cursor-pointer hover:bg-accent" : ""}`}
+                  className={`relative p-3 sm:p-4 rounded-lg border transition-all group ${
+                    notification.read 
+                      ? "bg-card border-border hover:bg-accent/30" 
+                      : "bg-accent/10 border-accent hover:bg-accent/20 border-l-4 border-l-primary"
+                  } ${hasAction ? "cursor-pointer" : ""}`}
                   onClick={() => hasAction && handleNotificationClick(notification)}
                 >
-                  <div className="flex items-start justify-between gap-2 sm:gap-3">
-                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                      <div className={`p-1.5 sm:p-2 rounded-lg bg-muted/50 ${iconColor} shrink-0`}>
+                  <div className="flex items-start justify-between gap-3 sm:gap-4">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className={`p-2 rounded-lg bg-background ${iconColor} shrink-0 shadow-sm`}>
                         <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <h3 className="font-semibold text-foreground text-xs sm:text-sm">
+                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                          <h3 className={`font-semibold text-xs sm:text-sm ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {title}
                           </h3>
                           {!notification.read && (
-                            <Badge variant="default" className="h-4 sm:h-5 px-1.5 sm:px-2 text-[10px] sm:text-xs">
+                            <Badge variant="default" className="h-4 sm:h-5 px-1.5 sm:px-2 text-[10px] sm:text-xs font-medium">
                               Nova
                             </Badge>
                           )}
                         </div>
 
-                        <p className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2 break-words">
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-2 break-words leading-relaxed">
                           {payload?.message || payload?.title || "Sem mensagem"}
                         </p>
 
                         {payload?.entity_name && (
-                          <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground mb-1">
+                          <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground/80 mb-1.5">
                             <span className="font-medium truncate">{payload.entity_name}</span>
                           </div>
                         )}
 
-                        <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground mt-1 sm:mt-2">
+                        <div className="flex items-center justify-between gap-2 text-[10px] sm:text-xs text-muted-foreground/70 mt-2">
                           <span>
                             {formatDistanceToNow(new Date(notification.created_at), {
                               addSuffix: true,
                               locale: pt,
                             })}
                           </span>
+                          {hasAction && (
+                            <span className="text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                              Ver detalhes →
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
 
                     {!notification.read && (
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={(e) => handleMarkAsReadOnly(e, notification.id)}
                         disabled={markAsRead.isPending}
-                        title="Marcar como lida"
-                        className="shrink-0 h-8 w-8 sm:h-9 sm:w-9 p-0"
+                        className="shrink-0 h-8 sm:h-9 px-2 sm:px-3 text-xs opacity-0 group-hover:opacity-100 transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary"
                       >
-                        <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <Check className="h-3.5 w-3.5 sm:mr-1.5" />
+                        <span className="hidden sm:inline">Lida</span>
                       </Button>
                     )}
-                    {hasAction && (
-                      <div className="shrink-0 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                        Clique para ver
-                      </div>
-                    )}
                   </div>
-                </Card>
+                </div>
               );
             })
           ) : (
