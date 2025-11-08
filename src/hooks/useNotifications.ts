@@ -85,15 +85,9 @@ export function useMarkNotificationAsRead() {
 
   return useMutation({
     mutationFn: async (notificationId: string) => {
-      console.log('🔥 MUTATION FUNCTION STARTED:', notificationId);
-      
       if (!user?.id) {
-        console.error('🔥 NO USER ID');
         throw new Error('User not authenticated');
       }
-
-      console.log('🔥 USER ID:', user.id);
-      console.log('🔥 NOTIFICATION ID:', notificationId);
       
       const { data, error } = await supabase
         .from('notifications')
@@ -101,23 +95,11 @@ export function useMarkNotificationAsRead() {
         .eq('id', notificationId)
         .select();
 
-      console.log('🔥 SUPABASE RESPONSE:', { data, error });
-
-      if (error) {
-        console.error('🔥 SUPABASE ERROR:', error);
-        throw error;
-      }
-      
-      console.log('🔥 SUCCESS, DATA:', data);
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      console.log('🔥 ON SUCCESS CALLBACK');
-      // Simplesmente invalidar tudo
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
-    onError: (error) => {
-      console.error('🔥 ON ERROR CALLBACK:', error);
     },
   });
 }
@@ -128,10 +110,7 @@ export function useMarkAllNotificationsAsRead() {
 
   return useMutation({
     mutationFn: async () => {
-      console.log('🔥 MARK ALL MUTATION STARTED');
-      
       if (!user?.id) {
-        console.error('🔥 NO USER ID FOR MARK ALL');
         throw new Error('User not authenticated');
       }
 
@@ -142,23 +121,11 @@ export function useMarkAllNotificationsAsRead() {
         .eq('read', false)
         .select();
 
-      console.log('🔥 MARK ALL RESPONSE:', { data, error });
-
-      if (error) {
-        console.error('🔥 MARK ALL ERROR:', error);
-        throw error;
-      }
-
-      console.log('🔥 MARK ALL SUCCESS:', data);
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      console.log('🔥 MARK ALL ON SUCCESS');
-      // Simplesmente invalidar tudo
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
-    onError: (error) => {
-      console.error('🔥 MARK ALL ON ERROR:', error);
     },
   });
 }

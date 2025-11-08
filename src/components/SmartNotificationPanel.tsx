@@ -88,10 +88,14 @@ export function SmartNotificationPanel() {
   const notifications = filter === "all" ? allNotifications : unreadNotifications;
   const isLoading = filter === "all" ? allLoading : unreadLoading;
 
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = async (notification: any) => {
     // Marcar como lida se ainda não foi lida
     if (!notification.read) {
-      markAsRead.mutate(notification.id);
+      try {
+        await markAsRead.mutateAsync(notification.id);
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+      }
     }
     
     // Navegar para o recurso
@@ -116,15 +120,11 @@ export function SmartNotificationPanel() {
   };
 
   const handleMarkAllAsRead = async () => {
-    console.log('🎯 HANDLE MARK ALL AS READ CALLED');
-    toast.info("Marcando todas...");
-    
     try {
-      const result = await markAllAsRead.mutateAsync();
-      console.log('🎯 MARK ALL AS READ RESULT:', result);
+      await markAllAsRead.mutateAsync();
       toast.success("Todas as notificações marcadas como lidas");
     } catch (error) {
-      console.error('🎯 MARK ALL AS READ ERROR:', error);
+      console.error('Error marking all as read:', error);
       toast.error("Erro ao marcar todas como lidas");
     }
   };

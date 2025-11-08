@@ -127,10 +127,14 @@ export function NotificationBell() {
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   }) : [];
 
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = async (notification: any) => {
     // Marcar como lida
     if (!notification.read) {
-      markAsRead.mutate(notification.id);
+      try {
+        await markAsRead.mutateAsync(notification.id);
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+      }
     }
     
     // Navegar para o recurso
@@ -143,9 +147,14 @@ export function NotificationBell() {
     }
   };
 
-  const handleMarkAllAsRead = () => {
-    markAllAsRead.mutate();
-    toast.success("Todas marcadas como lidas");
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead.mutateAsync();
+      toast.success("Todas marcadas como lidas");
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+      toast.error("Erro ao marcar como lidas");
+    }
   };
 
   return (
