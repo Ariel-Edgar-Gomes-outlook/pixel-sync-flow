@@ -60,6 +60,10 @@ const navigation = [{
   href: "/resources",
   icon: Wrench
 }, {
+  name: "Notificações",
+  href: "/notifications",
+  icon: Bell
+}, {
   name: "Configurações",
   href: "/settings",
   icon: Settings

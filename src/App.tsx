@@ -28,6 +28,7 @@ import NotFound from "./pages/NotFound";
 import ClientGallery from "./pages/ClientGallery";
 import ContractSign from "./pages/ContractSign";
 import QuoteReview from "./pages/QuoteReview";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const App = () => (
                 <Route path="contracts" element={<Contracts />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="templates" element={<Templates />} />
+                <Route path="notifications" element={<Notifications />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
               <Route path="*" element={<NotFound />} />
