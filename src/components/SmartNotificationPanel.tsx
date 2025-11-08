@@ -8,6 +8,7 @@ import { useNotifications, useUnreadNotifications, useMarkNotificationAsRead, us
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 
 const notificationIcons = {
   job_reminder: Calendar,
@@ -44,6 +45,34 @@ const notificationTitles: Record<string, string> = {
   new_lead: "Novo Lead",
 };
 
+// Função para navegar para o recurso relacionado
+function getNotificationRoute(notification: any): string | null {
+  const payload = notification.payload || {};
+  
+  switch (notification.type) {
+    case 'lead_follow_up':
+    case 'new_lead':
+      return payload.lead_id ? `/leads` : null;
+    
+    case 'job_reminder':
+    case 'job_completed':
+      return payload.job_id ? `/jobs` : null;
+    
+    case 'payment_overdue':
+      return payload.payment_id ? `/payments` : null;
+    
+    case 'maintenance_due':
+    case 'maintenance_reminder':
+      return payload.resource_id ? `/resources` : null;
+    
+    case 'contract_signed':
+      return payload.contract_id ? `/contracts` : null;
+    
+    default:
+      return null;
+  }
+}
+
 export function SmartNotificationPanel() {
   const [filter, setFilter] = useState<"all" | "unread">("unread");
   
@@ -53,21 +82,35 @@ export function SmartNotificationPanel() {
   const { data: unreadCount } = useUnreadNotificationsCount();
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();
+  const navigate = useNavigate();
 
   // Select the right data source based on filter
   const notifications = filter === "all" ? allNotifications : unreadNotifications;
   const isLoading = filter === "all" ? allLoading : unreadLoading;
 
-  const handleMarkAsRead = async (notificationId: string) => {
-    console.log('🎯 HANDLE MARK AS READ CALLED:', notificationId);
-    toast.info("Marcando notificação...");
+  const handleNotificationClick = (notification: any) => {
+    // Marcar como lida se ainda não foi lida
+    if (!notification.read) {
+      markAsRead.mutate(notification.id);
+    }
+    
+    // Navegar para o recurso
+    const route = getNotificationRoute(notification);
+    if (route) {
+      navigate(route);
+      toast.success("Redirecionando...");
+    } else {
+      toast.info("Esta notificação não tem ação associada");
+    }
+  };
+
+  const handleMarkAsReadOnly = async (e: React.MouseEvent, notificationId: string) => {
+    e.stopPropagation(); // Prevenir navegação
     
     try {
-      const result = await markAsRead.mutateAsync(notificationId);
-      console.log('🎯 MARK AS READ RESULT:', result);
-      toast.success("Notificação marcada como lida!");
+      await markAsRead.mutateAsync(notificationId);
+      toast.success("Marcada como lida");
     } catch (error) {
-      console.error('🎯 MARK AS READ ERROR:', error);
       toast.error("Erro ao marcar como lida");
     }
   };
@@ -155,13 +198,15 @@ export function SmartNotificationPanel() {
               const iconColor = notificationColors[notification.type as keyof typeof notificationColors] || notificationColors.default;
               const title = notificationTitles[notification.type] || "Notificação";
               const payload = notification.payload as any;
+              const hasAction = getNotificationRoute(notification) !== null;
 
               return (
                 <Card
                   key={notification.id}
                   className={`p-3 sm:p-4 transition-all hover:shadow-md ${
                     notification.read ? "bg-muted/20" : "bg-primary/5 border-primary/20"
-                  }`}
+                  } ${hasAction ? "cursor-pointer hover:bg-accent" : ""}`}
+                  onClick={() => hasAction && handleNotificationClick(notification)}
                 >
                   <div className="flex items-start justify-between gap-2 sm:gap-3">
                     <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
@@ -206,13 +251,18 @@ export function SmartNotificationPanel() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleMarkAsRead(notification.id)}
+                        onClick={(e) => handleMarkAsReadOnly(e, notification.id)}
                         disabled={markAsRead.isPending}
                         title="Marcar como lida"
                         className="shrink-0 h-8 w-8 sm:h-9 sm:w-9 p-0"
                       >
                         <Check className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
+                    )}
+                    {hasAction && (
+                      <div className="shrink-0 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                        Clique para ver
+                      </div>
                     )}
                   </div>
                 </Card>
