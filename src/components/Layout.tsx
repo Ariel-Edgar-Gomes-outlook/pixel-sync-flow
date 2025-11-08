@@ -78,7 +78,8 @@ export default function Layout() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // FASE 4: Centralize all automations in Layout (removed from Dashboard)
-  useNotificationAutomation();
+  // TEMPORARY: Disabled notification automation due to infinite loop bug
+  // useNotificationAutomation();
   usePaymentReminders();
   useWorkflowAutomation();
 
