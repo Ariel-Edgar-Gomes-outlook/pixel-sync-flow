@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from "@/hooks/useNotifications";
+import { NotificationTestPanel } from "@/components/NotificationTestPanel";
 
 // Helper functions
 const getNotificationTitle = (notification: any) => {
@@ -204,6 +205,9 @@ export default function Notifications() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Test Panel */}
+      <NotificationTestPanel />
 
       {/* Filters */}
       <Card>
