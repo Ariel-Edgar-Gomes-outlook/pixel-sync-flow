@@ -224,114 +224,115 @@ export function NotificationBell() {
           {sortedNotifications && sortedNotifications.length > 0 ? (
             <TooltipProvider>
               <div className="divide-y divide-border">
-                {sortedNotifications.map((notification) => {
-                  const priority = (notification as any).priority || 'medium';
-                  const showPriorityBadge = priority === 'urgent' || priority === 'high';
-                  const hasAction = getNotificationRoute(notification) !== null;
-                  
-                  return (
-                    <div
-                      key={notification.id}
-                      className={cn(
-                        "p-4 transition-all hover:bg-accent/50 group relative",
-                        !notification.read && "bg-primary/5"
-                      )}
-                    >
-                      <div className="flex gap-3">
-                        {/* Unread indicator dot */}
-                        <div className="flex-shrink-0 pt-1">
-                          {!notification.read ? (
-                            <div className="h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-primary/20" />
-                          ) : (
-                            <div className="h-2.5 w-2.5 rounded-full bg-muted" />
-                          )}
-                        </div>
-                        
-                        {/* Content */}
-                        <div 
-                          className="flex-1 min-w-0 cursor-pointer"
-                          onClick={() => handleNotificationClick(notification)}
-                        >
-                          {/* Title and badges */}
-                          <div className="flex items-start gap-2 mb-1.5">
-                            <p className={cn(
-                              "text-sm line-clamp-1 flex-1",
-                              !notification.read ? "font-semibold text-foreground" : "font-medium text-muted-foreground"
-                            )}>
-                              {getNotificationTitle(notification)}
+                  {sortedNotifications.map((notification) => {
+                    const priority = (notification as any).priority || 'medium';
+                    const showPriorityBadge = priority === 'urgent' || priority === 'high';
+                    const hasAction = getNotificationRoute(notification) !== null;
+                    
+                    return (
+                      <div
+                        key={notification.id}
+                        className={cn(
+                          "p-4 transition-all hover:bg-accent/30 group relative",
+                          !notification.read && "bg-accent/10 border-l-2 border-primary"
+                        )}
+                      >
+                        <div className="flex gap-3 items-start">
+                          {/* Unread indicator dot */}
+                          <div className="flex-shrink-0 pt-1.5">
+                            {!notification.read ? (
+                              <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                            ) : (
+                              <div className="h-2 w-2" />
+                            )}
+                          </div>
+                          
+                          {/* Content */}
+                          <div 
+                            className="flex-1 min-w-0 cursor-pointer"
+                            onClick={() => handleNotificationClick(notification)}
+                          >
+                            {/* Title and badges */}
+                            <div className="flex items-start gap-2 mb-1.5">
+                              <p className={cn(
+                                "text-sm line-clamp-1 flex-1",
+                                !notification.read ? "font-semibold text-foreground" : "font-medium text-muted-foreground"
+                              )}>
+                                {getNotificationTitle(notification)}
+                              </p>
+                              <div className="flex gap-1.5 shrink-0">
+                                {!notification.read && (
+                                  <Badge className="h-5 px-2 text-[10px] font-semibold">Nova</Badge>
+                                )}
+                                {showPriorityBadge && (
+                                  <Badge 
+                                    variant="outline" 
+                                    className={cn(
+                                      "text-[10px] px-2 h-5 border-0 text-white font-semibold",
+                                      priorityColors[priority]
+                                    )}
+                                  >
+                                    {priorityLabels[priority]}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Message */}
+                            <p className="text-xs text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
+                              {getNotificationMessage(notification)}
                             </p>
-                            <div className="flex gap-1.5 shrink-0">
-                              {!notification.read && (
-                                <Badge className="h-5 px-2 text-[10px] font-semibold">Nova</Badge>
-                              )}
-                              {showPriorityBadge && (
-                                <Badge 
-                                  variant="outline" 
-                                  className={cn(
-                                    "text-[10px] px-2 h-5 border-0 text-white font-semibold",
-                                    priorityColors[priority]
-                                  )}
-                                >
-                                  {priorityLabels[priority]}
-                                </Badge>
+                            
+                            {/* Footer */}
+                            <div className="flex items-center justify-between">
+                              <p className="text-[11px] text-muted-foreground font-medium">
+                                {formatDistanceToNow(new Date(notification.created_at), {
+                                  addSuffix: true,
+                                  locale: pt,
+                                })}
+                              </p>
+                              {hasAction && (
+                                <p className="text-[11px] text-primary font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                                  Ver detalhes →
+                                </p>
                               )}
                             </div>
                           </div>
-                          
-                          {/* Message */}
-                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
-                            {getNotificationMessage(notification)}
-                          </p>
-                          
-                          {/* Footer */}
-                          <div className="flex items-center justify-between">
-                            <p className="text-[11px] text-muted-foreground font-medium">
-                              {formatDistanceToNow(new Date(notification.created_at), {
-                                addSuffix: true,
-                                locale: pt,
-                              })}
-                            </p>
-                            {hasAction && (
-                              <p className="text-[11px] text-primary font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
-                                Ver detalhes →
-                              </p>
-                            )}
-                          </div>
-                        </div>
 
-                        {/* Mark as read button - only for unread */}
-                        {!notification.read && (
-                          <div className="flex-shrink-0">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    try {
-                                      await markAsRead.mutateAsync(notification.id);
-                                      toast.success("Marcada como lida");
-                                    } catch (error) {
-                                      console.error('Error marking as read:', error);
-                                      toast.error("Erro ao marcar");
-                                    }
-                                  }}
-                                >
-                                  <Check className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side="left">
-                                <p className="text-xs">Marcar como lida</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
-                        )}
+                          {/* Mark as read button - only for unread */}
+                          {!notification.read && (
+                            <div className="flex-shrink-0">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-3 text-xs opacity-0 group-hover:opacity-100 transition-all hover:bg-primary hover:text-primary-foreground border-border/50"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      try {
+                                        await markAsRead.mutateAsync(notification.id);
+                                        toast.success("Marcada como lida");
+                                      } catch (error) {
+                                        console.error('Error marking as read:', error);
+                                        toast.error("Erro ao marcar");
+                                      }
+                                    }}
+                                  >
+                                    <Check className="h-3.5 w-3.5 mr-1.5" />
+                                    Lida
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="left">
+                                  <p className="text-xs">Marcar esta notificação como lida</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             </TooltipProvider>
           ) : (
