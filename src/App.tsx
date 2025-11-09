@@ -31,6 +31,7 @@ import ClientGallery from "./pages/ClientGallery";
 import ContractSign from "./pages/ContractSign";
 import QuoteReview from "./pages/QuoteReview";
 import Notifications from "./pages/Notifications";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient();
 
@@ -44,15 +45,16 @@ function AppContent() {
       <SubscriptionBanner />
       <Onboarding />
       <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        {/* Public Routes */}
         <Route path="/gallery/:token" element={<ClientGallery />} />
         <Route path="/contract/sign/:token" element={<ContractSign />} />
         <Route path="/quote/review/:quoteId" element={<QuoteReview />} />
         
         {/* Protected Routes */}
-        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+        <Route path="/dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="clients" element={<Clients />} />
           <Route path="jobs" element={<Jobs />} />

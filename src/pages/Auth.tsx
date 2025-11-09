@@ -29,7 +29,7 @@ export default function Auth() {
     if (user) {
       // Não redirecionar se o usuário estiver na página de reset de senha
       if (window.location.pathname !== '/reset-password') {
-        navigate('/');
+        navigate('/dashboard');
       }
     }
   }, [user, navigate]);
@@ -50,7 +50,7 @@ export default function Auth() {
         title: 'Login realizado com sucesso!',
         description: 'Bem-vindo ao ArgomFotos'
       });
-      navigate('/');
+      navigate('/dashboard');
     }
     setIsLoading(false);
   };
