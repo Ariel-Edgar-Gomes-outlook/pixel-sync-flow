@@ -24,6 +24,7 @@ import Reports from "./pages/Reports";
 import Templates from "./pages/Templates";
 import Invoices from "./pages/Invoices";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import ClientGallery from "./pages/ClientGallery";
 import ContractSign from "./pages/ContractSign";
@@ -45,6 +46,7 @@ const App = () => (
               <Onboarding />
               <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               {/* Public Routes */}
               <Route path="/gallery/:token" element={<ClientGallery />} />
               <Route path="/contract/sign/:token" element={<ContractSign />} />
