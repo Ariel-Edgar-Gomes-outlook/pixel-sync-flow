@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,7 @@ interface TemplateManagerProps {
 }
 
 export function TemplateManager({ type }: TemplateManagerProps) {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -85,13 +87,9 @@ export function TemplateManager({ type }: TemplateManagerProps) {
   , [type, quoteTemplates.isLoading, checklistTemplates.isLoading, contractTemplates.isLoading]);
 
   const refetch = () => {
-    if (type === 'quote') {
-      quoteTemplates.refetch();
-    } else if (type === 'checklist') {
-      checklistTemplates.refetch();
-    } else {
-      contractTemplates.refetch();
-    }
+    queryClient.invalidateQueries({ queryKey: ['quote-templates'] });
+    queryClient.invalidateQueries({ queryKey: ['checklist-templates'] });
+    queryClient.invalidateQueries({ queryKey: ['contract-templates'] });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -151,41 +149,24 @@ export function TemplateManager({ type }: TemplateManagerProps) {
   };
 
   const handleDeleteClick = (template: any) => {
-    console.log('🖱️ Clique no delete', template);
     setTemplateToDelete({ id: template.id, name: template.name });
     setDeleteDialogOpen(true);
-    console.log('✅ Dialog aberto');
   };
 
   const handleDeleteConfirm = async () => {
-    console.log('🗑️ handleDeleteConfirm chamado', { templateToDelete, type });
-    if (!templateToDelete) {
-      console.log('❌ Sem template para deletar');
-      return;
-    }
+    if (!templateToDelete) return;
 
     try {
-      console.log('🔄 Iniciando delete...', templateToDelete.id);
       if (type === 'quote') {
-        console.log('📝 Deletando quote template');
         await deleteQuote.mutateAsync(templateToDelete.id);
       } else if (type === 'checklist') {
-        console.log('✅ Deletando checklist template');
         await deleteChecklist.mutateAsync(templateToDelete.id);
       } else {
-        console.log('📄 Deletando contract template');
         await deleteContract.mutateAsync(templateToDelete.id);
       }
-      console.log('✅ Delete concluído com sucesso');
-      // Force refetch after successful delete
-      setTimeout(() => {
-        console.log('🔄 Refetch após delete');
-        refetch();
-      }, 100);
     } catch (error) {
-      console.error('❌ Erro ao deletar template:', error);
+      console.error('Erro ao deletar template:', error);
     } finally {
-      console.log('🔚 Fechando diálogo');
       setDeleteDialogOpen(false);
       setTemplateToDelete(null);
     }
@@ -579,11 +560,7 @@ export function TemplateManager({ type }: TemplateManagerProps) {
             </AlertDialogCancel>
             <Button
               variant="destructive"
-              onClick={(e) => {
-                console.log('🔴 Botão Remover clicado', e);
-                e.preventDefault();
-                handleDeleteConfirm();
-              }}
+              onClick={handleDeleteConfirm}
               disabled={deleteQuote.isPending || deleteChecklist.isPending || deleteContract.isPending}
             >
               {(deleteQuote.isPending || deleteChecklist.isPending || deleteContract.isPending) ? (

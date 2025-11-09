@@ -121,13 +121,34 @@ export function useDeleteQuoteTemplate() {
         .eq('id', id);
 
       if (error) throw error;
+      return id;
+    },
+    onMutate: async (id) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['quote-templates'] });
+      
+      // Snapshot the previous value
+      const previousTemplates = queryClient.getQueryData(['quote-templates']);
+      
+      // Optimistically update
+      queryClient.setQueryData(['quote-templates'], (old: any) => 
+        old ? old.filter((t: any) => t.id !== id) : []
+      );
+      
+      return { previousTemplates };
+    },
+    onError: (err, id, context) => {
+      // Rollback on error
+      if (context?.previousTemplates) {
+        queryClient.setQueryData(['quote-templates'], context.previousTemplates);
+      }
+      toast.error('Erro ao remover template');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['quote-templates'] });
       toast.success('Template removido!');
     },
-    onError: () => {
-      toast.error('Erro ao remover template');
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['quote-templates'] });
     },
   });
 }
@@ -215,13 +236,27 @@ export function useDeleteChecklistTemplate() {
         .eq('id', id);
 
       if (error) throw error;
+      return id;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['checklist-templates'] });
+      const previousTemplates = queryClient.getQueryData(['checklist-templates']);
+      queryClient.setQueryData(['checklist-templates'], (old: any) => 
+        old ? old.filter((t: any) => t.id !== id) : []
+      );
+      return { previousTemplates };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousTemplates) {
+        queryClient.setQueryData(['checklist-templates'], context.previousTemplates);
+      }
+      toast.error('Erro ao remover template');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['checklist-templates'] });
       toast.success('Template removido!');
     },
-    onError: () => {
-      toast.error('Erro ao remover template');
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['checklist-templates'] });
     },
   });
 }
@@ -309,13 +344,27 @@ export function useDeleteContractTemplate() {
         .eq('id', id);
 
       if (error) throw error;
+      return id;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['contract-templates'] });
+      const previousTemplates = queryClient.getQueryData(['contract-templates']);
+      queryClient.setQueryData(['contract-templates'], (old: any) => 
+        old ? old.filter((t: any) => t.id !== id) : []
+      );
+      return { previousTemplates };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousTemplates) {
+        queryClient.setQueryData(['contract-templates'], context.previousTemplates);
+      }
+      toast.error('Erro ao remover template');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contract-templates'] });
       toast.success('Template removido!');
     },
-    onError: () => {
-      toast.error('Erro ao remover template');
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['contract-templates'] });
     },
   });
 }
