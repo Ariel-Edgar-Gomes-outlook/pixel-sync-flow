@@ -1,6 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import {
   Camera,
@@ -153,22 +159,29 @@ const Landing = () => {
 
       {/* Hero Section */}
       <section id="inicio" className="relative overflow-hidden py-20 md:py-32">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-secondary/10" />
+        {/* Animated gradient background */}
+        <div className="absolute inset-0 gradient-animate opacity-10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20" />
+        
+        {/* Floating orbs for visual interest */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl float-animation" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl float-animation" style={{ animationDelay: "3s" }} />
+        
         <div className="container relative px-4">
           <div className="mx-auto max-w-4xl text-center space-y-8">
-            <Badge variant="secondary" className="text-sm px-4 py-2">
+            <Badge variant="secondary" className="text-sm px-4 py-2 shimmer pulse-glow">
               🎉 Oferta de Lançamento - Poupa 47.5%
             </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground">
-              Gestão Profissional para o Teu Estúdio Fotográfico
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground">
+              Gestão <span className="text-gradient">Profissional</span> para o Teu Estúdio Fotográfico
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-              Organiza clientes, jobs, contratos e faturas num único lugar. Concentra-te no que fazes de melhor: fotografar!
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Organiza clientes, jobs, contratos e faturas num único lugar. Concentra-te no que fazes de melhor: <span className="text-primary font-semibold">fotografar!</span>
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
               <Button
                 size="lg"
-                className="text-lg px-8 py-6 shadow-xl hover-lift"
+                className="text-lg px-8 py-6 shadow-xl hover-lift pulse-glow gradient-primary border-0"
                 onClick={() => navigate("/auth?signup=true")}
               >
                 Experimentar Agora <ArrowRight className="ml-2 h-5 w-5" />
@@ -176,7 +189,7 @@ const Landing = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="text-lg px-8 py-6"
+                className="text-lg px-8 py-6 hover-scale border-2 hover:border-primary/50"
                 onClick={() => document.getElementById('funcionalidades')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Ver Funcionalidades
@@ -190,11 +203,17 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section id="funcionalidades" className="py-20 bg-muted/30">
-        <div className="container px-4">
+      <section id="funcionalidades" className="py-20 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+        
+        <div className="container px-4 relative">
           <div className="text-center space-y-4 mb-16">
+            <Badge variant="outline" className="text-sm px-4 py-2 mb-4">
+              💎 Funcionalidades Premium
+            </Badge>
             <h2 className="text-3xl md:text-5xl font-bold text-foreground">
-              Tudo o Que Precisas Num Só Lugar
+              Tudo o Que Precisas <span className="text-gradient">Num Só Lugar</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Funcionalidades completas pensadas especificamente para fotógrafos profissionais
@@ -203,13 +222,13 @@ const Landing = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {features.map((feature, index) => (
-              <Card key={index} className="border-2 hover:border-primary/50 transition-all duration-300 hover-lift">
+              <Card key={index} className="stagger-fade-in border-2 hover:border-primary/50 transition-all duration-500 hover-lift hover-scale gradient-border group">
                 <CardContent className="p-6 space-y-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                    <feature.icon className="h-6 w-6 text-primary" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 group-hover:from-primary/30 group-hover:to-accent/30 transition-all duration-300">
+                    <feature.icon className="h-7 w-7 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold text-foreground">{feature.title}</h3>
-                  <p className="text-muted-foreground">{feature.description}</p>
+                  <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">{feature.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -236,7 +255,7 @@ const Landing = () => {
           <div className="max-w-6xl mx-auto space-y-16">
             {/* Dashboard */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="space-y-4 order-2 md:order-1">
+              <div className="space-y-4 order-2 md:order-1 stagger-fade-in">
                 <Badge variant="outline" className="text-sm">Dashboard</Badge>
                 <h3 className="text-2xl md:text-3xl font-bold text-foreground">
                   Visão Geral do Teu Negócio
@@ -259,25 +278,25 @@ const Landing = () => {
                   </li>
                 </ul>
               </div>
-              <div className="order-1 md:order-2">
+              <div className="order-1 md:order-2 stagger-fade-in">
                 <img 
                   src={dashboardImg} 
                   alt="Dashboard do ArgomFotos mostrando gráficos e métricas" 
-                  className="rounded-lg shadow-2xl border-2 border-border hover:scale-105 transition-transform duration-300"
+                  className="rounded-lg shadow-2xl border-2 border-border hover-scale"
                 />
               </div>
             </div>
 
             {/* Clients */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
+              <div className="stagger-fade-in">
                 <img 
                   src={clientsImg} 
                   alt="Gestão de clientes no ArgomFotos" 
-                  className="rounded-lg shadow-2xl border-2 border-border hover:scale-105 transition-transform duration-300"
+                  className="rounded-lg shadow-2xl border-2 border-border hover-scale"
                 />
               </div>
-              <div className="space-y-4">
+              <div className="space-y-4 stagger-fade-in">
                 <Badge variant="outline" className="text-sm">Clientes</Badge>
                 <h3 className="text-2xl md:text-3xl font-bold text-foreground">
                   Gestão Completa de Clientes
@@ -304,7 +323,7 @@ const Landing = () => {
 
             {/* Calendar */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="space-y-4 order-2 md:order-1">
+              <div className="space-y-4 order-2 md:order-1 stagger-fade-in">
                 <Badge variant="outline" className="text-sm">Calendário</Badge>
                 <h3 className="text-2xl md:text-3xl font-bold text-foreground">
                   Agenda Todos os Teus Jobs
@@ -327,25 +346,25 @@ const Landing = () => {
                   </li>
                 </ul>
               </div>
-              <div className="order-1 md:order-2">
+              <div className="order-1 md:order-2 stagger-fade-in">
                 <img 
                   src={calendarImg} 
                   alt="Calendário de jobs fotográficos" 
-                  className="rounded-lg shadow-2xl border-2 border-border hover:scale-105 transition-transform duration-300"
+                  className="rounded-lg shadow-2xl border-2 border-border hover-scale"
                 />
               </div>
             </div>
 
             {/* Gallery */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
+              <div className="stagger-fade-in">
                 <img 
                   src={galleryImg} 
                   alt="Galeria privada para entrega de fotos" 
-                  className="rounded-lg shadow-2xl border-2 border-border hover:scale-105 transition-transform duration-300"
+                  className="rounded-lg shadow-2xl border-2 border-border hover-scale"
                 />
               </div>
-              <div className="space-y-4">
+              <div className="space-y-4 stagger-fade-in">
                 <Badge variant="outline" className="text-sm">Galerias</Badge>
                 <h3 className="text-2xl md:text-3xl font-bold text-foreground">
                   Entrega Profissional de Fotos
@@ -374,19 +393,25 @@ const Landing = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="precos" className="py-20">
-        <div className="container px-4">
+      <section id="precos" className="py-20 relative overflow-hidden">
+        <div className="absolute inset-0 gradient-animate opacity-5" />
+        
+        <div className="container px-4 relative">
           <div className="text-center space-y-4 mb-16">
+            <Badge variant="outline" className="text-sm px-4 py-2 mb-4 shimmer">
+              💰 Oferta Limitada
+            </Badge>
             <h2 className="text-3xl md:text-5xl font-bold text-foreground">
-              Preço Especial de Lançamento
+              Preço <span className="text-gradient">Especial de Lançamento</span>
             </h2>
             <p className="text-lg text-muted-foreground">
               Aproveita o desconto especial de lançamento e organiza o teu estúdio profissionalmente!
             </p>
           </div>
 
-          <Card className="max-w-2xl mx-auto border-4 border-primary shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-destructive text-destructive-foreground px-6 py-2 text-sm font-bold transform rotate-12 translate-x-8 translate-y-4">
+          <Card className="max-w-2xl mx-auto border-4 border-primary shadow-2xl relative overflow-hidden pulse-glow hover-scale">
+            <div className="absolute inset-0 gradient-animate opacity-5" />
+            <div className="absolute top-0 right-0 bg-gradient-to-br from-destructive to-destructive/80 text-destructive-foreground px-6 py-2 text-sm font-bold transform rotate-12 translate-x-8 translate-y-4 shimmer">
               POUPA 47.5%
             </div>
             <CardContent className="p-8 md:p-12 space-y-8">
@@ -425,10 +450,10 @@ const Landing = () => {
 
               <Button
                 size="lg"
-                className="w-full text-lg py-6 shadow-xl"
+                className="w-full text-lg py-6 shadow-xl pulse-glow gradient-primary border-0 hover-scale"
                 onClick={() => navigate("/auth?signup=true")}
               >
-                Começar Agora
+                Começar Agora <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
 
               <p className="text-center text-sm text-muted-foreground">
@@ -440,11 +465,16 @@ const Landing = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section id="depoimentos" className="py-20 bg-muted/30">
-        <div className="container px-4">
+      <section id="depoimentos" className="py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-background to-primary/5" />
+        
+        <div className="container px-4 relative">
           <div className="text-center space-y-4 mb-16">
+            <Badge variant="outline" className="text-sm px-4 py-2 mb-4">
+              ⭐ Depoimentos
+            </Badge>
             <h2 className="text-3xl md:text-5xl font-bold text-foreground">
-              O Que Dizem os Nossos Clientes
+              O Que Dizem os <span className="text-gradient">Nossos Clientes</span>
             </h2>
             <p className="text-lg text-muted-foreground">
               Fotógrafos profissionais que já transformaram os seus negócios
@@ -453,15 +483,15 @@ const Landing = () => {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-2 hover:border-primary/50 transition-all duration-300">
+              <Card key={index} className="stagger-fade-in border-2 hover:border-primary/50 transition-all duration-500 hover-lift hover-scale group">
                 <CardContent className="p-6 space-y-4">
                   <div className="flex gap-1">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-primary text-primary" />
+                      <Star key={i} className="h-5 w-5 fill-primary text-primary group-hover:scale-110 transition-transform" />
                     ))}
                   </div>
-                  <p className="text-foreground italic">"{testimonial.content}"</p>
-                  <div className="pt-4 border-t">
+                  <p className="text-foreground italic leading-relaxed">"{testimonial.content}"</p>
+                  <div className="pt-4 border-t border-border/50">
                     <p className="font-semibold text-foreground">{testimonial.name}</p>
                     <p className="text-sm text-muted-foreground">{testimonial.role}</p>
                   </div>
@@ -472,23 +502,130 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+      {/* FAQ Section */}
+      <section className="py-20 bg-gradient-to-br from-primary/5 via-background to-accent/5">
         <div className="container px-4">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
+          <div className="text-center space-y-4 mb-16">
+            <Badge variant="outline" className="text-sm px-4 py-2 mb-4">
+              ❓ Perguntas Frequentes
+            </Badge>
             <h2 className="text-3xl md:text-5xl font-bold text-foreground">
-              Pronto Para Profissionalizar o Teu Estúdio?
+              Dúvidas <span className="text-gradient">Sobre o ArgomFotos?</span>
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Encontra respostas para as questões mais comuns dos nossos utilizadores
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto">
+            <Accordion type="single" collapsible className="space-y-4">
+              <AccordionItem value="item-1" className="border-2 rounded-lg px-6 hover:border-primary/50 transition-colors">
+                <AccordionTrigger className="text-lg font-semibold hover:text-primary">
+                  O que está incluído no plano profissional?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">
+                  O plano profissional inclui acesso ilimitado a todas as funcionalidades: gestão de clientes e leads sem limites, 
+                  agendamento de jobs e projetos, emissão de faturas e orçamentos profissionais, galerias privadas para entrega 
+                  de fotos, gestão de equipa e equipamentos, contratos com assinatura digital, notificações automáticas, 
+                  relatórios financeiros completos e suporte por email.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-2" className="border-2 rounded-lg px-6 hover:border-primary/50 transition-colors">
+                <AccordionTrigger className="text-lg font-semibold hover:text-primary">
+                  Existe período de teste gratuito?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">
+                  Sim! Podes experimentar o ArgomFotos gratuitamente sem necessidade de cartão de crédito. 
+                  Terás acesso completo a todas as funcionalidades para testares e veres como o sistema pode transformar 
+                  a gestão do teu estúdio fotográfico.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-3" className="border-2 rounded-lg px-6 hover:border-primary/50 transition-colors">
+                <AccordionTrigger className="text-lg font-semibold hover:text-primary">
+                  Posso cancelar a qualquer momento?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">
+                  Sim, podes cancelar a tua subscrição a qualquer momento sem custos adicionais ou períodos de fidelização. 
+                  O ArgomFotos funciona com pagamento mensal flexível e sem compromissos de longo prazo.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-4" className="border-2 rounded-lg px-6 hover:border-primary/50 transition-colors">
+                <AccordionTrigger className="text-lg font-semibold hover:text-primary">
+                  Como funcionam as galerias privadas?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">
+                  Crias uma galeria para cada cliente/projeto e defines uma senha personalizada. O cliente acede através 
+                  de um link único e pode visualizar, selecionar e descarregar as suas fotos de forma segura. 
+                  A interface é elegante, responsiva e profissional, oferecendo uma excelente experiência de entrega.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-5" className="border-2 rounded-lg px-6 hover:border-primary/50 transition-colors">
+                <AccordionTrigger className="text-lg font-semibold hover:text-primary">
+                  O sistema funciona em dispositivos móveis?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">
+                  Sim! O ArgomFotos é totalmente responsivo e funciona perfeitamente em smartphones, tablets e computadores. 
+                  Podes gerir o teu estúdio de qualquer lugar, seja no escritório, em sessões fotográficas ou em movimento.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-6" className="border-2 rounded-lg px-6 hover:border-primary/50 transition-colors">
+                <AccordionTrigger className="text-lg font-semibold hover:text-primary">
+                  Quanto tempo demora para configurar?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">
+                  A configuração inicial é super rápida! Em cerca de 5 minutos consegues criar a tua conta, 
+                  adicionar as informações básicas do teu estúdio e começar a usar o sistema. O interface intuitivo 
+                  e o sistema de onboarding guiam-te pelos primeiros passos.
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-7" className="border-2 rounded-lg px-6 hover:border-primary/50 transition-colors">
+                <AccordionTrigger className="text-lg font-semibold hover:text-primary">
+                  Por quanto tempo é válida a oferta de lançamento?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">
+                  A oferta especial de lançamento com 47,5% de desconto (6.300 Kz/mês ao invés de 12.000 Kz/mês) 
+                  é por tempo limitado. Recomendamos que aproveites o preço promocional o quanto antes, 
+                  pois voltará ao valor normal após o período de lançamento.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 relative overflow-hidden">
+        <div className="absolute inset-0 gradient-animate opacity-10" />
+        <div className="absolute top-10 left-10 w-80 h-80 bg-primary/20 rounded-full blur-3xl float-animation" />
+        <div className="absolute bottom-10 right-10 w-80 h-80 bg-accent/20 rounded-full blur-3xl float-animation" style={{ animationDelay: "2s" }} />
+        
+        <div className="container px-4 relative">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <Badge variant="secondary" className="text-sm px-4 py-2 shimmer pulse-glow mb-4">
+              🚀 Começa Hoje
+            </Badge>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground">
+              Pronto Para <span className="text-gradient">Profissionalizar</span> o Teu Estúdio?
+            </h2>
+            <p className="text-xl text-muted-foreground leading-relaxed">
               Junta-te a centenas de fotógrafos que já estão a crescer com o ArgomFotos
             </p>
             <Button
               size="lg"
-              className="text-lg px-8 py-6 shadow-xl hover-lift"
+              className="text-lg px-8 py-6 shadow-xl hover-lift pulse-glow gradient-primary border-0 hover-scale"
               onClick={() => navigate("/auth?signup=true")}
             >
               Criar Conta Grátis <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
+            <p className="text-sm text-muted-foreground">
+              ✨ Sem cartão de crédito • Sem compromissos • Começa em 5 minutos
+            </p>
           </div>
         </div>
       </section>
