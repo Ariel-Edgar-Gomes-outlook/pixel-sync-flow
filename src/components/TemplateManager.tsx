@@ -79,6 +79,16 @@ export function TemplateManager({ type }: TemplateManagerProps) {
       ? checklistTemplates.isLoading
       : contractTemplates.isLoading;
 
+  const refetch = () => {
+    if (type === 'quote') {
+      quoteTemplates.refetch();
+    } else if (type === 'checklist') {
+      checklistTemplates.refetch();
+    } else {
+      contractTemplates.refetch();
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -135,15 +145,21 @@ export function TemplateManager({ type }: TemplateManagerProps) {
     }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Deseja realmente remover este template?')) return;
 
-    if (type === 'quote') {
-      deleteQuote.mutate(id);
-    } else if (type === 'checklist') {
-      deleteChecklist.mutate(id);
-    } else {
-      deleteContract.mutate(id);
+    try {
+      if (type === 'quote') {
+        await deleteQuote.mutateAsync(id);
+      } else if (type === 'checklist') {
+        await deleteChecklist.mutateAsync(id);
+      } else {
+        await deleteContract.mutateAsync(id);
+      }
+      // Force refetch after successful delete
+      setTimeout(() => refetch(), 100);
+    } catch (error) {
+      console.error('Erro ao deletar template:', error);
     }
   };
 
