@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,27 +17,32 @@ export default function ResetPassword() {
   const [isValidToken, setIsValidToken] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    // Verificar se há um token de recuperação válido
-    const checkRecoveryToken = async () => {
-      const type = searchParams.get('type');
+    // O Supabase processa o token automaticamente via hash (#) no URL
+    // Precisamos verificar se há uma sessão de recuperação ativa
+    const checkRecoverySession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (type === 'recovery') {
+      if (session) {
         setIsValidToken(true);
       } else {
         toast({
-          title: 'Link inválido',
-          description: 'Este link de recuperação é inválido ou expirou.',
+          title: 'Link inválido ou expirado',
+          description: 'Por favor, solicite um novo link de recuperação.',
           variant: 'destructive'
         });
         setTimeout(() => navigate('/auth'), 3000);
       }
     };
 
-    checkRecoveryToken();
-  }, [searchParams, navigate, toast]);
+    // Aguardar um momento para o Supabase processar o token do hash
+    const timer = setTimeout(() => {
+      checkRecoverySession();
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [navigate, toast]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();

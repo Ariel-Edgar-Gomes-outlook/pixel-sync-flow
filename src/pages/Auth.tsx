@@ -27,7 +27,10 @@ export default function Auth() {
   const navigate = useNavigate();
   useEffect(() => {
     if (user) {
-      navigate('/');
+      // Não redirecionar se o usuário estiver na página de reset de senha
+      if (window.location.pathname !== '/reset-password') {
+        navigate('/');
+      }
     }
   }, [user, navigate]);
   const handleSignIn = async (e: React.FormEvent) => {

@@ -29,6 +29,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Se o usuário está em processo de recuperação de senha, redirecionar para reset-password
+        if (event === 'PASSWORD_RECOVERY') {
+          navigate('/reset-password');
+        }
       }
     );
 
@@ -40,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
