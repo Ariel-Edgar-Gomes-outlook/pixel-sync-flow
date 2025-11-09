@@ -15,9 +15,6 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import '@fullcalendar/core/index.css';
-import '@fullcalendar/daygrid/index.css';
-import '@fullcalendar/timegrid/index.css';
 import './CalendarView.css';
 
 export default function CalendarView() {
