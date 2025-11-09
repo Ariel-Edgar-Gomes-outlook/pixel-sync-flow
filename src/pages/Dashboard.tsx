@@ -23,7 +23,7 @@ import { useActionableAlerts } from "@/hooks/useActionableAlerts";
 import { useQuotes } from "@/hooks/useQuotes";
 import { useContracts } from "@/hooks/useContracts";
 import { useInvoices } from "@/hooks/useInvoices";
-import { NotificationTestPanel } from "@/components/NotificationTestPanel";
+
 const statusColors = {
   confirmed: "success",
   pending: "warning",
@@ -181,9 +181,6 @@ export default function Dashboard() {
         <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-6">
           {/* Actionable Alerts */}
           <ActionableAlerts alerts={alerts} />
-
-          {/* Test Notifications Panel */}
-          <NotificationTestPanel />
 
           {/* Smart Notifications */}
           <SmartNotificationPanel />
