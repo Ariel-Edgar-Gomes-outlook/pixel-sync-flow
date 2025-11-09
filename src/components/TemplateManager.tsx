@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit, AlertTriangle } from 'lucide-react';
 import {
   useQuoteTemplates,
   useCreateQuoteTemplate,
@@ -29,6 +30,8 @@ interface TemplateManagerProps {
 export function TemplateManager({ type }: TemplateManagerProps) {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState<{ id: string; name: string } | null>(null);
   const [formData, setFormData] = useState<any>({
     name: '',
     job_type: 'Casamento',
@@ -145,21 +148,29 @@ export function TemplateManager({ type }: TemplateManagerProps) {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Deseja realmente remover este template?')) return;
+  const handleDeleteClick = (template: any) => {
+    setTemplateToDelete({ id: template.id, name: template.name });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!templateToDelete) return;
 
     try {
       if (type === 'quote') {
-        await deleteQuote.mutateAsync(id);
+        await deleteQuote.mutateAsync(templateToDelete.id);
       } else if (type === 'checklist') {
-        await deleteChecklist.mutateAsync(id);
+        await deleteChecklist.mutateAsync(templateToDelete.id);
       } else {
-        await deleteContract.mutateAsync(id);
+        await deleteContract.mutateAsync(templateToDelete.id);
       }
       // Force refetch after successful delete
       setTimeout(() => refetch(), 100);
     } catch (error) {
       console.error('Erro ao deletar template:', error);
+    } finally {
+      setDeleteDialogOpen(false);
+      setTemplateToDelete(null);
     }
   };
 
@@ -481,7 +492,12 @@ export function TemplateManager({ type }: TemplateManagerProps) {
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(template)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(template.id)} className="text-destructive">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleDeleteClick(template)} 
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -521,6 +537,34 @@ export function TemplateManager({ type }: TemplateManagerProps) {
           </CardContent>
         </Card>
       )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </div>
+              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="pt-3">
+              Tem certeza que deseja remover o template <span className="font-semibold text-foreground">"{templateToDelete?.name}"</span>?
+              <br />
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Remover Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
