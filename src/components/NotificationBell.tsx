@@ -166,8 +166,15 @@ export function NotificationBell() {
           <Bell className="h-6 w-6 sm:h-5 sm:w-5" />
           {unreadCount && unreadCount > 0 ? (
             <span 
-              className="absolute -top-1 -right-1 h-6 w-6 min-w-[1.5rem] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs font-black shadow-lg border-2 border-background"
-              style={{ fontSize: '0.75rem', lineHeight: '1' }}
+              className="absolute -top-2 -right-2 h-7 w-7 min-w-[1.75rem] flex items-center justify-center rounded-full shadow-2xl border-[3px]"
+              style={{ 
+                backgroundColor: '#ef4444',
+                color: '#ffffff',
+                borderColor: '#ffffff',
+                fontSize: '0.875rem',
+                fontWeight: '900',
+                lineHeight: '1'
+              }}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
