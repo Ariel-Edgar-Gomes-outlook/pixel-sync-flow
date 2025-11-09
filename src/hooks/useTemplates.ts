@@ -179,6 +179,31 @@ export function useCreateChecklistTemplate() {
   });
 }
 
+export function useUpdateChecklistTemplate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...template }: Partial<ChecklistTemplate> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('checklist_templates')
+        .update(template)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['checklist-templates'] });
+      toast.success('Template atualizado!');
+    },
+    onError: () => {
+      toast.error('Erro ao atualizar template');
+    },
+  });
+}
+
 export function useDeleteChecklistTemplate() {
   const queryClient = useQueryClient();
 
@@ -244,6 +269,31 @@ export function useCreateContractTemplate() {
     },
     onError: () => {
       toast.error('Erro ao criar template');
+    },
+  });
+}
+
+export function useUpdateContractTemplate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...template }: Partial<ContractTemplate> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('contract_templates')
+        .update(template)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contract-templates'] });
+      toast.success('Template atualizado!');
+    },
+    onError: () => {
+      toast.error('Erro ao atualizar template');
     },
   });
 }

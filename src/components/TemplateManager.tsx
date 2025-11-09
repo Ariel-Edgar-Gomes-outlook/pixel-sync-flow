@@ -10,12 +10,15 @@ import { Plus, Trash2, Edit } from 'lucide-react';
 import {
   useQuoteTemplates,
   useCreateQuoteTemplate,
+  useUpdateQuoteTemplate,
   useDeleteQuoteTemplate,
   useChecklistTemplates,
   useCreateChecklistTemplate,
+  useUpdateChecklistTemplate,
   useDeleteChecklistTemplate,
   useContractTemplates,
   useCreateContractTemplate,
+  useUpdateContractTemplate,
   useDeleteContractTemplate,
 } from '@/hooks/useTemplates';
 
@@ -25,6 +28,7 @@ interface TemplateManagerProps {
 
 export function TemplateManager({ type }: TemplateManagerProps) {
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({
     name: '',
     job_type: 'Casamento',
@@ -52,10 +56,13 @@ export function TemplateManager({ type }: TemplateManagerProps) {
   const contractTemplates = useContractTemplates();
 
   const createQuote = useCreateQuoteTemplate();
+  const updateQuote = useUpdateQuoteTemplate();
   const deleteQuote = useDeleteQuoteTemplate();
   const createChecklist = useCreateChecklistTemplate();
+  const updateChecklist = useUpdateChecklistTemplate();
   const deleteChecklist = useDeleteChecklistTemplate();
   const createContract = useCreateContractTemplate();
+  const updateContract = useUpdateContractTemplate();
   const deleteContract = useDeleteContractTemplate();
 
   const templates =
@@ -75,6 +82,11 @@ export function TemplateManager({ type }: TemplateManagerProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const onSuccess = () => {
+      setOpen(false);
+      resetForm();
+    };
+
     if (type === 'quote') {
       const quoteData = {
         name: formData.name,
@@ -85,12 +97,12 @@ export function TemplateManager({ type }: TemplateManagerProps) {
         currency: formData.currency,
         notes: formData.notes,
       };
-      createQuote.mutate(quoteData, {
-        onSuccess: () => {
-          setOpen(false);
-          resetForm();
-        },
-      });
+      
+      if (editingId) {
+        updateQuote.mutate({ id: editingId, ...quoteData }, { onSuccess });
+      } else {
+        createQuote.mutate(quoteData, { onSuccess });
+      }
     } else if (type === 'checklist') {
       const checklistData = {
         name: formData.name,
@@ -98,12 +110,12 @@ export function TemplateManager({ type }: TemplateManagerProps) {
         items: formData.items,
         estimated_time: formData.estimated_time,
       };
-      createChecklist.mutate(checklistData, {
-        onSuccess: () => {
-          setOpen(false);
-          resetForm();
-        },
-      });
+      
+      if (editingId) {
+        updateChecklist.mutate({ id: editingId, ...checklistData }, { onSuccess });
+      } else {
+        createChecklist.mutate(checklistData, { onSuccess });
+      }
     } else {
       const contractData = {
         name: formData.name,
@@ -114,12 +126,12 @@ export function TemplateManager({ type }: TemplateManagerProps) {
           job_type: formData.job_type,
         },
       };
-      createContract.mutate(contractData, {
-        onSuccess: () => {
-          setOpen(false);
-          resetForm();
-        },
-      });
+      
+      if (editingId) {
+        updateContract.mutate({ id: editingId, ...contractData }, { onSuccess });
+      } else {
+        createContract.mutate(contractData, { onSuccess });
+      }
     }
   };
 
@@ -135,7 +147,33 @@ export function TemplateManager({ type }: TemplateManagerProps) {
     }
   };
 
+  const handleEdit = (template: any) => {
+    setEditingId(template.id);
+    setFormData({
+      name: template.name,
+      job_type: template.job_type || template.clauses?.job_type || 'Casamento',
+      items: template.items || [],
+      terms_text: template.terms_text || '',
+      cancellation_fee: template.cancellation_fee || 0,
+      tax: template.tax || 14,
+      discount: template.discount || 0,
+      currency: template.currency || 'AOA',
+      notes: template.notes || '',
+      estimated_time: template.estimated_time || null,
+      clauses: template.clauses || {
+        usage_rights_text: '',
+        cancellation_policy_text: '',
+        late_delivery_clause: '',
+        copyright_notice: '',
+        reschedule_policy: '',
+        revision_policy: '',
+      },
+    });
+    setOpen(true);
+  };
+
   const resetForm = () => {
+    setEditingId(null);
     setFormData({
       name: '',
       job_type: 'Casamento',
@@ -166,7 +204,10 @@ export function TemplateManager({ type }: TemplateManagerProps) {
         <h3 className="text-lg font-semibold">
           {type === 'quote' ? 'Templates de Orçamentos' : type === 'checklist' ? 'Templates de Checklists' : 'Templates de Contratos'}
         </h3>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+          if (!isOpen) resetForm();
+        }}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
@@ -175,7 +216,7 @@ export function TemplateManager({ type }: TemplateManagerProps) {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Criar Template</DialogTitle>
+              <DialogTitle>{editingId ? 'Editar Template' : 'Criar Template'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -389,11 +430,18 @@ export function TemplateManager({ type }: TemplateManagerProps) {
               )}
 
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => {
+                  setOpen(false);
+                  resetForm();
+                }}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={createQuote.isPending || createChecklist.isPending || createContract.isPending}>
-                  Criar Template
+                <Button type="submit" disabled={
+                  createQuote.isPending || updateQuote.isPending || 
+                  createChecklist.isPending || updateChecklist.isPending || 
+                  createContract.isPending || updateContract.isPending
+                }>
+                  {editingId ? 'Atualizar Template' : 'Criar Template'}
                 </Button>
               </div>
             </form>
@@ -411,11 +459,16 @@ export function TemplateManager({ type }: TemplateManagerProps) {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-lg">{template.name}</CardTitle>
-                    <CardDescription>{template.job_type}</CardDescription>
+                    <CardDescription>{template.job_type || (template.clauses as any)?.job_type}</CardDescription>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(template.id)} className="text-destructive">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(template)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(template.id)} className="text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
