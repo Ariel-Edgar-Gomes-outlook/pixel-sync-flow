@@ -76,28 +76,42 @@ export function TemplateManager({ type }: TemplateManagerProps) {
     e.preventDefault();
 
     if (type === 'quote') {
-      createQuote.mutate(formData, {
+      const quoteData = {
+        name: formData.name,
+        job_type: formData.job_type,
+        items: formData.items,
+        tax: formData.tax,
+        discount: formData.discount,
+        currency: formData.currency,
+        notes: formData.notes,
+      };
+      createQuote.mutate(quoteData, {
         onSuccess: () => {
           setOpen(false);
           resetForm();
         },
       });
     } else if (type === 'checklist') {
-      createChecklist.mutate(formData, {
+      const checklistData = {
+        name: formData.name,
+        job_type: formData.job_type,
+        items: formData.items,
+        estimated_time: formData.estimated_time,
+      };
+      createChecklist.mutate(checklistData, {
         onSuccess: () => {
           setOpen(false);
           resetForm();
         },
       });
     } else {
-      // For contracts, include job_type in clauses
       const contractData = {
         name: formData.name,
         terms_text: formData.terms_text,
         cancellation_fee: formData.cancellation_fee,
         clauses: {
           ...formData.clauses,
-          job_type: formData.job_type, // Save job_type in clauses
+          job_type: formData.job_type,
         },
       };
       createContract.mutate(contractData, {
