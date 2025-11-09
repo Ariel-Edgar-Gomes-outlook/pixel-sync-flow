@@ -15,8 +15,13 @@ import {
   ArrowRight,
   Menu,
   X,
+  Monitor,
 } from "lucide-react";
 import { useState } from "react";
+import dashboardImg from "@/assets/dashboard-screenshot.jpg";
+import clientsImg from "@/assets/clients-screenshot.jpg";
+import calendarImg from "@/assets/calendar-screenshot.jpg";
+import galleryImg from "@/assets/gallery-screenshot.jpg";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -208,6 +213,162 @@ const Landing = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Screenshots Section */}
+      <section className="py-20 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+        <div className="container px-4">
+          <div className="text-center space-y-4 mb-16">
+            <Badge variant="secondary" className="text-sm px-4 py-2">
+              <Monitor className="h-4 w-4 mr-2 inline" />
+              Vê o Sistema em Ação
+            </Badge>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground">
+              Interface Moderna e Intuitiva
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Sistema completo pensado para facilitar o dia-a-dia dos fotógrafos profissionais
+            </p>
+          </div>
+
+          <div className="max-w-6xl mx-auto space-y-16">
+            {/* Dashboard */}
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="space-y-4 order-2 md:order-1">
+                <Badge variant="outline" className="text-sm">Dashboard</Badge>
+                <h3 className="text-2xl md:text-3xl font-bold text-foreground">
+                  Visão Geral do Teu Negócio
+                </h3>
+                <p className="text-muted-foreground text-lg">
+                  Acompanha receitas, jobs agendados e métricas importantes num dashboard completo e visual.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">Gráficos de receita em tempo real</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">Calendário de jobs próximos</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">Alertas de pagamentos pendentes</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="order-1 md:order-2">
+                <img 
+                  src={dashboardImg} 
+                  alt="Dashboard do ArgomFotos mostrando gráficos e métricas" 
+                  className="rounded-lg shadow-2xl border-2 border-border hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            </div>
+
+            {/* Clients */}
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <img 
+                  src={clientsImg} 
+                  alt="Gestão de clientes no ArgomFotos" 
+                  className="rounded-lg shadow-2xl border-2 border-border hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="space-y-4">
+                <Badge variant="outline" className="text-sm">Clientes</Badge>
+                <h3 className="text-2xl md:text-3xl font-bold text-foreground">
+                  Gestão Completa de Clientes
+                </h3>
+                <p className="text-muted-foreground text-lg">
+                  Organiza todos os teus clientes e leads com histórico completo de interações e projetos.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">Perfil detalhado de cada cliente</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">Histórico de projetos e pagamentos</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">Acompanhamento de leads</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Calendar */}
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="space-y-4 order-2 md:order-1">
+                <Badge variant="outline" className="text-sm">Calendário</Badge>
+                <h3 className="text-2xl md:text-3xl font-bold text-foreground">
+                  Agenda Todos os Teus Jobs
+                </h3>
+                <p className="text-muted-foreground text-lg">
+                  Calendário visual para agendar sessões fotográficas, casamentos e eventos.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">Vista mensal, semanal e diária</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">Sincronização com equipa</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">Lembretes automáticos</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="order-1 md:order-2">
+                <img 
+                  src={calendarImg} 
+                  alt="Calendário de jobs fotográficos" 
+                  className="rounded-lg shadow-2xl border-2 border-border hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            </div>
+
+            {/* Gallery */}
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <img 
+                  src={galleryImg} 
+                  alt="Galeria privada para entrega de fotos" 
+                  className="rounded-lg shadow-2xl border-2 border-border hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="space-y-4">
+                <Badge variant="outline" className="text-sm">Galerias</Badge>
+                <h3 className="text-2xl md:text-3xl font-bold text-foreground">
+                  Entrega Profissional de Fotos
+                </h3>
+                <p className="text-muted-foreground text-lg">
+                  Cria galerias privadas protegidas por senha para cada cliente descarregar as suas fotos.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">Proteção por senha personalizada</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">Download individual ou em lote</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">Interface elegante e responsiva</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </section>
