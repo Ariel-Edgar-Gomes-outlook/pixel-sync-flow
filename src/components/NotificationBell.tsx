@@ -167,7 +167,7 @@ export function NotificationBell() {
           {unreadCount && unreadCount > 0 ? (
             <Badge 
               variant="destructive" 
-              className="absolute -top-1 -right-1 h-6 w-6 sm:h-5 sm:w-5 flex items-center justify-center p-0 text-xs sm:text-[11px] font-bold shadow-lg ring-2 ring-background"
+              className="absolute -top-1.5 -right-1.5 h-7 w-7 min-w-[1.75rem] flex items-center justify-center p-0 text-sm font-extrabold shadow-xl ring-2 ring-background text-white"
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </Badge>
