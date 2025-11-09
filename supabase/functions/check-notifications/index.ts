@@ -255,39 +255,14 @@ Deno.serve(async (req) => {
     }
 
     console.log(`✅ Created ${createdCount} notifications`);
-
-    // Get user profile to send email notifications
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('email, name')
-      .eq('user_id', user.id)
-      .single();
-
-    // Send email for each notification created
-    if (profile && notificationsToCreate.length > 0) {
-      console.log(`📧 Sending ${notificationsToCreate.length} email notifications to ${profile.email}`);
-      
-      // Send emails in parallel but don't wait for them (fire and forget)
-      for (const notification of notificationsToCreate) {
-        supabase.functions.invoke('send-notification-email', {
-          body: {
-            recipientEmail: profile.email,
-            recipientName: profile.name,
-            notificationType: notification.type,
-            payload: notification.payload
-          }
-        }).catch(err => {
-          console.error('⚠️ Failed to send email notification:', err);
-        });
-      }
-    }
+    
+    // Note: Email notifications are sent automatically via database trigger
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         created: createdCount,
-        checked: notificationsToCreate.length,
-        emailsSent: notificationsToCreate.length
+        checked: notificationsToCreate.length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
