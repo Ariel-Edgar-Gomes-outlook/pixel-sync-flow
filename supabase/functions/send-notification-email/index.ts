@@ -153,60 +153,106 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('RESEND_API_KEY not configured');
     }
 
-    const resendResponse = await fetch('https://api.resend.com/emails', {
+    const VERIFIED_EMAIL = 'oficialargomtech@gmail.com'; // Email verificado no Resend
+    let targetEmail = recipientEmail;
+    let isTestMode = false;
+
+    const emailBody = {
+      from: "Sistema de Gestão <onboarding@resend.dev>",
+      to: [targetEmail],
+      subject: subject,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            h1 {
+              color: #2563eb;
+              border-bottom: 2px solid #2563eb;
+              padding-bottom: 10px;
+            }
+            h2 {
+              color: #1e40af;
+            }
+            .test-mode-banner {
+              background: #fef3c7;
+              border: 2px solid #f59e0b;
+              border-radius: 8px;
+              padding: 15px;
+              margin-bottom: 20px;
+              color: #92400e;
+            }
+            .footer {
+              margin-top: 30px;
+              padding-top: 20px;
+              border-top: 1px solid #e5e7eb;
+              font-size: 12px;
+              color: #6b7280;
+              text-align: center;
+            }
+          </style>
+        </head>
+        <body>
+          ${html(payload)}
+          <div class="footer">
+            <p>Esta é uma notificação automática do seu sistema de gestão.</p>
+            <p>Por favor, não responda a este email.</p>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    // Try sending to the actual recipient first
+    let resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: "Sistema de Gestão <onboarding@resend.dev>",
-        to: [recipientEmail],
-        subject: subject,
-        html: `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-              body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-              }
-              h1 {
-                color: #2563eb;
-                border-bottom: 2px solid #2563eb;
-                padding-bottom: 10px;
-              }
-              h2 {
-                color: #1e40af;
-              }
-              .footer {
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid #e5e7eb;
-                font-size: 12px;
-                color: #6b7280;
-                text-align: center;
-              }
-            </style>
-          </head>
-          <body>
-            ${html(payload)}
-            <div class="footer">
-              <p>Esta é uma notificação automática do seu sistema de gestão.</p>
-              <p>Por favor, não responda a este email.</p>
-            </div>
-          </body>
-          </html>
-        `,
-      }),
+      body: JSON.stringify(emailBody),
     });
+
+    // If failed with 403 (test mode), retry with verified email
+    if (!resendResponse.ok && resendResponse.status === 403) {
+      console.log(`⚠️ Resend test mode detected. Redirecting email to verified address: ${VERIFIED_EMAIL}`);
+      console.log(`📧 Original recipient: ${recipientEmail}`);
+      
+      isTestMode = true;
+      targetEmail = VERIFIED_EMAIL;
+
+      // Add test mode banner to email
+      emailBody.to = [VERIFIED_EMAIL];
+      emailBody.html = emailBody.html.replace(
+        '<body>',
+        `<body>
+          <div class="test-mode-banner">
+            <strong>⚠️ MODO DE TESTE DO RESEND</strong><br>
+            Este email seria enviado para: <strong>${recipientEmail}</strong> (${recipientName || 'Destinatário'})<br>
+            <small>Para enviar para todos os destinatários, verifique um domínio em <a href="https://resend.com/domains">resend.com/domains</a></small>
+          </div>`
+      );
+
+      // Retry with verified email
+      resendResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emailBody),
+      });
+    }
 
     if (!resendResponse.ok) {
       const errorText = await resendResponse.text();
@@ -215,11 +261,18 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailData = await resendResponse.json();
-    console.log("✅ Email sent successfully:", emailData);
+    console.log(`✅ Email sent successfully to ${targetEmail}:`, emailData);
+    
+    if (isTestMode) {
+      console.log(`📝 Note: Email redirected due to Resend test mode. Original recipient was ${recipientEmail}`);
+    }
 
     return new Response(JSON.stringify({ 
       success: true,
-      emailId: emailData.id 
+      emailId: emailData.id,
+      testMode: isTestMode,
+      targetEmail: targetEmail,
+      originalRecipient: recipientEmail
     }), {
       status: 200,
       headers: {

@@ -49,7 +49,7 @@ export function NotificationTestPanel() {
         console.log('✅ Verificação concluída:', data);
         setLastCheck({
           success: true,
-          message: `${data.created || 0} notificações criadas, ${data.emailsSent || 0} emails enviados`,
+          message: `${data.created || 0} notificações criadas`,
           timestamp: new Date(),
         });
         toast.success('Verificação concluída!', {
@@ -116,9 +116,21 @@ export function NotificationTestPanel() {
         });
       } else {
         console.log('✅ Email enviado:', data);
+        const isTestMode = data?.testMode;
+        const targetEmail = data?.targetEmail || profile.email;
+        
         toast.success('Email de teste enviado!', {
-          description: `Verifique ${profile.email}`,
+          description: isTestMode 
+            ? `⚠️ Modo de teste: Email enviado para ${targetEmail}. Configure um domínio no Resend para produção.`
+            : `Verifique ${targetEmail}`,
         });
+        
+        if (isTestMode) {
+          toast.warning('Resend em Modo de Teste', {
+            description: 'Verifique um domínio em resend.com/domains para enviar emails para todos os utilizadores.',
+            duration: 8000,
+          });
+        }
       }
     } catch (error: any) {
       console.error('❌ Erro:', error);
