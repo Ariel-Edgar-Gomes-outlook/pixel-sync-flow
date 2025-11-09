@@ -81,25 +81,6 @@ export default function Layout() {
   useNotificationAutomation();
   usePaymentReminders();
   useWorkflowAutomation();
-
-  // Handle Google Calendar OAuth callback
-  useEffect(() => {
-    const connected = searchParams.get('connected');
-    const error = searchParams.get('error');
-    if (connected === 'true') {
-      toast.success('Google Calendar conectado com sucesso!');
-      searchParams.delete('connected');
-      setSearchParams(searchParams, {
-        replace: true
-      });
-    } else if (error === 'connection_failed') {
-      toast.error('Erro ao conectar ao Google Calendar. Tente novamente.');
-      searchParams.delete('error');
-      setSearchParams(searchParams, {
-        replace: true
-      });
-    }
-  }, [searchParams, setSearchParams]);
   return <div className="min-h-screen bg-background">
       {/* Mobile sidebar */}
       <div className={cn("fixed inset-0 z-50 lg:hidden", sidebarOpen ? "block" : "hidden")}>

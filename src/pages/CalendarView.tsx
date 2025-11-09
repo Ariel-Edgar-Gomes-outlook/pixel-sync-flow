@@ -3,13 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Plus, AlertTriangle, Users, Package, Check } from "lucide-react";
+import { Calendar, Plus, AlertTriangle, Users, Package } from "lucide-react";
 import { useJobs, useUpdateJob } from "@/hooks/useJobs";
 import { useState, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { JobDialog } from "@/components/JobDialog";
-import { GoogleCalendarIntegration } from "@/components/GoogleCalendarIntegration";
 import { toast } from "sonner";
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -17,7 +15,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+
 export default function CalendarView() {
   const {
     data: jobs,
@@ -25,16 +23,12 @@ export default function CalendarView() {
   } = useJobs();
   const updateJob = useUpdateJob();
   const isMobile = useIsMobile();
-  const {
-    user
-  } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isJobDialogOpen, setIsJobDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [showJobSheet, setShowJobSheet] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
-  const [showGoogleDialog, setShowGoogleDialog] = useState(false);
   const [mobileView, setMobileView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'>('dayGridMonth');
 
   // Fetch resources to check conflicts
@@ -65,22 +59,6 @@ export default function CalendarView() {
     }
   });
 
-  // Check Google Calendar integration status
-  const {
-    data: googleIntegration
-  } = useQuery({
-    queryKey: ['calendar_integration', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const {
-        data,
-        error
-      } = await supabase.from('calendar_integrations').select('*').eq('user_id', user.id).eq('provider', 'google').eq('is_active', true).maybeSingle();
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
-    },
-    enabled: !!user?.id
-  });
 
   // Check for conflicts
   const checkConflicts = (jobId: string, start: Date, end: Date) => {
@@ -198,13 +176,6 @@ export default function CalendarView() {
         }} className="gap-2 flex-1 sm:flex-none" size={isMobile ? "sm" : "default"}>
             <Plus className="h-4 w-4" />
             {!isMobile && "Novo Job"}
-          </Button>
-          <Button variant={googleIntegration ? "default" : "outline"} className="gap-2 flex-1 sm:flex-none relative" size={isMobile ? "sm" : "default"} onClick={() => setShowGoogleDialog(true)}>
-            {googleIntegration && <Badge variant="default" className="absolute -top-1 -right-1 h-5 w-5 p-0 bg-green-500 hover:bg-green-600">
-                <Check className="h-3 w-3" />
-              </Badge>}
-            <Calendar className="h-4 w-4" />
-            {!isMobile && (googleIntegration ? "Google Calendar" : "Conectar Google")}
           </Button>
         </div>
       </div>
@@ -348,20 +319,5 @@ export default function CalendarView() {
       </Sheet>
 
       <JobDialog open={isJobDialogOpen} onOpenChange={setIsJobDialogOpen} initialDate={selectedDate} />
-
-      {/* Google Calendar Integration Dialog */}
-      <Dialog open={showGoogleDialog} onOpenChange={setShowGoogleDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Integração com Google Calendar</DialogTitle>
-            <DialogDescription>
-              Sincronize seus jobs automaticamente com o Google Calendar
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-4">
-            {user?.id && <GoogleCalendarIntegration userId={user.id} />}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>;
 }

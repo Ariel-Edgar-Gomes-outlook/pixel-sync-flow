@@ -12,7 +12,6 @@ import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useUserPreferences, useUpdateUserPreferences } from "@/hooks/useUserPreferences";
 import { Settings as SettingsIcon, User, Bell, Shield, Activity, Moon, Sun, Building2, Globe } from "lucide-react";
 import { AuditLogViewer } from "@/components/AuditLogViewer";
-import { GoogleCalendarIntegration } from "@/components/GoogleCalendarIntegration";
 import { NotificationSettings } from "@/components/NotificationSettings";
 import { BrowserNotificationToggle } from "@/components/BrowserNotificationToggle";
 import { BusinessSettingsForm } from "@/components/BusinessSettingsForm";
@@ -107,13 +106,12 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="flex flex-wrap sm:grid sm:grid-cols-7 w-full h-auto gap-1 p-1">
+        <TabsList className="flex flex-wrap sm:grid sm:grid-cols-6 w-full h-auto gap-1 p-1">
           <TabsTrigger value="profile" className="flex-1 min-w-[calc(33.333%-0.25rem)] sm:min-w-0">Perfil</TabsTrigger>
           <TabsTrigger value="business" className="flex-1 min-w-[calc(33.333%-0.25rem)] sm:min-w-0">Empresa</TabsTrigger>
           <TabsTrigger value="notifications" className="flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-0">Notificações</TabsTrigger>
           <TabsTrigger value="security" className="flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-0">Segurança</TabsTrigger>
           <TabsTrigger value="preferences" className="flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-0">Preferências</TabsTrigger>
-          <TabsTrigger value="integrations" className="flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-0">Integrações</TabsTrigger>
           <TabsTrigger value="audit" className="flex-1 min-w-[calc(33.333%-0.25rem)] sm:min-w-0">Auditoria</TabsTrigger>
         </TabsList>
 
@@ -327,10 +325,6 @@ export default function Settings() {
           </div>
             </Card>
           </div>
-        </TabsContent>
-
-        <TabsContent value="integrations" className="mt-4 sm:mt-6">
-          {user && <GoogleCalendarIntegration userId={user.id} />}
         </TabsContent>
 
         <TabsContent value="audit" className="mt-4 sm:mt-6">
