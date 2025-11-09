@@ -71,6 +71,8 @@ Deno.serve(async (req) => {
       entityId: string,
       entityIdKey: string
     ): Promise<boolean> {
+      if (!user) return false; // Safety check
+      
       const cooldownHours = COOLDOWN_PERIODS[type] || 24;
       const cooldownDate = new Date(now.getTime() - cooldownHours * 60 * 60 * 1000);
 
@@ -254,16 +256,43 @@ Deno.serve(async (req) => {
 
     console.log(`✅ Created ${createdCount} notifications`);
 
+    // Get user profile to send email notifications
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('email, name')
+      .eq('user_id', user.id)
+      .single();
+
+    // Send email for each notification created
+    if (profile && notificationsToCreate.length > 0) {
+      console.log(`📧 Sending ${notificationsToCreate.length} email notifications to ${profile.email}`);
+      
+      // Send emails in parallel but don't wait for them (fire and forget)
+      for (const notification of notificationsToCreate) {
+        supabase.functions.invoke('send-notification-email', {
+          body: {
+            recipientEmail: profile.email,
+            recipientName: profile.name,
+            notificationType: notification.type,
+            payload: notification.payload
+          }
+        }).catch(err => {
+          console.error('⚠️ Failed to send email notification:', err);
+        });
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         created: createdCount,
-        checked: notificationsToCreate.length 
+        checked: notificationsToCreate.length,
+        emailsSent: notificationsToCreate.length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in check-notifications:', error);
     return new Response(
       JSON.stringify({ error: error.message }),

@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.clean-old-notifications]
 verify_jwt = false
+
+[functions.send-notification-email]
+verify_jwt = true
+
+[functions.check-notifications]
+verify_jwt = true
