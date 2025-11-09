@@ -162,27 +162,24 @@ export function NotificationBell() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <div className="relative">
-          <Button variant="ghost" size="icon" className="hover:bg-accent min-h-[44px] min-w-[44px]">
-            <Bell className="h-6 w-6 sm:h-5 sm:w-5" />
-          </Button>
+        <Button variant="ghost" size="icon" className="relative hover:bg-accent min-h-[44px] min-w-[44px]">
+          <Bell className="h-6 w-6 sm:h-5 sm:w-5" />
           {unreadCount && unreadCount > 0 ? (
-            <div 
-              className="absolute top-0 right-0 h-8 w-8 min-w-[2rem] flex items-center justify-center rounded-full pointer-events-none"
+            <span 
+              className="absolute top-0.5 right-0.5 h-5 w-5 min-w-[1.25rem] flex items-center justify-center rounded-full animate-pulse"
               style={{ 
-                backgroundColor: '#dc2626',
+                backgroundColor: '#ef4444',
                 color: '#ffffff',
-                border: '3px solid #ffffff',
-                fontSize: '1rem',
-                fontWeight: '900',
+                fontSize: '0.625rem',
+                fontWeight: '700',
                 lineHeight: '1',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
+                boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)'
               }}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
-            </div>
+            </span>
           ) : null}
-        </div>
+        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0" align="end">
         {/* Header */}
