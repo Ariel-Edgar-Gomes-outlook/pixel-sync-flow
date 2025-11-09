@@ -165,12 +165,12 @@ export function NotificationBell() {
         <Button variant="ghost" size="icon" className="relative hover:bg-accent min-h-[44px] min-w-[44px]">
           <Bell className="h-6 w-6 sm:h-5 sm:w-5" />
           {unreadCount && unreadCount > 0 ? (
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1.5 -right-1.5 h-7 w-7 min-w-[1.75rem] flex items-center justify-center p-0 text-sm font-extrabold shadow-xl ring-2 ring-background text-white"
+            <span 
+              className="absolute -top-1 -right-1 h-6 w-6 min-w-[1.5rem] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs font-black shadow-lg border-2 border-background"
+              style={{ fontSize: '0.75rem', lineHeight: '1' }}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
-            </Badge>
+            </span>
           ) : null}
         </Button>
       </PopoverTrigger>
