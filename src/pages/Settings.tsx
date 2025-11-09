@@ -107,17 +107,15 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-          <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-7 gap-1">
-            <TabsTrigger value="profile" className="whitespace-nowrap">Perfil</TabsTrigger>
-            <TabsTrigger value="business" className="whitespace-nowrap">Empresa</TabsTrigger>
-            <TabsTrigger value="notifications" className="whitespace-nowrap">Notificações</TabsTrigger>
-            <TabsTrigger value="security" className="whitespace-nowrap">Segurança</TabsTrigger>
-            <TabsTrigger value="preferences" className="whitespace-nowrap">Preferências</TabsTrigger>
-            <TabsTrigger value="integrations" className="whitespace-nowrap">Integrações</TabsTrigger>
-            <TabsTrigger value="audit" className="whitespace-nowrap">Auditoria</TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList className="flex flex-wrap sm:grid sm:grid-cols-7 w-full h-auto gap-1 p-1">
+          <TabsTrigger value="profile" className="flex-1 min-w-[calc(33.333%-0.25rem)] sm:min-w-0">Perfil</TabsTrigger>
+          <TabsTrigger value="business" className="flex-1 min-w-[calc(33.333%-0.25rem)] sm:min-w-0">Empresa</TabsTrigger>
+          <TabsTrigger value="notifications" className="flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-0">Notificações</TabsTrigger>
+          <TabsTrigger value="security" className="flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-0">Segurança</TabsTrigger>
+          <TabsTrigger value="preferences" className="flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-0">Preferências</TabsTrigger>
+          <TabsTrigger value="integrations" className="flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-0">Integrações</TabsTrigger>
+          <TabsTrigger value="audit" className="flex-1 min-w-[calc(33.333%-0.25rem)] sm:min-w-0">Auditoria</TabsTrigger>
+        </TabsList>
 
         <TabsContent value="profile" className="mt-4 sm:mt-6">
           <div className="grid gap-4 sm:gap-6">
