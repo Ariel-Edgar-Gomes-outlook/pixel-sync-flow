@@ -554,14 +554,26 @@ export function TemplateManager({ type }: TemplateManagerProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
+            <AlertDialogCancel onClick={() => {
+              setDeleteDialogOpen(false);
+              setTemplateToDelete(null);
+            }}>
+              Cancelar
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
               onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteQuote.isPending || deleteChecklist.isPending || deleteContract.isPending}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Remover Template
-            </AlertDialogAction>
+              {(deleteQuote.isPending || deleteChecklist.isPending || deleteContract.isPending) ? (
+                <>Removendo...</>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Remover Template
+                </>
+              )}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
