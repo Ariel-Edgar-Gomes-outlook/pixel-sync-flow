@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotificationSettings, useUpdateNotificationSettings } from "@/hooks/useNotificationSettings";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NotificationTestPanel } from "@/components/NotificationTestPanel";
 
 export function NotificationSettings() {
   const { user } = useAuth();
@@ -232,9 +233,13 @@ export function NotificationSettings() {
 
       <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-primary/5 rounded-lg border border-primary/20">
         <p className="text-xs sm:text-sm text-muted-foreground">
-          💡 <span className="font-medium">Dica:</span> As notificações são verificadas automaticamente a cada hora. 
-          Você receberá alertas apenas uma vez por evento.
+          💡 <span className="font-medium">Dica:</span> As notificações são verificadas automaticamente a cada 3 horas. 
+          Você receberá alertas no sistema e por email.
         </p>
+      </div>
+
+      <div className="mt-4 sm:mt-6">
+        <NotificationTestPanel />
       </div>
     </Card>
   );
