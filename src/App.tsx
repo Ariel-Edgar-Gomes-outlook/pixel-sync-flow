@@ -10,6 +10,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import { Onboarding } from "./components/Onboarding";
 import { SubscriptionBanner } from "./components/SubscriptionBanner";
+import { useRealtimePushNotifications } from "./hooks/useRealtimePushNotifications";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import Jobs from "./pages/Jobs";
@@ -33,6 +34,46 @@ import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
+// Componente interno para usar os hooks dentro dos providers
+function AppContent() {
+  // Hook que escuta notificações em tempo real e mostra notificações push
+  useRealtimePushNotifications();
+
+  return (
+    <>
+      <SubscriptionBanner />
+      <Onboarding />
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        {/* Public Routes */}
+        <Route path="/gallery/:token" element={<ClientGallery />} />
+        <Route path="/contract/sign/:token" element={<ContractSign />} />
+        <Route path="/quote/review/:quoteId" element={<QuoteReview />} />
+        
+        {/* Protected Routes */}
+        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route index element={<Dashboard />} />
+          <Route path="clients" element={<Clients />} />
+          <Route path="jobs" element={<Jobs />} />
+          <Route path="calendar" element={<CalendarView />} />
+          <Route path="leads" element={<Leads />} />
+          <Route path="quotes" element={<Quotes />} />
+          <Route path="invoices" element={<Invoices />} />
+          <Route path="payments" element={<Payments />} />
+          <Route path="resources" element={<Resources />} />
+          <Route path="contracts" element={<Contracts />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="templates" element={<Templates />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
@@ -42,35 +83,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <SubscriptionProvider>
-              <SubscriptionBanner />
-              <Onboarding />
-              <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              {/* Public Routes */}
-              <Route path="/gallery/:token" element={<ClientGallery />} />
-              <Route path="/contract/sign/:token" element={<ContractSign />} />
-              <Route path="/quote/review/:quoteId" element={<QuoteReview />} />
-              
-              {/* Protected Routes */}
-              <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-                <Route index element={<Dashboard />} />
-                <Route path="clients" element={<Clients />} />
-                <Route path="jobs" element={<Jobs />} />
-                <Route path="calendar" element={<CalendarView />} />
-                <Route path="leads" element={<Leads />} />
-                <Route path="quotes" element={<Quotes />} />
-                <Route path="invoices" element={<Invoices />} />
-                <Route path="payments" element={<Payments />} />
-                <Route path="resources" element={<Resources />} />
-                <Route path="contracts" element={<Contracts />} />
-                <Route path="reports" element={<Reports />} />
-                <Route path="templates" element={<Templates />} />
-                <Route path="notifications" element={<Notifications />} />
-                <Route path="settings" element={<Settings />} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+              <AppContent />
             </SubscriptionProvider>
           </AuthProvider>
         </BrowserRouter>

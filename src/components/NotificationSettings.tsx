@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotificationSettings, useUpdateNotificationSettings } from "@/hooks/useNotificationSettings";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 
 
 export function NotificationSettings() {
@@ -80,6 +81,13 @@ export function NotificationSettings() {
           <p className="text-sm text-muted-foreground">Configure quando você deseja receber alertas</p>
         </div>
       </div>
+
+      {/* Push Notifications Toggle */}
+      <div className="mb-6">
+        <PushNotificationToggle />
+      </div>
+
+      <Separator className="my-6" />
 
       <div className="space-y-4 sm:space-y-6">
         {/* Job Reminders */}
