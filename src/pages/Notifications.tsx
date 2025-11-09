@@ -11,7 +11,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from "@/hooks/useNotifications";
 import { cn } from "@/lib/utils";
-import { NotificationTestPanel } from "@/components/NotificationTestPanel";
 
 // Helper functions
 const getNotificationTitle = (notification: any) => {
@@ -207,9 +206,6 @@ export default function Notifications() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Test Panel */}
-      <NotificationTestPanel />
 
       {/* Filters */}
       <Card>
