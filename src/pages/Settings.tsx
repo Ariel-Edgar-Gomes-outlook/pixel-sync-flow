@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useUserPreferences, useUpdateUserPreferences } from "@/hooks/useUserPreferences";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Settings as SettingsIcon, User, Bell, Shield, Activity, Moon, Sun, Building2, Globe } from "lucide-react";
 import { AuditLogViewer } from "@/components/AuditLogViewer";
 import { NotificationSettings } from "@/components/NotificationSettings";
@@ -26,6 +27,8 @@ export default function Settings() {
   const { data: preferences } = useUserPreferences(user?.id);
   const updatePreferences = useUpdateUserPreferences();
   const { theme, setTheme } = useTheme();
+  const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState("profile");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -98,6 +101,15 @@ export default function Settings() {
     return <div className="space-y-6">Carregando...</div>;
   }
 
+  const tabs = [
+    { value: "profile", label: "Perfil", icon: User },
+    { value: "business", label: "Empresa", icon: Building2 },
+    { value: "notifications", label: "Notificações", icon: Bell },
+    { value: "security", label: "Segurança", icon: Shield },
+    { value: "preferences", label: "Preferências", icon: SettingsIcon },
+    { value: "audit", label: "Auditoria", icon: Activity },
+  ];
+
   return (
     <div className="space-y-4 sm:space-y-6 pb-6">
       <div className="px-1">
@@ -105,15 +117,42 @@ export default function Settings() {
         <p className="text-sm sm:text-base text-muted-foreground mt-1">Gerir preferências e conta</p>
       </div>
 
-      <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="flex flex-wrap sm:grid sm:grid-cols-6 w-full h-auto gap-1 p-1">
-          <TabsTrigger value="profile" className="flex-1 min-w-[calc(33.333%-0.25rem)] sm:min-w-0">Perfil</TabsTrigger>
-          <TabsTrigger value="business" className="flex-1 min-w-[calc(33.333%-0.25rem)] sm:min-w-0">Empresa</TabsTrigger>
-          <TabsTrigger value="notifications" className="flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-0">Notificações</TabsTrigger>
-          <TabsTrigger value="security" className="flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-0">Segurança</TabsTrigger>
-          <TabsTrigger value="preferences" className="flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-0">Preferências</TabsTrigger>
-          <TabsTrigger value="audit" className="flex-1 min-w-[calc(33.333%-0.25rem)] sm:min-w-0">Auditoria</TabsTrigger>
-        </TabsList>
+      {isMobile ? (
+        <div className="space-y-4">
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="w-full">
+              <SelectValue>
+                {tabs.find(t => t.value === activeTab)?.label}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {tabs.map(tab => {
+                const Icon = tab.icon;
+                return (
+                  <SelectItem key={tab.value} value={tab.value}>
+                    <div className="flex items-center gap-2">
+                      <Icon className="h-4 w-4" />
+                      {tab.label}
+                    </div>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
+      ) : null}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {!isMobile && (
+          <TabsList className="grid grid-cols-6 w-full">
+            <TabsTrigger value="profile">Perfil</TabsTrigger>
+            <TabsTrigger value="business">Empresa</TabsTrigger>
+            <TabsTrigger value="notifications">Notificações</TabsTrigger>
+            <TabsTrigger value="security">Segurança</TabsTrigger>
+            <TabsTrigger value="preferences">Preferências</TabsTrigger>
+            <TabsTrigger value="audit">Auditoria</TabsTrigger>
+          </TabsList>
+        )}
 
         <TabsContent value="profile" className="mt-4 sm:mt-6">
           <div className="grid gap-4 sm:gap-6">
