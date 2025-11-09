@@ -88,10 +88,10 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden w-full">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <nav className="container flex h-16 items-center justify-between px-4">
+        <nav className="container flex h-16 items-center justify-between px-4 mx-auto max-w-7xl">
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg">
               <Camera className="h-6 w-6 text-primary-foreground" />
@@ -132,8 +132,8 @@ const Landing = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t bg-background">
-            <div className="container px-4 py-4 flex flex-col gap-4">
+          <div className="md:hidden border-t bg-background w-full overflow-hidden">
+            <div className="container px-4 py-4 flex flex-col gap-4 mx-auto max-w-7xl">
               <a href="#inicio" className="text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
                 Início
               </a>
@@ -158,16 +158,16 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section id="inicio" className="relative overflow-hidden py-20 md:py-32">
+      <section id="inicio" className="relative py-20 md:py-32 overflow-hidden">
         {/* Animated gradient background */}
         <div className="absolute inset-0 gradient-animate opacity-10" />
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20" />
         
-        {/* Floating orbs for visual interest */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl float-animation" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl float-animation" style={{ animationDelay: "3s" }} />
+        {/* Floating orbs for visual interest - contained within section */}
+        <div className="absolute top-20 left-10 w-64 h-64 md:w-72 md:h-72 bg-primary/20 rounded-full blur-3xl float-animation" />
+        <div className="absolute bottom-20 right-10 w-72 h-72 md:w-96 md:h-96 bg-accent/20 rounded-full blur-3xl float-animation" style={{ animationDelay: "3s" }} />
         
-        <div className="container relative px-4">
+        <div className="container relative px-4 mx-auto max-w-7xl">
           <div className="mx-auto max-w-4xl text-center space-y-8">
             <Badge variant="secondary" className="text-sm px-4 py-2 shimmer pulse-glow">
               🎉 Oferta de Lançamento - Poupa 47.5%
@@ -203,11 +203,11 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section id="funcionalidades" className="py-20 relative overflow-hidden">
+      <section id="funcionalidades" className="py-20 overflow-hidden">
         {/* Background decorative elements */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         
-        <div className="container px-4 relative">
+        <div className="container px-4 mx-auto max-w-7xl relative">
           <div className="text-center space-y-4 mb-16">
             <Badge variant="outline" className="text-sm px-4 py-2 mb-4">
               💎 Funcionalidades Premium
@@ -237,8 +237,8 @@ const Landing = () => {
       </section>
 
       {/* Screenshots Section */}
-      <section className="py-20 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-        <div className="container px-4">
+      <section className="py-20 bg-gradient-to-br from-primary/5 via-background to-secondary/5 overflow-hidden">
+        <div className="container px-4 mx-auto max-w-7xl">
           <div className="text-center space-y-4 mb-16">
             <Badge variant="secondary" className="text-sm px-4 py-2">
               <Monitor className="h-4 w-4 mr-2 inline" />
@@ -393,10 +393,10 @@ const Landing = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="precos" className="py-20 relative overflow-hidden">
+      <section id="precos" className="py-20 overflow-hidden">
         <div className="absolute inset-0 gradient-animate opacity-5" />
         
-        <div className="container px-4 relative">
+        <div className="container px-4 mx-auto max-w-7xl relative">
           <div className="text-center space-y-4 mb-16">
             <Badge variant="outline" className="text-sm px-4 py-2 mb-4 shimmer">
               💰 Oferta Limitada
@@ -465,10 +465,10 @@ const Landing = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section id="depoimentos" className="py-20 relative overflow-hidden">
+      <section id="depoimentos" className="py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-background to-primary/5" />
         
-        <div className="container px-4 relative">
+        <div className="container px-4 mx-auto max-w-7xl relative">
           <div className="text-center space-y-4 mb-16">
             <Badge variant="outline" className="text-sm px-4 py-2 mb-4">
               ⭐ Depoimentos
@@ -503,8 +503,8 @@ const Landing = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-gradient-to-br from-primary/5 via-background to-accent/5">
-        <div className="container px-4">
+      <section className="py-20 bg-gradient-to-br from-primary/5 via-background to-accent/5 overflow-hidden">
+        <div className="container px-4 mx-auto max-w-7xl">
           <div className="text-center space-y-4 mb-16">
             <Badge variant="outline" className="text-sm px-4 py-2 mb-4">
               ❓ Perguntas Frequentes
@@ -600,12 +600,12 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 relative overflow-hidden">
+      <section className="py-20 overflow-hidden">
         <div className="absolute inset-0 gradient-animate opacity-10" />
-        <div className="absolute top-10 left-10 w-80 h-80 bg-primary/20 rounded-full blur-3xl float-animation" />
-        <div className="absolute bottom-10 right-10 w-80 h-80 bg-accent/20 rounded-full blur-3xl float-animation" style={{ animationDelay: "2s" }} />
+        <div className="absolute top-10 left-10 w-64 h-64 md:w-80 md:h-80 bg-primary/20 rounded-full blur-3xl float-animation" />
+        <div className="absolute bottom-10 right-10 w-64 h-64 md:w-80 md:h-80 bg-accent/20 rounded-full blur-3xl float-animation" style={{ animationDelay: "2s" }} />
         
-        <div className="container px-4 relative">
+        <div className="container px-4 mx-auto max-w-7xl relative">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             <Badge variant="secondary" className="text-sm px-4 py-2 shimmer pulse-glow mb-4">
               🚀 Começa Hoje
@@ -631,8 +631,8 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/50 py-12">
-        <div className="container px-4">
+      <footer className="border-t bg-muted/50 py-12 overflow-hidden">
+        <div className="container px-4 mx-auto max-w-7xl">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="space-y-4">
               <div className="flex items-center gap-2">

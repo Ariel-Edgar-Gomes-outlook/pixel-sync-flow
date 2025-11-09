@@ -144,28 +144,61 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  html,
+  html {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     overflow-x: hidden;
+    overflow-y: auto;
     max-width: 100vw;
+    width: 100%;
     position: relative;
+    margin: 0;
+    padding: 0;
   }
 
-  /* Prevent horizontal scroll on containers */
+  /* Prevent horizontal scroll on all major containers */
   #root,
   main,
   .container,
   section,
-  article {
+  article,
+  div[class*="container"],
+  div[class*="section"] {
     overflow-x: hidden;
     max-width: 100vw;
+    width: 100%;
+  }
+
+  /* Prevent overflow from positioned elements */
+  section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Ensure containers don't cause horizontal scroll */
+  * {
+    box-sizing: border-box;
+  }
+
+  *:not(html):not(body) {
+    max-width: 100%;
   }
 
   /* Prevent horizontal overflow on mobile */
   @media (max-width: 768px) {
+    body, html {
+      overflow-x: hidden !important;
+      width: 100vw !important;
+      max-width: 100vw !important;
+    }
+
     * {
       overflow-x: hidden !important;
+      max-width: 100vw !important;
     }
     
     img,
@@ -180,6 +213,11 @@ All colors MUST be HSL.
       overflow-x: auto;
       overflow-y: hidden;
       max-width: 100%;
+    }
+
+    /* Prevent absolute positioned elements from causing overflow */
+    div[class*="absolute"] {
+      max-width: 100vw !important;
     }
   }
 
@@ -316,14 +354,15 @@ All colors MUST be HSL.
     100% { background-position: 0% 50%; }
   }
   
-  /* Floating animation */
+  /* Floating animation - contained to prevent overflow */
   .float-animation {
     animation: float 6s ease-in-out infinite;
+    will-change: transform;
   }
   
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+    50% { transform: translateY(-15px); }
   }
   
   /* Pulse glow effect */
