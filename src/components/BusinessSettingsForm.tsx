@@ -25,6 +25,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Upload, Building2, Mail, Phone, MapPin, CreditCard, Palette, FileSignature, Receipt } from 'lucide-react';
 import { toast } from 'sonner';
+import { SignaturePreviewDialog } from './SignaturePreviewDialog';
 
 const businessSettingsSchema = z.object({
   business_name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').max(100),
@@ -645,15 +646,45 @@ export function BusinessSettingsForm() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Info sobre uso da assinatura */}
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+              <div className="flex gap-3">
+                <Receipt className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">A assinatura é utilizada em:</p>
+                  <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                    <li>Contratos profissionais</li>
+                    <li>Recibos de pagamento</li>
+                    <li>Faturas e proformas</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
             <div>
               <FormLabel>Imagem da Assinatura</FormLabel>
-              <div className="mt-2 flex items-center gap-4">
-                {signaturePreview && (
-                  <div className="relative h-24 w-48 rounded-lg border border-border overflow-hidden bg-muted">
-                    <img src={signaturePreview} alt="Assinatura" className="h-full w-full object-contain" />
+              <div className="mt-2 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                {signaturePreview ? (
+                  <div className="relative rounded-lg border-2 border-dashed border-primary/30 overflow-hidden bg-background p-4">
+                    <div className="h-24 w-48 flex items-center justify-center">
+                      <img 
+                        src={signaturePreview} 
+                        alt="Assinatura" 
+                        className="max-h-full max-w-full object-contain" 
+                      />
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground mt-2">
+                      Assinatura atual
+                    </p>
+                  </div>
+                ) : (
+                  <div className="h-24 w-48 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/30">
+                    <p className="text-xs text-muted-foreground text-center px-4">
+                      Nenhuma assinatura carregada
+                    </p>
                   </div>
                 )}
-                <div>
+                <div className="flex-1">
                   <Input
                     type="file"
                     accept="image/png"
@@ -669,17 +700,21 @@ export function BusinessSettingsForm() {
                     variant="outline"
                     onClick={() => document.getElementById('signature-upload')?.click()}
                     disabled={uploadFile.isPending}
+                    className="w-full sm:w-auto"
                   >
                     {uploadFile.isPending ? (
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     ) : (
                       <Upload className="h-4 w-4 mr-2" />
                     )}
-                    Carregar Assinatura
+                    {signaturePreview ? 'Alterar Assinatura' : 'Carregar Assinatura'}
                   </Button>
                   <p className="text-xs text-muted-foreground mt-2">
                     PNG com fundo transparente. Máximo 1MB.
                   </p>
+                  <div className="mt-3">
+                    <SignaturePreviewDialog signatureUrl={signaturePreview} />
+                  </div>
                 </div>
               </div>
             </div>
