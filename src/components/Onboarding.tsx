@@ -15,7 +15,7 @@ import { useUserPreferences, useUpdateUserPreferences } from '@/hooks/useUserPre
 
 const ONBOARDING_STEPS = [
   {
-    title: 'Bem-vindo ao PhotoFlow! 👋',
+    title: 'Bem-vindo ao ArgomFotos! 👋',
     description: 'Vamos fazer um tour rápido pelas principais funcionalidades.',
     icon: CheckCircle,
     action: null,

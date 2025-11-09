@@ -48,7 +48,7 @@ export default function Auth() {
     } else {
       toast({
         title: 'Login realizado com sucesso!',
-        description: 'Bem-vindo ao PhotoFlow'
+        description: 'Bem-vindo ao ArgomFotos'
       });
       navigate('/');
     }

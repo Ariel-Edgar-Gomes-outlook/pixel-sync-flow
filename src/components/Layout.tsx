@@ -91,7 +91,7 @@ export default function Layout() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg">
                 <Camera className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-lg font-bold text-sidebar-foreground tracking-tight">PhotoFlow</span>
+              <span className="text-lg font-bold text-sidebar-foreground tracking-tight">ArgomFotos</span>
             </div>
             <button onClick={() => setSidebarOpen(false)} className="text-sidebar-foreground/80 hover:text-sidebar-foreground p-2 -mr-2 transition-colors">
               <X className="h-6 w-6" />
@@ -125,7 +125,7 @@ export default function Layout() {
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary shadow-lg">
               <Camera className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-sidebar-foreground tracking-tight">TotosArgom</span>
+            <span className="text-xl font-bold text-sidebar-foreground tracking-tight">ArgomFotos</span>
           </div>
         </div>
         <nav className="flex-1 space-y-1 px-4 pt-6 overflow-y-auto scrollbar-hide">
