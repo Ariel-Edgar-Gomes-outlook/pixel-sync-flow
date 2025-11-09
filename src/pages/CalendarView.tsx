@@ -15,6 +15,10 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import '@fullcalendar/core/main.css';
+import '@fullcalendar/daygrid/main.css';
+import '@fullcalendar/timegrid/main.css';
+import './CalendarView.css';
 
 export default function CalendarView() {
   const {
@@ -163,29 +167,30 @@ export default function CalendarView() {
   if (isLoading) {
     return <div className="space-y-6">Carregando...</div>;
   }
-  return <div className="space-y-4 sm:space-y-6">
+  return <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Agenda</h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">Calendário de Trabalho e disponibilidade</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">Agenda</h1>
+          <p className="text-base text-muted-foreground mt-2">Calendário de Trabalho e disponibilidade</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           <Button onClick={() => {
           setSelectedDate(new Date());
           setIsJobDialogOpen(true);
-        }} className="gap-2 flex-1 sm:flex-none" size={isMobile ? "sm" : "default"}>
-            <Plus className="h-4 w-4" />
-            {!isMobile && "Novo Job"}
+        }} className="gap-2 shadow-md hover:shadow-lg transition-shadow" size={isMobile ? "default" : "lg"}>
+            <Plus className="h-5 w-5" />
+            Novo Job
           </Button>
         </div>
       </div>
 
       {/* Filters */}
-      <Card className="p-4">
-        <div className="flex flex-wrap gap-4">
-          <div className="flex-1 min-w-[200px]">
+      <Card className="p-5 shadow-md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">Status</label>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger>
+              <SelectTrigger className="h-11">
                 <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
               <SelectContent>
@@ -198,9 +203,10 @@ export default function CalendarView() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex-1 min-w-[200px]">
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">Tipo</label>
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger>
+              <SelectTrigger className="h-11">
                 <SelectValue placeholder="Filtrar por tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -213,43 +219,58 @@ export default function CalendarView() {
       </Card>
 
       {/* Mobile View Selector */}
-      {isMobile && <Card className="p-3">
+      {isMobile && <Card className="p-4 shadow-md">
           <div className="flex gap-2">
-            <Button variant={mobileView === 'dayGridMonth' ? 'default' : 'outline'} size="sm" onClick={() => setMobileView('dayGridMonth')} className="flex-1">
+            <Button variant={mobileView === 'dayGridMonth' ? 'default' : 'outline'} size="default" onClick={() => setMobileView('dayGridMonth')} className="flex-1 h-11 font-medium">
               Mês
             </Button>
-            <Button variant={mobileView === 'timeGridWeek' ? 'default' : 'outline'} size="sm" onClick={() => setMobileView('timeGridWeek')} className="flex-1">
+            <Button variant={mobileView === 'timeGridWeek' ? 'default' : 'outline'} size="default" onClick={() => setMobileView('timeGridWeek')} className="flex-1 h-11 font-medium">
               Semana
             </Button>
-            <Button variant={mobileView === 'timeGridDay' ? 'default' : 'outline'} size="sm" onClick={() => setMobileView('timeGridDay')} className="flex-1">
+            <Button variant={mobileView === 'timeGridDay' ? 'default' : 'outline'} size="default" onClick={() => setMobileView('timeGridDay')} className="flex-1 h-11 font-medium">
               Dia
             </Button>
           </div>
         </Card>}
 
       {/* Calendar */}
-      <Card className="p-2 sm:p-6 overflow-hidden">
-        <FullCalendar plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} initialView={isMobile ? mobileView : "dayGridMonth"} headerToolbar={isMobile ? {
-        left: 'prev,next',
-        center: 'title',
-        right: 'today'
-      } : {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-      }} titleFormat={isMobile ? mobileView === 'dayGridMonth' ? {
-        month: 'short',
-        year: 'numeric'
-      } : {
-        month: 'short',
-        day: 'numeric'
-      } : {
-        month: 'long',
-        year: 'numeric'
-      }} locale="pt" events={events} editable={!isMobile} droppable={!isMobile} selectable={true} selectMirror={true} dayMaxEvents={isMobile && mobileView === 'dayGridMonth' ? 2 : true} weekends={true} eventDrop={handleEventDrop} eventClick={handleEventClick} select={handleDateSelect} height="auto" contentHeight={isMobile ? mobileView === 'dayGridMonth' ? 400 : 500 : "auto"} aspectRatio={isMobile ? mobileView === 'dayGridMonth' ? 1.2 : 1 : 1.35} eventContent={arg => <div className="p-1 text-xs overflow-hidden">
+      <Card className="p-4 sm:p-6 shadow-lg">
+        <div className="calendar-wrapper bg-card rounded-lg">
+          <FullCalendar 
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} 
+            initialView={isMobile ? mobileView : "dayGridMonth"} 
+            key={mobileView}
+            headerToolbar={isMobile ? {
+              left: 'prev,next',
+              center: 'title',
+              right: 'today'
+            } : {
+              left: 'prev,next today',
+              center: 'title',
+              right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            }} 
+            titleFormat={{
+              month: 'long',
+              year: 'numeric'
+            }}
+            locale="pt" 
+            events={events} 
+            editable={!isMobile} 
+            droppable={!isMobile} 
+            selectable={true} 
+            selectMirror={true} 
+            dayMaxEvents={isMobile && mobileView === 'dayGridMonth' ? 2 : true} 
+            weekends={true} 
+            eventDrop={handleEventDrop} 
+            eventClick={handleEventClick} 
+            select={handleDateSelect} 
+            height={isMobile ? (mobileView === 'dayGridMonth' ? 450 : 550) : 700}
+            eventContent={arg => <div className="px-1.5 py-1 text-xs overflow-hidden">
               {arg.event.extendedProps.hasConflict && <AlertTriangle className="h-3 w-3 inline mr-1" />}
               <span className="font-medium truncate">{arg.event.title}</span>
-            </div>} />
+            </div>} 
+          />
+        </div>
       </Card>
 
       {/* Job Details Sheet */}
