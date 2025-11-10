@@ -15,9 +15,9 @@ export function MapEmbedInput({ value, onChange }: MapEmbedInputProps) {
   const generateGoogleMapsEmbed = () => {
     if (!address.trim()) return;
     
-    // Generate Google Maps embed URL
+    // Generate Google Maps embed URL (without API key requirement)
     const encodedAddress = encodeURIComponent(address);
-    const embedUrl = `https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=${encodedAddress}`;
+    const embedUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
     onChange(embedUrl);
   };
 
