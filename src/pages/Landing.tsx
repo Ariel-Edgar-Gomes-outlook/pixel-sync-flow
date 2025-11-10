@@ -24,7 +24,7 @@ import {
   Monitor,
 } from "lucide-react";
 import { useState } from "react";
-import dashboardImg from "@/assets/dashboard-screenshot.jpg";
+import dashboardImg from "@/assets/dashboard-interface.png";
 import clientsImg from "@/assets/clients-screenshot.jpg";
 import calendarImg from "@/assets/calendar-screenshot.jpg";
 import galleryImg from "@/assets/gallery-screenshot.jpg";
@@ -279,11 +279,36 @@ const Landing = () => {
                 </ul>
               </div>
               <div className="order-1 md:order-2 stagger-fade-in">
-                <img 
-                  src={dashboardImg} 
-                  alt="Dashboard do ArgomFotos mostrando gráficos e métricas" 
-                  className="rounded-lg shadow-2xl border-2 border-border hover-scale"
-                />
+                {/* Laptop Mockup */}
+                <div className="relative">
+                  {/* Laptop Frame */}
+                  <div className="relative bg-gradient-to-b from-slate-800 to-slate-900 rounded-t-xl p-2 shadow-2xl">
+                    {/* Top bar with camera */}
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-slate-950 rounded-b-lg"></div>
+                    
+                    {/* Screen */}
+                    <div className="bg-background rounded-lg overflow-hidden border border-border/50">
+                      <img 
+                        src={dashboardImg} 
+                        alt="Dashboard do ArgomFotos mostrando gráficos e métricas" 
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Laptop Base */}
+                  <div className="relative h-2 bg-gradient-to-b from-slate-700 to-slate-800 rounded-b-xl shadow-lg">
+                    <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-slate-600 to-transparent"></div>
+                  </div>
+                  
+                  {/* Keyboard base */}
+                  <div className="relative -mt-1 mx-auto w-[95%] h-3 bg-gradient-to-b from-slate-800 to-slate-900 rounded-b-2xl shadow-xl">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent rounded-b-2xl"></div>
+                  </div>
+                  
+                  {/* Glow effect */}
+                  <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 via-accent/20 to-secondary/20 blur-3xl opacity-50 rounded-xl"></div>
+                </div>
               </div>
             </div>
 
