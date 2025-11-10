@@ -195,16 +195,23 @@ export function useInvoiceStats() {
       };
 
       data.forEach((invoice: any) => {
-        stats.totalInvoiced += Number(invoice.total);
+        const total = Number(invoice.total) || 0;
+        const amountPaid = Number(invoice.amount_paid) || 0;
+        const remaining = total - amountPaid;
+        
+        // Excluir faturas canceladas dos totais
+        if (invoice.status !== 'cancelled') {
+          stats.totalInvoiced += total;
+          stats.totalPaid += amountPaid;
+        }
         
         if (invoice.status === 'paid') {
-          stats.totalPaid += Number(invoice.total);
           stats.paidCount++;
         } else if (invoice.status === 'overdue') {
-          stats.totalOverdue += Number(invoice.total - invoice.amount_paid);
+          stats.totalOverdue += remaining;
           stats.overdueCount++;
         } else if (invoice.status === 'issued' || invoice.status === 'partial') {
-          stats.totalPending += Number(invoice.total - invoice.amount_paid);
+          stats.totalPending += remaining;
           stats.pendingCount++;
         }
       });
