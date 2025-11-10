@@ -25,9 +25,22 @@ export function PopulateTestDataButton() {
     toast.loading("A popular base de dados...");
 
     try {
+      // Get the current session to ensure we have a valid token
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.dismiss();
+        toast.error("Você precisa estar autenticado para popular a base de dados");
+        return;
+      }
+
+      console.log("Invoking populate-test-data function...");
+      
       const { data, error } = await supabase.functions.invoke("populate-test-data", {
         body: {},
       });
+
+      console.log("Function response:", { data, error });
 
       if (error) throw error;
 
