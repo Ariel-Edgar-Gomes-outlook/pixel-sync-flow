@@ -51,13 +51,16 @@ export function useWorkflowAutomation() {
             try {
               if (invoice.status === 'issued' && invoice.due_date) {
                 const dueDate = startOfDay(new Date(invoice.due_date));
-                if (isPast(dueDate) && differenceInDays(now, dueDate) > 0) {
+                const today = startOfDay(new Date());
+                
+                // Only mark as overdue if due_date is strictly in the past
+                if (dueDate < today) {
                   await supabase
                     .from('invoices')
                     .update({ status: 'overdue' })
                     .eq('id', invoice.id);
                   
-                  console.log(`✅ Auto-marked invoice ${invoice.id} as overdue`);
+                  console.log(`✅ Auto-marked invoice ${invoice.id} as overdue (due: ${invoice.due_date})`);
                 }
               }
             } catch (error) {
