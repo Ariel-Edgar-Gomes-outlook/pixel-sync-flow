@@ -40,7 +40,7 @@ export function useActionableAlerts({
         count: overdueInvoices.length,
         action: {
           label: 'Ver Faturas',
-          path: '/invoices'
+          path: '/dashboard/invoices'
         }
       });
     }
@@ -62,7 +62,7 @@ export function useActionableAlerts({
         count: overduePayments.length,
         action: {
           label: 'Ver Pagamentos',
-          path: '/payments'
+          path: '/dashboard/payments'
         }
       });
     }
@@ -84,7 +84,7 @@ export function useActionableAlerts({
         count: oldQuotes.length,
         action: {
           label: 'Ver Orçamentos',
-          path: '/quotes'
+          path: '/dashboard/quotes'
         }
       });
     }
@@ -102,7 +102,7 @@ export function useActionableAlerts({
         count: unsignedContracts.length,
         action: {
           label: 'Ver Contratos',
-          path: '/contracts'
+          path: '/dashboard/contracts'
         }
       });
     }
@@ -124,7 +124,7 @@ export function useActionableAlerts({
         count: upcomingJobs.length,
         action: {
           label: 'Ver Jobs',
-          path: '/jobs'
+          path: '/dashboard/jobs'
         }
       });
     }
@@ -145,7 +145,7 @@ export function useActionableAlerts({
         count: completedJobsNoInvoice.length,
         action: {
           label: 'Ver Jobs',
-          path: '/jobs'
+          path: '/dashboard/jobs'
         }
       });
     }
@@ -166,7 +166,7 @@ export function useActionableAlerts({
         count: newLeads.length,
         action: {
           label: 'Ver Leads',
-          path: '/leads'
+          path: '/dashboard/leads'
         }
       });
     }

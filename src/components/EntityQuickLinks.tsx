@@ -24,12 +24,12 @@ const iconMap = {
 };
 
 const routeMap = {
-  client: '/clients',
-  job: '/jobs',
-  quote: '/quotes',
-  invoice: '/invoices',
-  payment: '/payments',
-  contract: '/contracts',
+  client: '/dashboard/clients',
+  job: '/dashboard/jobs',
+  quote: '/dashboard/quotes',
+  invoice: '/dashboard/invoices',
+  payment: '/dashboard/payments',
+  contract: '/dashboard/contracts',
 };
 
 export function EntityQuickLinks({ links, className = "" }: EntityQuickLinksProps) {

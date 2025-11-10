@@ -104,7 +104,7 @@ export function GlobalSearch() {
               {filteredClients.map((client) => (
                 <CommandItem
                   key={client.id}
-                  onSelect={() => handleSelect('/clients')}
+                  onSelect={() => handleSelect('/dashboard/clients')}
                   className="gap-2"
                 >
                   <Users className="h-4 w-4" />
@@ -127,7 +127,7 @@ export function GlobalSearch() {
               {filteredJobs.map((job) => (
                 <CommandItem
                   key={job.id}
-                  onSelect={() => handleSelect('/jobs')}
+                  onSelect={() => handleSelect('/dashboard/jobs')}
                   className="gap-2"
                 >
                   <Briefcase className="h-4 w-4" />
@@ -150,7 +150,7 @@ export function GlobalSearch() {
               {filteredLeads.map((lead) => (
                 <CommandItem
                   key={lead.id}
-                  onSelect={() => handleSelect('/leads')}
+                  onSelect={() => handleSelect('/dashboard/leads')}
                   className="gap-2"
                 >
                   <UserPlus className="h-4 w-4" />
@@ -166,7 +166,7 @@ export function GlobalSearch() {
               {filteredQuotes.map((quote) => (
                 <CommandItem
                   key={quote.id}
-                  onSelect={() => handleSelect('/quotes')}
+                  onSelect={() => handleSelect('/dashboard/quotes')}
                   className="gap-2"
                 >
                   <FileText className="h-4 w-4" />
@@ -187,7 +187,7 @@ export function GlobalSearch() {
               {filteredPayments.map((payment) => (
                 <CommandItem
                   key={payment.id}
-                  onSelect={() => handleSelect('/payments')}
+                  onSelect={() => handleSelect('/dashboard/payments')}
                   className="gap-2"
                 >
                   <Receipt className="h-4 w-4" />
@@ -208,7 +208,7 @@ export function GlobalSearch() {
               {filteredInvoices.map((invoice) => (
                 <CommandItem
                   key={invoice.id}
-                  onSelect={() => handleSelect('/invoices')}
+                  onSelect={() => handleSelect('/dashboard/invoices')}
                   className="gap-2"
                 >
                   <CreditCard className="h-4 w-4" />
@@ -229,7 +229,7 @@ export function GlobalSearch() {
               {filteredContracts.map((contract) => (
                 <CommandItem
                   key={contract.id}
-                  onSelect={() => handleSelect('/contracts')}
+                  onSelect={() => handleSelect('/dashboard/contracts')}
                   className="gap-2"
                 >
                   <FileCheck className="h-4 w-4" />
