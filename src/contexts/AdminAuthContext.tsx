@@ -60,11 +60,24 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       if (!error && data) {
         setIsAdmin(true);
       } else {
+        // User is not an admin - this is expected for regular users
         setIsAdmin(false);
+        
+        // If user tried to access admin area but is not authorized, sign them out
+        if (window.location.pathname.startsWith('/admin/')) {
+          await supabase.auth.signOut();
+          console.warn('Unauthorized admin access attempt blocked');
+        }
       }
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      // RLS policy will reject non-admin users - this is expected
       setIsAdmin(false);
+      
+      // If user tried to access admin area but is not authorized, sign them out
+      if (window.location.pathname.startsWith('/admin/')) {
+        await supabase.auth.signOut();
+        console.warn('Unauthorized admin access attempt blocked');
+      }
     } finally {
       setLoading(false);
     }
