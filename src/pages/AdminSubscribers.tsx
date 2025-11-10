@@ -164,37 +164,37 @@ const AdminSubscribers = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-muted/50">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="container mx-auto px-4 py-4 md:py-6">
+          <div className="flex items-center justify-between gap-2 mb-3 md:mb-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate("/")}
-              className="gap-2"
+              className="gap-2 shrink-0"
             >
               <ArrowLeft className="h-4 w-4" />
-              Voltar
+              <span className="hidden sm:inline">Voltar</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={handleSignOut}
-              className="gap-2"
+              className="gap-2 shrink-0"
             >
               <LogOut className="h-4 w-4" />
-              Sair
+              <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
-          <h1 className="text-3xl font-bold">Gestão de Assinantes</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl md:text-3xl font-bold">Gestão de Assinantes</h1>
+          <p className="text-sm md:text-base text-muted-foreground mt-2">
             Administração de todos os utilizadores do sistema
           </p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-5 gap-4 mb-8">
+      <div className="container mx-auto px-4 py-4 md:py-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6 md:mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total</CardTitle>
@@ -246,91 +246,168 @@ const AdminSubscribers = () => {
           </Card>
         </div>
 
-        {/* Subscribers Table */}
+        {/* Subscribers List */}
         <Card>
-          <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <CardTitle>Lista de Assinantes</CardTitle>
-                <CardDescription>
-                  Gerir e visualizar todos os utilizadores do sistema
-                </CardDescription>
+          <CardHeader className="space-y-4">
+            <div>
+              <CardTitle className="text-lg md:text-xl">Lista de Assinantes</CardTitle>
+              <CardDescription className="text-sm">
+                Gerir todos os utilizadores do sistema
+              </CardDescription>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Pesquisar..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 w-full"
+                />
               </div>
-              <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                <div className="relative flex-1 md:w-64">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Pesquisar por nome ou email..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                  <Button
-                    variant={filterStatus === "all" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterStatus("all")}
-                  >
-                    Todos ({profiles.length})
-                  </Button>
-                  <Button
-                    variant={filterStatus === "active" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterStatus("active")}
-                  >
-                    Ativas ({stats.active})
-                  </Button>
-                  <Button
-                    variant={filterStatus === "expired" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterStatus("expired")}
-                  >
-                    Expiradas ({stats.expired})
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleExportCSV}
-                    className="gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Exportar CSV
-                  </Button>
-                </div>
+              
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                <Button
+                  variant={filterStatus === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterStatus("all")}
+                  className="shrink-0"
+                >
+                  Todos ({profiles.length})
+                </Button>
+                <Button
+                  variant={filterStatus === "active" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterStatus("active")}
+                  className="shrink-0"
+                >
+                  Ativas ({stats.active})
+                </Button>
+                <Button
+                  variant={filterStatus === "expired" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterStatus("expired")}
+                  className="shrink-0"
+                >
+                  Expiradas ({stats.expired})
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportCSV}
+                  className="gap-1 shrink-0"
+                >
+                  <Download className="h-4 w-4" />
+                  CSV
+                </Button>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          
+          <CardContent className="px-0 md:px-6">
             {loading ? (
-              <div className="text-center py-8">
+              <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
               </div>
+            ) : filteredProfiles.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground px-4">
+                Nenhum utilizador encontrado
+              </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Telefone</TableHead>
-                      <TableHead>Data de Registo</TableHead>
-                      <TableHead>Início</TableHead>
-                      <TableHead>Término</TableHead>
-                      <TableHead>Dias Restantes</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredProfiles.length === 0 ? (
+              <>
+                {/* Mobile View - Cards */}
+                <div className="md:hidden space-y-3 px-4">
+                  {filteredProfiles.map((profile) => (
+                    <Card key={profile.id} className={profile.is_suspended ? "opacity-60" : ""}>
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold truncate">{profile.name}</h3>
+                            <p className="text-sm text-muted-foreground truncate">{profile.email}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditSubscription(profile)}
+                            className="shrink-0"
+                          >
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {!profile.subscription_end_date ? (
+                            <Badge className="bg-blue-600 text-xs">Ilimitada</Badge>
+                          ) : isSubscriptionActive(profile.subscription_end_date) ? (
+                            <Badge variant="default" className="bg-green-600 text-xs">Ativa</Badge>
+                          ) : (
+                            <Badge variant="destructive" className="text-xs">Expirada</Badge>
+                          )}
+                          
+                          {profile.is_suspended && (
+                            <Badge variant="destructive" className="text-xs">
+                              <Ban className="h-3 w-3 mr-1" />
+                              Suspenso
+                            </Badge>
+                          )}
+                          
+                          <span className="text-xs text-muted-foreground">
+                            {getDaysRemaining(profile.subscription_end_date)}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-muted-foreground">Telefone:</span>
+                            <p className="font-medium">{profile.phone || "-"}</p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Registo:</span>
+                            <p className="font-medium">
+                              {format(new Date(profile.created_at), "dd/MM/yyyy")}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Início:</span>
+                            <p className="font-medium">
+                              {profile.subscription_start_date
+                                ? format(new Date(profile.subscription_start_date), "dd/MM/yyyy")
+                                : "-"}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Término:</span>
+                            <p className="font-medium">
+                              {profile.subscription_end_date
+                                ? format(new Date(profile.subscription_end_date), "dd/MM/yyyy")
+                                : "Ilimitado"}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Desktop View - Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                          Nenhum utilizador encontrado
-                        </TableCell>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Telefone</TableHead>
+                        <TableHead>Registo</TableHead>
+                        <TableHead>Início</TableHead>
+                        <TableHead>Término</TableHead>
+                        <TableHead>Dias</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead className="w-[60px]">Ações</TableHead>
                       </TableRow>
-                    ) : (
-                      filteredProfiles.map((profile) => (
+                    </TableHeader>
+                    <TableBody>
+                      {filteredProfiles.map((profile) => (
                         <TableRow key={profile.id} className={profile.is_suspended ? "opacity-60" : ""}>
                           <TableCell className="font-medium">
                             <div className="flex items-center gap-2">
@@ -358,7 +435,7 @@ const AdminSubscribers = () => {
                               ? format(new Date(profile.subscription_end_date), "dd/MM/yyyy", { locale: ptBR })
                               : "Ilimitado"}
                           </TableCell>
-                          <TableCell className="text-sm font-medium">
+                          <TableCell className="text-sm font-medium whitespace-nowrap">
                             {getDaysRemaining(profile.subscription_end_date)}
                           </TableCell>
                           <TableCell>
@@ -382,11 +459,11 @@ const AdminSubscribers = () => {
                             </Button>
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

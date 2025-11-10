@@ -261,7 +261,7 @@ export function SubscriptionEditDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               Gerir Utilizador
@@ -275,10 +275,10 @@ export function SubscriptionEditDialog({
           </DialogHeader>
 
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="profile">Perfil</TabsTrigger>
-              <TabsTrigger value="subscription">Assinatura</TabsTrigger>
-              <TabsTrigger value="admin">Administração</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 h-auto">
+              <TabsTrigger value="profile" className="text-xs sm:text-sm">Perfil</TabsTrigger>
+              <TabsTrigger value="subscription" className="text-xs sm:text-sm">Assinatura</TabsTrigger>
+              <TabsTrigger value="admin" className="text-xs sm:text-sm">Admin</TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile" className="space-y-4">
@@ -360,35 +360,38 @@ export function SubscriptionEditDialog({
                     size="sm"
                     onClick={() => handleExtend(30)}
                     disabled={loading}
+                    className="text-xs sm:text-sm"
                   >
-                    +30 dias
+                    +30d
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleExtend(90)}
                     disabled={loading}
+                    className="text-xs sm:text-sm"
                   >
-                    +90 dias
+                    +90d
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleExtend(365)}
                     disabled={loading}
+                    className="text-xs sm:text-sm"
                   >
-                    +1 ano
+                    +1ano
                   </Button>
                 </div>
 
                 <Button
                   variant="secondary"
-                  className="w-full"
+                  className="w-full text-xs sm:text-sm"
                   onClick={handleUnlimited}
                   disabled={loading}
                 >
                   <Calendar className="h-4 w-4 mr-2" />
-                  Conceder Acesso Ilimitado
+                  Acesso Ilimitado
                 </Button>
               </div>
             </TabsContent>
