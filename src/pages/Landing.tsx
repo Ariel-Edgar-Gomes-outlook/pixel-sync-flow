@@ -24,7 +24,7 @@ import {
   Monitor,
 } from "lucide-react";
 import { useState } from "react";
-import dashboardImg from "@/assets/dashboard-interface.png";
+import reportsImg from "@/assets/reports-screenshot.jpg";
 import clientsImg from "@/assets/clients-screenshot.jpg";
 import calendarImg from "@/assets/calendar-screenshot.jpg";
 import galleryImg from "@/assets/gallery-screenshot.jpg";
@@ -289,8 +289,8 @@ const Landing = () => {
                     {/* Screen */}
                     <div className="bg-background rounded-lg overflow-hidden border border-border/50">
                       <img 
-                        src={dashboardImg} 
-                        alt="Dashboard do ArgomFotos mostrando gráficos e métricas" 
+                        src={reportsImg} 
+                        alt="Relatórios Financeiros do ArgomFotos mostrando gráficos e métricas" 
                         className="w-full h-auto"
                       />
                     </div>
