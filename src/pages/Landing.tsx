@@ -178,6 +178,24 @@ const Landing = () => {
             <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Organiza clientes, jobs, contratos e faturas num único lugar. Concentra-te no que fazes de melhor: <span className="text-primary font-semibold">fotografar!</span>
             </p>
+            
+            {/* Video Section */}
+            <div className="relative w-full max-w-4xl mx-auto mt-12 mb-8 rounded-2xl overflow-hidden shadow-2xl hover-scale">
+              <div className="relative aspect-video">
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                >
+                  <source src="https://videos.pexels.com/video-files/7988697/7988697-uhd_2560_1440_25fps.mp4" type="video/mp4" />
+                  O teu navegador não suporta a tag de vídeo.
+                </video>
+                <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent pointer-events-none" />
+              </div>
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
               <Button
                 size="lg"
