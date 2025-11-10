@@ -172,11 +172,11 @@ export default function Quotes() {
         description: "Navegando para o job...",
         action: {
           label: "Ver Job",
-          onClick: () => navigate('/jobs'),
+          onClick: () => navigate('/dashboard/jobs'),
         },
       });
 
-      setTimeout(() => navigate('/jobs'), 1500);
+      setTimeout(() => navigate('/dashboard/jobs'), 1500);
     } catch (error: any) {
       toast.error("Erro ao converter", {
         description: error.message,

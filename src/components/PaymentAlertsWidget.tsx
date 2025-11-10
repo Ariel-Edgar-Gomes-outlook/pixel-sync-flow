@@ -135,7 +135,7 @@ export function PaymentAlertsWidget() {
           variant="outline"
           size="sm"
           className="w-full gap-2"
-          onClick={() => navigate('/invoices')}
+          onClick={() => navigate('/dashboard/invoices')}
         >
           Ver Todas as Faturas
           <ArrowRight className="h-4 w-4" />

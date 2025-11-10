@@ -593,7 +593,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
                   size="sm"
                   onClick={() => {
                     actualOnOpenChange(false);
-                    navigate('/jobs');
+                    navigate('/dashboard/jobs');
                     toast.success('Crie um job baseado neste orçamento');
                   }}
                 >

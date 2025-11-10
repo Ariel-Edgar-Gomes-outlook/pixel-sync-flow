@@ -102,7 +102,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
                         {new Date(job.start_datetime).toLocaleDateString('pt-PT')}
                       </p>
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => navigate('/jobs')}>
+                    <Button size="sm" variant="outline" onClick={() => navigate('/dashboard/jobs')}>
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </div>
@@ -128,7 +128,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
                         {new Date(quote.created_at).toLocaleDateString('pt-PT')}
                       </p>
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => navigate('/quotes')}>
+                    <Button size="sm" variant="outline" onClick={() => navigate('/dashboard/quotes')}>
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </div>
@@ -155,7 +155,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
                         Emitida: {new Date(invoice.issue_date).toLocaleDateString('pt-PT')}
                       </p>
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => navigate('/invoices')}>
+                    <Button size="sm" variant="outline" onClick={() => navigate('/dashboard/invoices')}>
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </div>
@@ -181,7 +181,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
                         {payment.type} • {new Date(payment.created_at).toLocaleDateString('pt-PT')}
                       </p>
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => navigate('/payments')}>
+                    <Button size="sm" variant="outline" onClick={() => navigate('/dashboard/payments')}>
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </div>
@@ -209,7 +209,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
                         {new Date(contract.issued_at || contract.created_at).toLocaleDateString('pt-PT')}
                       </p>
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => navigate('/contracts')}>
+                    <Button size="sm" variant="outline" onClick={() => navigate('/dashboard/contracts')}>
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </div>

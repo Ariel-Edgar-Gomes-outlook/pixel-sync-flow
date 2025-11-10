@@ -250,7 +250,7 @@ export function LeadDialog({ children, lead, open: controlledOpen, onOpenChange:
                   size="sm"
                   onClick={() => {
                     setOpen(false);
-                    navigate('/quotes');
+                    navigate('/dashboard/quotes');
                     toast.info('Crie um orçamento para este lead');
                   }}
                 >

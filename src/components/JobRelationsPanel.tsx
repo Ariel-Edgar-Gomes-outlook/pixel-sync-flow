@@ -37,7 +37,7 @@ export function JobRelationsPanel({ jobId, clientName }: JobRelationsPanelProps)
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm">{clientName}</span>
-              <Button size="sm" variant="ghost" onClick={() => navigate('/clients')}>
+              <Button size="sm" variant="ghost" onClick={() => navigate('/dashboard/clients')}>
                 <ExternalLink className="h-3 w-3" />
               </Button>
             </div>
@@ -56,7 +56,7 @@ export function JobRelationsPanel({ jobId, clientName }: JobRelationsPanelProps)
             <div className="flex items-center gap-2">
               <Badge variant="outline">{quote.status}</Badge>
               <span className="text-sm font-bold">Kz {Number(quote.total).toFixed(2)}</span>
-              <Button size="sm" variant="ghost" onClick={() => navigate('/quotes')}>
+              <Button size="sm" variant="ghost" onClick={() => navigate('/dashboard/quotes')}>
                 <ExternalLink className="h-3 w-3" />
               </Button>
             </div>
@@ -78,7 +78,7 @@ export function JobRelationsPanel({ jobId, clientName }: JobRelationsPanelProps)
               <Badge variant={contract.status === 'signed' ? 'success' : 'warning'}>
                 {contract.status}
               </Badge>
-              <Button size="sm" variant="ghost" onClick={() => navigate('/contracts')}>
+              <Button size="sm" variant="ghost" onClick={() => navigate('/dashboard/contracts')}>
                 <ExternalLink className="h-3 w-3" />
               </Button>
             </div>
@@ -98,7 +98,7 @@ export function JobRelationsPanel({ jobId, clientName }: JobRelationsPanelProps)
           {invoices && invoices.length > 0 ? (
             <div className="flex items-center gap-2">
               <Badge variant="outline">{invoices.length} fatura(s)</Badge>
-              <Button size="sm" variant="ghost" onClick={() => navigate('/invoices')}>
+              <Button size="sm" variant="ghost" onClick={() => navigate('/dashboard/invoices')}>
                 <ExternalLink className="h-3 w-3" />
               </Button>
             </div>
@@ -119,7 +119,7 @@ export function JobRelationsPanel({ jobId, clientName }: JobRelationsPanelProps)
             <div className="flex items-center gap-2">
               <span className="text-xs text-success">Pago: Kz {totalPaid.toFixed(2)}</span>
               {payments && payments.length > 0 && (
-                <Button size="sm" variant="ghost" onClick={() => navigate('/payments')}>
+                <Button size="sm" variant="ghost" onClick={() => navigate('/dashboard/payments')}>
                   <ExternalLink className="h-3 w-3" />
                 </Button>
               )}

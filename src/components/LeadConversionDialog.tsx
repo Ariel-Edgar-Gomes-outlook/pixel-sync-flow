@@ -69,9 +69,9 @@ export function LeadConversionDialog({ lead, open, onOpenChange }: LeadConversio
       if (nextAction === 'quote') {
         navigate('/quotes', { state: { clientId: newClient.id } });
       } else if (nextAction === 'job') {
-        navigate('/jobs', { state: { clientId: newClient.id } });
+        navigate('/dashboard/jobs', { state: { clientId: newClient.id } });
       } else {
-        navigate('/clients');
+        navigate('/dashboard/clients');
       }
 
       onOpenChange(false);
