@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1495,6 +1516,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { check_user_id: string }; Returns: boolean }
       user_has_active_subscription: {
         Args: { p_user_id: string }
         Returns: boolean

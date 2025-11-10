@@ -5,8 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "./contexts/AuthContext";
+import { AdminAuthProvider } from "./contexts/AdminAuthContext";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AdminProtectedRoute } from "./components/AdminProtectedRoute";
 import Layout from "./components/Layout";
 import { Onboarding } from "./components/Onboarding";
 import { SubscriptionBanner } from "./components/SubscriptionBanner";
@@ -33,6 +35,7 @@ import QuoteReview from "./pages/QuoteReview";
 import Notifications from "./pages/Notifications";
 import Landing from "./pages/Landing";
 import AdminSubscribers from "./pages/AdminSubscribers";
+import AdminLogin from "./pages/AdminLogin";
 
 const queryClient = new QueryClient();
 
@@ -48,12 +51,25 @@ function AppContent() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
-        <Route path="/admin/subscribers" element={<AdminSubscribers />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/gallery/:token" element={<ClientGallery />} />
         <Route path="/contract/sign/:token" element={<ContractSign />} />
         <Route path="/quote/review/:quoteId" element={<QuoteReview />} />
+        
+        {/* Admin Routes */}
+        <Route path="/admin/login" element={
+          <AdminAuthProvider>
+            <AdminLogin />
+          </AdminAuthProvider>
+        } />
+        <Route path="/admin/subscribers" element={
+          <AdminAuthProvider>
+            <AdminProtectedRoute>
+              <AdminSubscribers />
+            </AdminProtectedRoute>
+          </AdminAuthProvider>
+        } />
         
         {/* Protected Routes */}
         <Route path="/dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>

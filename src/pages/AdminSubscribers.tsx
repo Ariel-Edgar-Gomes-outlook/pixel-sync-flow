@@ -5,7 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, UserCheck, UserX, Calendar } from "lucide-react";
+import { ArrowLeft, Users, UserCheck, UserX, LogOut } from "lucide-react";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -22,6 +23,7 @@ interface Profile {
 
 const AdminSubscribers = () => {
   const navigate = useNavigate();
+  const { signOut } = useAdminAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -69,12 +71,17 @@ const AdminSubscribers = () => {
     return new Date(endDate) > new Date();
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-muted/50">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center justify-between gap-4 mb-4">
             <Button
               variant="ghost"
               size="sm"
@@ -83,6 +90,15 @@ const AdminSubscribers = () => {
             >
               <ArrowLeft className="h-4 w-4" />
               Voltar
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSignOut}
+              className="gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sair
             </Button>
           </div>
           <h1 className="text-3xl font-bold">Gestão de Assinantes</h1>
