@@ -123,49 +123,62 @@ export default function Invoices() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Faturas</h1>
-          <p className="text-muted-foreground">Gestão completa de faturação</p>
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 p-8">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]" />
+        <div className="relative flex items-center justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
+              <Receipt className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium text-primary">Faturação</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Faturas</h1>
+            <p className="text-muted-foreground">Gestão completa de faturação</p>
+          </div>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Fatura
+          </Button>
         </div>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Fatura
-        </Button>
       </div>
 
       {stats && (
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
+        <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
+          <Card className="border-success/20 bg-gradient-to-br from-success/10 to-card hover:shadow-lg transition-all">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Faturado</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg bg-success/10">
+                <DollarSign className="h-4 w-4 text-success" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-success">
                 {stats.totalInvoiced.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} AOA
               </div>
               <p className="text-xs text-muted-foreground">{stats.invoiceCount} faturas</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-warning/20 bg-gradient-to-br from-warning/10 to-card hover:shadow-lg transition-all">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pendente</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg bg-warning/10">
+                <Clock className="h-4 w-4 text-warning" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-warning">
                 {stats.totalPending.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} AOA
               </div>
               <p className="text-xs text-muted-foreground">{stats.pendingCount} faturas</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-destructive/20 bg-gradient-to-br from-destructive/10 to-card hover:shadow-lg transition-all">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Vencido</CardTitle>
-              <AlertCircle className="h-4 w-4 text-destructive" />
+              <div className="p-2 rounded-lg bg-destructive/10">
+                <AlertCircle className="h-4 w-4 text-destructive" />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-destructive">
@@ -175,13 +188,15 @@ export default function Invoices() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-primary/20 bg-gradient-to-br from-primary/10 to-card hover:shadow-lg transition-all">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pago</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <TrendingUp className="h-4 w-4 text-primary" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-primary">
                 {stats.totalPaid.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} AOA
               </div>
               <p className="text-xs text-muted-foreground">{stats.paidCount} faturas</p>
@@ -190,7 +205,7 @@ export default function Invoices() {
         </div>
       )}
 
-      <Card>
+      <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50">
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">

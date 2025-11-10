@@ -4,13 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, TrendingUp, Users, Target, Award, ArrowUpDown, Download, UserCheck } from "lucide-react";
+import { Search, Plus, Edit, TrendingUp, Users, Target, Award, Download } from "lucide-react";
 import { useLeads } from "@/hooks/useLeads";
 import { LeadDialog } from "@/components/LeadDialog";
 import { LeadConversionDialog } from "@/components/LeadConversionDialog";
 import { Lead } from "@/hooks/useLeads";
 import { exportToExcel, formatLeadsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
+
 const statusConfig = {
   new: {
     label: "Novo",
@@ -33,6 +34,7 @@ const statusConfig = {
     variant: "destructive" as const
   }
 };
+
 export default function Leads() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLead, setSelectedLead] = useState<Lead | undefined>();
@@ -40,24 +42,26 @@ export default function Leads() {
   const [conversionDialogOpen, setConversionDialogOpen] = useState(false);
   const [sortBy, setSortBy] = useState<"date" | "probability">("date");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
-  const {
-    data: leads,
-    isLoading
-  } = useLeads();
+  
+  const { data: leads, isLoading } = useLeads();
+  
   const handleEdit = (lead: any) => {
     setSelectedLead(lead);
     setDialogOpen(true);
   };
+  
   const handleConvert = (lead: any) => {
     setSelectedLead(lead);
     setConversionDialogOpen(true);
   };
+  
   const handleOpenChange = (open: boolean) => {
     setDialogOpen(open);
     if (!open) {
       setSelectedLead(undefined);
     }
   };
+  
   const handleExport = () => {
     if (leads && leads.length > 0) {
       const formatted = formatLeadsForExport(leads);
@@ -65,19 +69,22 @@ export default function Leads() {
       toast.success("Prospectos exportados com sucesso!");
     }
   };
+  
   const sources = useMemo(() => {
     const uniqueSources = new Set(leads?.map(l => l.source).filter(Boolean));
     return Array.from(uniqueSources);
   }, [leads]);
+  
   const filteredLeads = useMemo(() => {
     let filtered = leads?.filter(lead => {
       const searchLower = searchQuery.toLowerCase();
-      const matchesSearch = lead.clients?.name?.toLowerCase().includes(searchLower) || lead.source?.toLowerCase().includes(searchLower) || lead.notes?.toLowerCase().includes(searchLower);
+      const matchesSearch = lead.clients?.name?.toLowerCase().includes(searchLower) || 
+        lead.source?.toLowerCase().includes(searchLower) || 
+        lead.notes?.toLowerCase().includes(searchLower);
       const matchesSource = sourceFilter === "all" || lead.source === sourceFilter;
       return matchesSearch && matchesSource;
     }) || [];
 
-    // Ordenação
     if (sortBy === "date") {
       filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     } else if (sortBy === "probability") {
@@ -85,6 +92,7 @@ export default function Leads() {
     }
     return filtered;
   }, [leads, searchQuery, sourceFilter, sortBy]);
+  
   const leadsByStatus = {
     new: filteredLeads?.filter(l => l.status === 'new') || [],
     contacted: filteredLeads?.filter(l => l.status === 'contacted') || [],
@@ -92,33 +100,45 @@ export default function Leads() {
     won: filteredLeads?.filter(l => l.status === 'won') || [],
     lost: filteredLeads?.filter(l => l.status === 'lost') || []
   };
+  
   const showEmptyState = !isLoading && (!leads || leads.length === 0);
+  
   if (isLoading) {
     return <div className="space-y-6">Carregando...</div>;
   }
-  return <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Funil de Pontencias Clientes</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Gerencie oportunidades e acompanhe Pontencias Clientes desde o primeiro contacto até conversão</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={handleExport}>
-            <Download className="h-4 w-4" />
-            Exportar Excel
-          </Button>
-          <LeadDialog lead={selectedLead} open={dialogOpen} onOpenChange={handleOpenChange}>
-            <Button className="gap-2 w-full sm:w-auto">
-              <Plus className="h-4 w-4" />
-              Novo Lead
+  
+  return (
+    <div className="space-y-6">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 p-8">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]" />
+        <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium text-primary">Pipeline de Vendas</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Funil de Potenciais Clientes</h1>
+            <p className="text-muted-foreground">Gerencie oportunidades e acompanhe Potenciais Clientes desde o primeiro contacto até conversão</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={handleExport}>
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Exportar Excel</span>
             </Button>
-          </LeadDialog>
+            <LeadDialog lead={selectedLead} open={dialogOpen} onOpenChange={handleOpenChange}>
+              <Button className="gap-2 w-full sm:w-auto">
+                <Plus className="h-4 w-4" />
+                Novo Lead
+              </Button>
+            </LeadDialog>
+          </div>
         </div>
       </div>
 
-      {showEmptyState ? <Card className="border-dashed">
+      {showEmptyState ? (
+        <Card className="border-dashed border-primary/20 bg-gradient-to-br from-card to-card/50">
           <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
-            <div className="rounded-full bg-primary/10 p-6 mb-6">
+            <div className="rounded-full bg-gradient-to-br from-primary/20 to-primary/10 p-6 mb-6">
               <TrendingUp className="h-12 w-12 text-primary" />
             </div>
             
@@ -168,11 +188,18 @@ export default function Leads() {
               </p>
             </div>
           </CardContent>
-        </Card> : <>
+        </Card>
+      ) : (
+        <>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Pesquisar por cliente, fonte ou notas..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9" />
+              <Input 
+                placeholder="Pesquisar por cliente, fonte ou notas..." 
+                value={searchQuery} 
+                onChange={e => setSearchQuery(e.target.value)} 
+                className="pl-9" 
+              />
             </div>
             <Select value={sourceFilter} onValueChange={setSourceFilter}>
               <SelectTrigger className="w-full sm:w-[180px]">
@@ -180,7 +207,9 @@ export default function Leads() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as fontes</SelectItem>
-                {sources.map(source => <SelectItem key={source} value={source!}>{source}</SelectItem>)}
+                {sources.map(source => (
+                  <SelectItem key={source} value={source!}>{source}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
@@ -195,45 +224,62 @@ export default function Leads() {
           </div>
 
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-5">
-        {(Object.keys(statusConfig) as Array<keyof typeof statusConfig>).map(status => <Card key={status} className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-foreground">{statusConfig[status].label}</h3>
-              <Badge variant={statusConfig[status].variant}>
-                {leadsByStatus[status].length}
-              </Badge>
-            </div>
-            <div className="space-y-3">
-              {leadsByStatus[status].map(lead => <Card key={lead.id} className="p-3 bg-muted/50 hover:bg-muted transition-colors px-[4px]">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm text-foreground truncate">
-                        {lead.clients?.name || 'Sem cliente'}
-                      </h4>
-                      {lead.source && <p className="text-xs text-muted-foreground mt-1">
-                          via {lead.source}
-                        </p>}
-                      {lead.probability && <p className="text-xs text-muted-foreground mt-1">
-                          Probabilidade: {lead.probability}%
-                        </p>}
-                      {lead.notes && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                          {lead.notes}
-                        </p>}
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {new Date(lead.created_at).toLocaleDateString('pt-PT')}
-                      </p>
-                      {status === 'proposal_sent'}
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(lead)} className="h-8 w-8 p-0">
-                      <Edit className="h-3 w-3" />
-                    </Button>
+            {(Object.keys(statusConfig) as Array<keyof typeof statusConfig>).map(status => (
+              <Card key={status} className="border-primary/20 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-all">
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-foreground">{statusConfig[status].label}</h3>
+                    <Badge variant={statusConfig[status].variant}>
+                      {leadsByStatus[status].length}
+                    </Badge>
                   </div>
-                </Card>)}
-              {leadsByStatus[status].length === 0 && <p className="text-xs text-muted-foreground text-center py-4">Nenhum Pontencial Clientes</p>}
-            </div>
-          </Card>)}
-      </div>
-        </>}
+                  <div className="space-y-3">
+                    {leadsByStatus[status].map(lead => (
+                      <Card key={lead.id} className="bg-muted/50 hover:bg-muted/70 transition-all border-primary/10">
+                        <div className="p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm text-foreground truncate">
+                                {lead.clients?.name || 'Sem cliente'}
+                              </h4>
+                              {lead.source && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  via {lead.source}
+                                </p>
+                              )}
+                              {lead.probability && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Probabilidade: {lead.probability}%
+                                </p>
+                              )}
+                              {lead.notes && (
+                                <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                                  {lead.notes}
+                                </p>
+                              )}
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {new Date(lead.created_at).toLocaleDateString('pt-PT')}
+                              </p>
+                            </div>
+                            <Button variant="ghost" size="sm" onClick={() => handleEdit(lead)} className="h-8 w-8 p-0">
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                    {leadsByStatus[status].length === 0 && (
+                      <p className="text-xs text-muted-foreground text-center py-4">Nenhum Potencial Cliente</p>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
 
       <LeadConversionDialog lead={selectedLead || null} open={conversionDialogOpen} onOpenChange={setConversionDialogOpen} />
-    </div>;
+    </div>
+  );
 }
