@@ -207,32 +207,39 @@ export default function Quotes() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Orçamentos</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Crie propostas profissionais e acompanhe aceitações de clientes
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={handleExport}>
-            <Download className="h-4 w-4" />
-            Exportar Excel
-          </Button>
-          <QuoteDialog>
-            <Button className="gap-2 w-full sm:w-auto">
-              <Plus className="h-4 w-4" />
-              Novo Orçamento
+    <div className="space-y-6">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 p-8">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
+              <FileText className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium text-primary">Gestão de Orçamentos</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Orçamentos</h1>
+            <p className="text-muted-foreground">
+              Crie propostas profissionais e acompanhe aceitações de clientes
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={handleExport}>
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Exportar Excel</span>
             </Button>
-          </QuoteDialog>
+            <QuoteDialog>
+              <Button className="gap-2 w-full sm:w-auto">
+                <Plus className="h-4 w-4" />
+                Novo Orçamento
+              </Button>
+            </QuoteDialog>
+          </div>
         </div>
       </div>
 
       {showEmptyState ? (
-        <Card className="border-dashed">
+        <Card className="border-dashed border-primary/20 bg-gradient-to-br from-card to-card/50">
           <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
-            <div className="rounded-full bg-primary/10 p-6 mb-6">
+            <div className="rounded-full bg-gradient-to-br from-primary/20 to-primary/10 p-6 mb-6">
               <FileText className="h-12 w-12 text-primary" />
             </div>
             
@@ -283,7 +290,8 @@ export default function Quotes() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="p-6">
+        <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50">
+          <div className="p-6">
           <div className="mb-6">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
@@ -354,10 +362,11 @@ export default function Quotes() {
               ))
             )}
           </div>
+          </div>
         </Card>
       )}
 
-      <QuoteDialog 
+      <QuoteDialog
         quote={selectedQuote} 
         open={isDialogOpen} 
         onOpenChange={handleCloseDialog}

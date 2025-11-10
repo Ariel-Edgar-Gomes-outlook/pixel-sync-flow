@@ -8,7 +8,7 @@ import { useLeads } from "@/hooks/useLeads";
 import { useClients } from "@/hooks/useClients";
 import { useQuotes } from "@/hooks/useQuotes";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
-import { TrendingUp, DollarSign, Briefcase, Users, Target, Calendar, Download } from "lucide-react";
+import { TrendingUp, DollarSign, Briefcase, Users, Target, Calendar, Download, BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { startOfMonth, endOfMonth, eachMonthOfInterval, format, subMonths, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -146,95 +146,114 @@ export default function Reports() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Relatórios Financeiros</h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">Análise completa do desempenho do negócio</p>
-        </div>
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 p-8">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]" />
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium text-primary">Analytics</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Relatórios Financeiros</h1>
+            <p className="text-muted-foreground">Análise completa do desempenho do negócio</p>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="3">Últimos 3 meses</SelectItem>
-              <SelectItem value="6">Últimos 6 meses</SelectItem>
-              <SelectItem value="12">Último ano</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={handleExportAll} variant="outline" size="sm" className="gap-2">
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Exportar Tudo</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="3">Últimos 3 meses</SelectItem>
+                <SelectItem value="6">Últimos 6 meses</SelectItem>
+                <SelectItem value="12">Último ano</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleExportAll} variant="outline" size="sm" className="gap-2">
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Exportar Tudo</span>
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Key Metrics */}
       <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <Card className="p-6 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+        <Card className="p-6 bg-gradient-to-br from-success/10 to-card border-success/20 hover:shadow-lg transition-all">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Receita Total</p>
-              <p className="text-2xl font-bold text-green-600 mt-1">{totalRevenue.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
+              <p className="text-2xl font-bold text-success mt-1">{totalRevenue.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
               <p className="text-xs text-muted-foreground mt-1">De {completedJobs} jobs concluídos</p>
             </div>
-            <DollarSign className="h-10 w-10 text-green-500/30" />
+            <div className="p-3 rounded-lg bg-success/10">
+              <DollarSign className="h-8 w-8 text-success" />
+            </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
+        <Card className="p-6 bg-gradient-to-br from-warning/10 to-card border-warning/20 hover:shadow-lg transition-all">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Receita Pendente</p>
-              <p className="text-2xl font-bold text-orange-600 mt-1">{pendingRevenue.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
+              <p className="text-2xl font-bold text-warning mt-1">{pendingRevenue.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
               <p className="text-xs text-muted-foreground mt-1">Aguardando pagamento</p>
             </div>
-            <Calendar className="h-10 w-10 text-orange-500/30" />
+            <div className="p-3 rounded-lg bg-warning/10">
+              <Calendar className="h-8 w-8 text-warning" />
+            </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+        <Card className="p-6 bg-gradient-to-br from-info/10 to-card border-info/20 hover:shadow-lg transition-all">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Ticket Médio</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">{Number(avgJobValue).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
+              <p className="text-2xl font-bold text-info mt-1">{Number(avgJobValue).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
               <p className="text-xs text-muted-foreground mt-1">Por job concluído</p>
             </div>
-            <Briefcase className="h-10 w-10 text-blue-500/30" />
+            <div className="p-3 rounded-lg bg-info/10">
+              <Briefcase className="h-8 w-8 text-info" />
+            </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20">
+        <Card className="p-6 bg-gradient-to-br from-accent/10 to-card border-accent/20 hover:shadow-lg transition-all">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Clientes Ativos</p>
-              <p className="text-2xl font-bold text-purple-600 mt-1">{activeClients}</p>
+              <p className="text-2xl font-bold text-accent-foreground mt-1">{activeClients}</p>
               <p className="text-xs text-muted-foreground mt-1">Com jobs ativos</p>
             </div>
-            <Users className="h-10 w-10 text-purple-500/30" />
+            <div className="p-3 rounded-lg bg-accent/10">
+              <Users className="h-8 w-8 text-accent-foreground" />
+            </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+        <Card className="p-6 bg-gradient-to-br from-primary/10 to-card border-primary/20 hover:shadow-lg transition-all">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Taxa de Conversão</p>
               <p className="text-2xl font-bold text-primary mt-1">{conversionRate}%</p>
               <p className="text-xs text-muted-foreground mt-1">Leads → Clientes</p>
             </div>
-            <Target className="h-10 w-10 text-primary/30" />
+            <div className="p-3 rounded-lg bg-primary/10">
+              <Target className="h-8 w-8 text-primary" />
+            </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-gradient-to-br from-indigo-500/10 to-indigo-500/5 border-indigo-500/20">
+        <Card className="p-6 bg-gradient-to-br from-secondary/10 to-card border-secondary/20 hover:shadow-lg transition-all">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Total de Jobs</p>
-              <p className="text-2xl font-bold text-indigo-600 mt-1">{jobs?.length || 0}</p>
+              <p className="text-2xl font-bold text-secondary-foreground mt-1">{jobs?.length || 0}</p>
               <p className="text-xs text-muted-foreground mt-1">{completedJobs} concluídos</p>
             </div>
-            <TrendingUp className="h-10 w-10 text-indigo-500/30" />
+            <div className="p-3 rounded-lg bg-secondary/10">
+              <TrendingUp className="h-8 w-8 text-secondary-foreground" />
+            </div>
           </div>
         </Card>
       </div>
@@ -242,11 +261,14 @@ export default function Reports() {
       {/* Charts */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Revenue by Month */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-primary" />
-            Evolução da Receita
-          </h3>
+        <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-all">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
+              Evolução da Receita
+            </h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={revenueByMonth}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -257,14 +279,18 @@ export default function Reports() {
               <Line type="monotone" dataKey="revenue" name="Receita (Kz)" stroke="#10b981" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
+          </div>
         </Card>
 
         {/* Revenue by Type */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Briefcase className="h-5 w-5 text-primary" />
-            Receita por Tipo de Job
-          </h3>
+        <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-all">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Briefcase className="h-5 w-5 text-primary" />
+              </div>
+              Receita por Tipo de Job
+            </h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -284,14 +310,18 @@ export default function Reports() {
               <Tooltip formatter={(value) => `${Number(value).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`} />
             </PieChart>
           </ResponsiveContainer>
+          </div>
         </Card>
 
         {/* Conversion Funnel */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" />
-            Funil de Conversão
-          </h3>
+        <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-all">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Target className="h-5 w-5 text-primary" />
+              </div>
+              Funil de Conversão
+            </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={funnelData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" />
@@ -303,14 +333,18 @@ export default function Reports() {
               <Bar dataKey="rate" name="Taxa (%)" fill="#10b981" />
             </BarChart>
           </ResponsiveContainer>
+          </div>
         </Card>
 
         {/* Top Clients */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
-            Top 10 Clientes
-          </h3>
+        <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-all">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              Top 10 Clientes
+            </h3>
           <div className="space-y-3">
             {clientRevenue.slice(0, 5).map((client, index) => (
               <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
@@ -328,6 +362,7 @@ export default function Reports() {
                 </div>
               </div>
             ))}
+          </div>
           </div>
         </Card>
       </div>

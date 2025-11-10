@@ -143,63 +143,78 @@ export default function Notifications() {
   }, [notifications]);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Notificações</h1>
-          <p className="text-muted-foreground mt-1">Gerencie todas as suas notificações em um só lugar</p>
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 p-8">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]" />
+        <div className="relative flex items-center justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
+              <Bell className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium text-primary">Central de Notificações</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Notificações</h1>
+            <p className="text-muted-foreground">Gerencie todas as suas alertas em um só lugar</p>
+          </div>
+          {stats.unread > 0 && (
+            <Button onClick={handleMarkAllAsRead} variant="outline" className="hidden sm:flex">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Marcar todas como lidas
+            </Button>
+          )}
         </div>
-        {stats.unread > 0 && (
-          <Button onClick={handleMarkAllAsRead} variant="outline">
-            <CheckCircle className="h-4 w-4 mr-2" />
-            Marcar todas como lidas
-          </Button>
-        )}
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
+        <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-all">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Bell className="h-4 w-4 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{stats.total}</div>
             <p className="text-xs text-muted-foreground">notificações totais</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-card hover:shadow-lg transition-all">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Não Lidas</CardTitle>
-            <AlertCircle className="h-4 w-4 text-orange-500" />
+            <div className="p-2 rounded-lg bg-orange-500/10">
+              <AlertCircle className="h-4 w-4 text-orange-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.unread}</div>
+            <div className="text-2xl font-bold text-orange-600">{stats.unread}</div>
             <p className="text-xs text-muted-foreground">aguardando atenção</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-destructive/20 bg-gradient-to-br from-destructive/10 to-card hover:shadow-lg transition-all">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Urgentes</CardTitle>
-            <TrendingUp className="h-4 w-4 text-destructive" />
+            <div className="p-2 rounded-lg bg-destructive/10">
+              <TrendingUp className="h-4 w-4 text-destructive" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.byPriority.urgent || 0}</div>
+            <div className="text-2xl font-bold text-destructive">{stats.byPriority.urgent || 0}</div>
             <p className="text-xs text-muted-foreground">alta prioridade</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-success/20 bg-gradient-to-br from-success/10 to-card hover:shadow-lg transition-all">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Taxa de Leitura</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 rounded-lg bg-success/10">
+              <Clock className="h-4 w-4 text-success" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-success">
               {stats.total > 0 ? Math.round(((stats.total - stats.unread) / stats.total) * 100) : 0}%
             </div>
             <p className="text-xs text-muted-foreground">notificações lidas</p>
@@ -208,10 +223,12 @@ export default function Notifications() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Filter className="h-5 w-5 text-primary" />
+            </div>
             Filtros e Busca
           </CardTitle>
         </CardHeader>
@@ -278,9 +295,12 @@ export default function Notifications() {
       </Card>
 
       {/* Notifications List */}
-      <Card>
+      <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50">
         <CardHeader>
-          <CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Bell className="h-5 w-5 text-primary" />
+            </div>
             Notificações ({filteredNotifications.length})
           </CardTitle>
         </CardHeader>

@@ -111,10 +111,17 @@ export default function Settings() {
   ];
 
   return (
-    <div className="space-y-4 sm:space-y-6 pb-6">
-      <div className="px-1">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Configurações</h1>
-        <p className="text-sm sm:text-base text-muted-foreground mt-1">Gerir preferências e conta</p>
+    <div className="space-y-6 pb-6">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 p-8">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))]" />
+        <div className="relative">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
+            <SettingsIcon className="h-4 w-4 text-primary" />
+            <span className="text-xs font-medium text-primary">Configurações</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Gerir Conta e Preferências</h1>
+          <p className="text-muted-foreground">Personalize sua experiência e configure seus dados</p>
+        </div>
       </div>
 
       {isMobile ? (
@@ -154,14 +161,16 @@ export default function Settings() {
           </TabsList>
         )}
 
-        <TabsContent value="profile" className="mt-4 sm:mt-6">
-          <div className="grid gap-4 sm:gap-6">
-            {/* Perfil */}
-            <Card className="p-4 sm:p-6">
-          <div className="flex items-center gap-3 mb-4 sm:mb-6">
-            <User className="h-5 w-5 text-primary flex-shrink-0" />
-            <h2 className="text-lg sm:text-xl font-semibold text-foreground">Perfil</h2>
-          </div>
+        <TabsContent value="profile" className="mt-6">
+          <div className="grid gap-6">
+            <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-foreground">Informações do Perfil</h2>
+                </div>
 
           <div className="space-y-4">
             <div className="grid gap-2">
@@ -197,24 +206,29 @@ export default function Settings() {
               />
             </div>
 
-            <Button onClick={handleProfileUpdate} disabled={updateProfile.isPending} className="w-full sm:w-auto">
-              Guardar Alterações
-            </Button>
-          </div>
+                <Button onClick={handleProfileUpdate} disabled={updateProfile.isPending} className="w-full sm:w-auto">
+                  Guardar Alterações
+                </Button>
+              </div>
+              </div>
             </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="business" className="mt-4 sm:mt-6">
-          <Card className="p-4 sm:p-6">
-            <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <Building2 className="h-5 w-5 text-primary flex-shrink-0" />
-              <h2 className="text-lg sm:text-xl font-semibold text-foreground">Configurações Empresariais</h2>
+        <TabsContent value="business" className="mt-6">
+          <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Building2 className="h-5 w-5 text-primary" />
+                </div>
+                <h2 className="text-xl font-semibold text-foreground">Configurações Empresariais</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mb-6">
+                Configure os dados da sua empresa para emitir faturas e contratos profissionais
+              </p>
+              <BusinessSettingsForm />
             </div>
-            <p className="text-sm text-muted-foreground mb-4 sm:mb-6">
-              Configure os dados da sua empresa para emitir faturas e contratos profissionais
-            </p>
-            <BusinessSettingsForm />
           </Card>
         </TabsContent>
 
@@ -225,14 +239,16 @@ export default function Settings() {
           </div>
         </TabsContent>
 
-        <TabsContent value="security" className="mt-4 sm:mt-6">
-          <div className="grid gap-4 sm:gap-6">
-            {/* Segurança */}
-            <Card className="p-4 sm:p-6">
-          <div className="flex items-center gap-3 mb-4 sm:mb-6">
-            <Shield className="h-5 w-5 text-primary flex-shrink-0" />
-            <h2 className="text-lg sm:text-xl font-semibold text-foreground">Segurança</h2>
-          </div>
+        <TabsContent value="security" className="mt-6">
+          <div className="grid gap-6">
+            <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Shield className="h-5 w-5 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-foreground">Segurança da Conta</h2>
+                </div>
 
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -250,26 +266,29 @@ export default function Settings() {
                 <p className="font-medium text-foreground">Autenticação de Dois Fatores</p>
                 <p className="text-sm text-muted-foreground">Adicionar camada extra de segurança (em breve)</p>
               </div>
-              <Button variant="outline" disabled className="w-full sm:w-auto">Configurar</Button>
-            </div>
-          </div>
+                  <Button variant="outline" disabled className="w-full sm:w-auto">Configurar</Button>
+                </div>
+              </div>
+              </div>
             </Card>
           </div>
 
-          <PasswordChangeDialog 
+          <PasswordChangeDialog
             open={passwordDialogOpen} 
             onOpenChange={setPasswordDialogOpen}
           />
         </TabsContent>
 
-        <TabsContent value="preferences" className="mt-4 sm:mt-6">
-          <div className="grid gap-4 sm:gap-6">
-            {/* Preferências */}
-            <Card className="p-4 sm:p-6">
-          <div className="flex items-center gap-3 mb-4 sm:mb-6">
-            <SettingsIcon className="h-5 w-5 text-primary flex-shrink-0" />
-            <h2 className="text-lg sm:text-xl font-semibold text-foreground">Preferências</h2>
-          </div>
+        <TabsContent value="preferences" className="mt-6">
+          <div className="grid gap-6">
+            <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <SettingsIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-foreground">Preferências do Sistema</h2>
+                </div>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-4">
@@ -359,9 +378,10 @@ export default function Settings() {
                   <SelectItem value="fr-FR">Français</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">Idioma da interface (em breve)</p>
+                <p className="text-xs text-muted-foreground">Idioma da interface (em breve)</p>
+              </div>
             </div>
-          </div>
+              </div>
             </Card>
           </div>
         </TabsContent>
