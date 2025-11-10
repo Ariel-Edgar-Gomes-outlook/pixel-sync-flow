@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import dashboardImg from "@/assets/dashboard-interface.png";
-import clientsImg from "@/assets/clients-screenshot.jpg";
+import clientsImg from "@/assets/reports-screenshot.jpg";
 import calendarImg from "@/assets/calendar-screenshot.jpg";
 import galleryImg from "@/assets/gallery-screenshot.jpg";
 
