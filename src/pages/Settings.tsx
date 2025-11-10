@@ -17,6 +17,7 @@ import { NotificationSettings } from "@/components/NotificationSettings";
 import { BrowserNotificationToggle } from "@/components/BrowserNotificationToggle";
 import { BusinessSettingsForm } from "@/components/BusinessSettingsForm";
 import { PasswordChangeDialog } from "@/components/PasswordChangeDialog";
+import { PopulateTestDataButton } from "@/components/PopulateTestDataButton";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
@@ -281,6 +282,8 @@ export default function Settings() {
 
         <TabsContent value="preferences" className="mt-6">
           <div className="grid gap-6">
+            <PopulateTestDataButton />
+            
             <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50">
               <div className="p-6">
                 <div className="flex items-center gap-3 mb-6">
