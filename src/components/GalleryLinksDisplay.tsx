@@ -4,7 +4,8 @@ import { ExternalLink } from "lucide-react";
 
 interface GalleryLink {
   name: string;
-  platform: string;
+  platform?: string;
+  type?: string;
   url: string;
   password?: string;
   access_instructions?: string;
@@ -34,17 +35,19 @@ export function GalleryLinksDisplay({ links }: GalleryLinksDisplayProps) {
 
   return (
     <div className="space-y-4">
-      {links.map((link, index) => (
-        <Card key={index} className="p-6 hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">{platformIcons[link.platform] || platformIcons.other}</span>
-                <div>
-                  <h3 className="font-semibold text-lg">{link.name}</h3>
-                  <p className="text-sm text-muted-foreground capitalize">{link.platform.replace('_', ' ')}</p>
+      {links.map((link, index) => {
+        const platformType = link.platform || link.type || 'other';
+        return (
+          <Card key={index} className="p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-3xl">{platformIcons[platformType] || platformIcons.other}</span>
+                  <div>
+                    <h3 className="font-semibold text-lg">{link.name}</h3>
+                    <p className="text-sm text-muted-foreground capitalize">{platformType.replace('_', ' ')}</p>
+                  </div>
                 </div>
-              </div>
 
               {link.password && (
                 <div className="mb-3 p-3 bg-muted rounded-lg">
@@ -64,15 +67,16 @@ export function GalleryLinksDisplay({ links }: GalleryLinksDisplayProps) {
               )}
             </div>
 
-            <Button asChild size="lg">
-              <a href={link.url} target="_blank" rel="noopener noreferrer" className="gap-2">
-                <ExternalLink className="h-4 w-4" />
-                Abrir Galeria
-              </a>
-            </Button>
-          </div>
-        </Card>
-      ))}
+              <Button asChild size="lg">
+                <a href={link.url} target="_blank" rel="noopener noreferrer" className="gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  Abrir Galeria
+                </a>
+              </Button>
+            </div>
+          </Card>
+        );
+      })}
     </div>
   );
 }

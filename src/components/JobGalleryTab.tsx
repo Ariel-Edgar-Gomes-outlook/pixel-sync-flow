@@ -144,16 +144,19 @@ export function JobGalleryTab({
                 </Button>
               </GalleryDialog>
             </div> : <div className="space-y-3">
-              {galleryLinks.map((link: any, index: number) => <Card key={index} className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">{getPlatformIcon(link.platform)}</span>
-                        <div>
-                          <h5 className="font-semibold">{link.name}</h5>
-                          <p className="text-xs text-muted-foreground">{link.platform}</p>
+              {galleryLinks.map((link: any, index: number) => {
+                const platformType = link.platform || link.type || 'other';
+                return (
+                  <Card key={index} className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-2xl">{getPlatformIcon(platformType)}</span>
+                          <div>
+                            <h5 className="font-semibold">{link.name}</h5>
+                            <p className="text-xs text-muted-foreground">{platformType}</p>
+                          </div>
                         </div>
-                      </div>
                       {link.password && <p className="text-sm text-muted-foreground mb-1">
                           🔒 Senha: <code className="bg-muted px-2 py-1 rounded">{link.password}</code>
                         </p>}
@@ -176,7 +179,9 @@ export function JobGalleryTab({
                       </Button>
                     </div>
                   </div>
-                </Card>)}
+                </Card>
+              );
+            })}
             </div>}
         </Card>}
     </div>;
