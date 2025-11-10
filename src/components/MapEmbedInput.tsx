@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
+import { toast } from "sonner";
 
 interface MapEmbedInputProps {
   value: string;
@@ -13,12 +14,16 @@ export function MapEmbedInput({ value, onChange }: MapEmbedInputProps) {
   const [address, setAddress] = useState("");
 
   const generateGoogleMapsEmbed = () => {
-    if (!address.trim()) return;
+    if (!address.trim()) {
+      toast.error("Por favor, digite um endereço primeiro");
+      return;
+    }
     
     // Generate Google Maps embed URL (without API key requirement)
     const encodedAddress = encodeURIComponent(address);
     const embedUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
     onChange(embedUrl);
+    toast.success("Mapa gerado com sucesso!");
   };
 
   return (
