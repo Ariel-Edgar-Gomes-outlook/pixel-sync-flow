@@ -3,9 +3,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Briefcase, FileText, CreditCard, Receipt, FileCheck, ExternalLink, DollarSign } from "lucide-react";
 import { useClientJobs, useClientQuotes, useClientInvoices, useClientPayments, useClientContracts } from "@/hooks/useClientRelations";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 interface Client {
   id: string;
@@ -23,6 +25,7 @@ interface ClientDetailsDialogProps {
 
 export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetailsDialogProps) {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("jobs");
   const { data: jobs } = useClientJobs(client?.id);
   const { data: quotes } = useClientQuotes(client?.id);
   const { data: invoices } = useClientInvoices(client?.id);
@@ -68,21 +71,68 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
           </Card>
         </div>
 
-        <Tabs defaultValue="jobs" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="jobs">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          {/* Mobile: Dropdown Select */}
+          <div className="sm:hidden mb-4">
+            <Select value={activeTab} onValueChange={setActiveTab}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecione uma seção" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="jobs">
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    Jobs ({jobs?.length || 0})
+                  </div>
+                </SelectItem>
+                <SelectItem value="quotes">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Orçamentos ({quotes?.length || 0})
+                  </div>
+                </SelectItem>
+                <SelectItem value="invoices">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Faturas ({invoices?.length || 0})
+                  </div>
+                </SelectItem>
+                <SelectItem value="payments">
+                  <div className="flex items-center gap-2">
+                    <Receipt className="h-4 w-4" />
+                    Pagamentos ({payments?.length || 0})
+                  </div>
+                </SelectItem>
+                <SelectItem value="contracts">
+                  <div className="flex items-center gap-2">
+                    <FileCheck className="h-4 w-4" />
+                    Contratos ({contracts?.length || 0})
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Desktop: Tabs */}
+          <TabsList className="hidden sm:inline-flex w-full">
+            <TabsTrigger value="jobs" className="flex-1">
+              <Briefcase className="h-4 w-4 mr-1" />
               Jobs ({jobs?.length || 0})
             </TabsTrigger>
-            <TabsTrigger value="quotes">
+            <TabsTrigger value="quotes" className="flex-1">
+              <FileText className="h-4 w-4 mr-1" />
               Orçamentos ({quotes?.length || 0})
             </TabsTrigger>
-            <TabsTrigger value="invoices">
+            <TabsTrigger value="invoices" className="flex-1">
+              <CreditCard className="h-4 w-4 mr-1" />
               Faturas ({invoices?.length || 0})
             </TabsTrigger>
-            <TabsTrigger value="payments">
+            <TabsTrigger value="payments" className="flex-1">
+              <Receipt className="h-4 w-4 mr-1" />
               Pagamentos ({payments?.length || 0})
             </TabsTrigger>
-            <TabsTrigger value="contracts">
+            <TabsTrigger value="contracts" className="flex-1">
+              <FileCheck className="h-4 w-4 mr-1" />
               Contratos ({contracts?.length || 0})
             </TabsTrigger>
           </TabsList>
