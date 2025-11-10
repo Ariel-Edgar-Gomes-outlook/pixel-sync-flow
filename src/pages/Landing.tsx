@@ -280,18 +280,18 @@ const Landing = () => {
               </div>
               <div className="order-1 md:order-2 stagger-fade-in">
                 {/* Laptop Mockup */}
-                <div className="relative">
+                <div className="relative max-w-4xl mx-auto">
                   {/* Laptop Frame */}
                   <div className="relative bg-gradient-to-b from-slate-800 to-slate-900 rounded-t-xl p-2 shadow-2xl">
                     {/* Top bar with camera */}
-                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-slate-950 rounded-b-lg"></div>
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-slate-950 rounded-b-lg z-10"></div>
                     
-                    {/* Screen */}
-                    <div className="bg-background rounded-lg overflow-hidden border border-border/50">
+                    {/* Screen with 16:9 aspect ratio */}
+                    <div className="bg-background rounded-lg overflow-hidden border border-border/50 aspect-[16/10]">
                       <img 
                         src={dashboardImg} 
                         alt="Dashboard do ArgomFotos mostrando gráficos e métricas" 
-                        className="w-full h-auto"
+                        className="w-full h-full object-cover object-top"
                       />
                     </div>
                   </div>
