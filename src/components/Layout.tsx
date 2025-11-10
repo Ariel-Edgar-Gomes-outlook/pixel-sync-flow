@@ -13,59 +13,59 @@ import { useWorkflowAutomation } from "@/hooks/useWorkflowAutomation";
 import { SubscriptionBanner, SubscriptionWarning } from "@/components/SubscriptionBanner";
 const navigation = [{
   name: "Dashboard",
-  href: "/",
+  href: "/dashboard",
   icon: LayoutDashboard
 }, {
   name: "Clientes",
-  href: "/clients",
+  href: "/dashboard/clients",
   icon: Users
 }, {
   name: "Trabalhos",
-  href: "/jobs",
+  href: "/dashboard/jobs",
   icon: Briefcase
 }, {
   name: "Agenda",
-  href: "/calendar",
+  href: "/dashboard/calendar",
   icon: Calendar
 }, {
   name: "Potenciais Clientes",
-  href: "/leads",
+  href: "/dashboard/leads",
   icon: UserPlus
 }, {
   name: "Orçamentos",
-  href: "/quotes",
+  href: "/dashboard/quotes",
   icon: FileText
 }, {
   name: "Faturas",
-  href: "/invoices",
+  href: "/dashboard/invoices",
   icon: Receipt
 }, {
   name: "Contratos",
-  href: "/contracts",
+  href: "/dashboard/contracts",
   icon: FileCheck
 }, {
   name: "Financeiro",
-  href: "/payments",
+  href: "/dashboard/payments",
   icon: CreditCard
 }, {
   name: "Relatórios",
-  href: "/reports",
+  href: "/dashboard/reports",
   icon: BarChart3
 }, {
   name: "Modelos",
-  href: "/templates",
+  href: "/dashboard/templates",
   icon: Layers
 }, {
   name: "Recursos",
-  href: "/resources",
+  href: "/dashboard/resources",
   icon: Wrench
 }, {
   name: "Notificações",
-  href: "/notifications",
+  href: "/dashboard/notifications",
   icon: Bell
 }, {
   name: "Configurações",
-  href: "/settings",
+  href: "/dashboard/settings",
   icon: Settings
 }];
 export default function Layout() {
