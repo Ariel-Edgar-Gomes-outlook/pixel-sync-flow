@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useGalleries } from "@/hooks/useGalleries";
 import { GalleryDialog } from "./GalleryDialog";
+import { AddLinkDialog } from "./AddLinkDialog";
 import { Plus, ExternalLink, Image, Copy, Link as LinkIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -108,6 +109,11 @@ export function JobGalleryTab({
               </p>
             </div>
             <div className="flex gap-2">
+              <AddLinkDialog 
+                galleryId={selectedGallery.id} 
+                existingLinks={galleryLinks}
+              />
+              
               <GalleryDialog jobId={jobId} gallery={selectedGallery as any} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <Button variant="outline" size="sm">
                   <Plus className="h-4 w-4 mr-2" />
