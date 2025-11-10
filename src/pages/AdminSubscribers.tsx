@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, UserCheck, UserX, LogOut, Settings, Search, TrendingUp, Clock } from "lucide-react";
+import { ArrowLeft, Users, UserCheck, UserX, LogOut, Settings, Search, TrendingUp, Clock, Download, Ban } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -22,6 +22,9 @@ interface Profile {
   subscription_start_date: string | null;
   subscription_end_date: string | null;
   created_at: string;
+  is_suspended?: boolean;
+  suspension_reason?: string | null;
+  admin_notes?: string | null;
 }
 
 const AdminSubscribers = () => {
@@ -129,6 +132,34 @@ const AdminSubscribers = () => {
     return `${days} dias`;
   };
 
+  const handleExportCSV = () => {
+    try {
+      const headers = ["Nome", "Email", "Telefone", "Data Registo", "Início Assinatura", "Término Assinatura", "Estado", "Suspenso"];
+      const rows = filteredProfiles.map(p => [
+        p.name,
+        p.email,
+        p.phone || "",
+        format(new Date(p.created_at), "dd/MM/yyyy"),
+        p.subscription_start_date ? format(new Date(p.subscription_start_date), "dd/MM/yyyy") : "",
+        p.subscription_end_date ? format(new Date(p.subscription_end_date), "dd/MM/yyyy") : "Ilimitado",
+        isSubscriptionActive(p.subscription_end_date) ? "Ativa" : "Expirada",
+        p.is_suspended ? "Sim" : "Não"
+      ]);
+
+      const csv = [headers, ...rows].map(row => row.join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `assinantes_${format(new Date(), "yyyy-MM-dd")}.csv`;
+      a.click();
+      
+      toast.success("Exportação concluída!");
+    } catch (error) {
+      toast.error("Erro ao exportar dados");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -225,7 +256,7 @@ const AdminSubscribers = () => {
                   Todos os utilizadores registados no sistema
                 </CardDescription>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col md:flex-row gap-2">
                 <div className="relative flex-1 md:w-64">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -256,6 +287,14 @@ const AdminSubscribers = () => {
                     onClick={() => setFilterStatus("expired")}
                   >
                     Expiradas
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportCSV}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar
                   </Button>
                 </div>
               </div>
@@ -291,8 +330,18 @@ const AdminSubscribers = () => {
                       </TableRow>
                     ) : (
                       filteredProfiles.map((profile) => (
-                        <TableRow key={profile.id}>
-                          <TableCell className="font-medium">{profile.name}</TableCell>
+                        <TableRow key={profile.id} className={profile.is_suspended ? "opacity-60" : ""}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {profile.name}
+                              {profile.is_suspended && (
+                                <Badge variant="destructive" className="text-xs">
+                                  <Ban className="h-3 w-3 mr-1" />
+                                  Suspenso
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-sm">{profile.email}</TableCell>
                           <TableCell>{profile.phone || "-"}</TableCell>
                           <TableCell className="text-sm">

@@ -1179,40 +1179,49 @@ export type Database = {
       }
       profiles: {
         Row: {
+          admin_notes: string | null
           avatar_url: string | null
           created_at: string
           email: string
           id: string
+          is_suspended: boolean | null
           name: string
           phone: string | null
           subscription_end_date: string | null
           subscription_start_date: string | null
+          suspension_reason: string | null
           type: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
           avatar_url?: string | null
           created_at?: string
           email: string
           id?: string
+          is_suspended?: boolean | null
           name: string
           phone?: string | null
           subscription_end_date?: string | null
           subscription_start_date?: string | null
+          suspension_reason?: string | null
           type?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string
           id?: string
+          is_suspended?: boolean | null
           name?: string
           phone?: string | null
           subscription_end_date?: string | null
           subscription_start_date?: string | null
+          suspension_reason?: string | null
           type?: string | null
           updated_at?: string
           user_id?: string
