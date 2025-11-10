@@ -253,10 +253,10 @@ const AdminSubscribers = () => {
               <div>
                 <CardTitle>Lista de Assinantes</CardTitle>
                 <CardDescription>
-                  Todos os utilizadores registados no sistema
+                  Gerir e visualizar todos os utilizadores do sistema
                 </CardDescription>
               </div>
-              <div className="flex flex-col md:flex-row gap-2">
+              <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
                 <div className="relative flex-1 md:w-64">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -266,35 +266,36 @@ const AdminSubscribers = () => {
                     className="pl-8"
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button
                     variant={filterStatus === "all" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setFilterStatus("all")}
                   >
-                    Todos
+                    Todos ({profiles.length})
                   </Button>
                   <Button
                     variant={filterStatus === "active" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setFilterStatus("active")}
                   >
-                    Ativas
+                    Ativas ({stats.active})
                   </Button>
                   <Button
                     variant={filterStatus === "expired" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setFilterStatus("expired")}
                   >
-                    Expiradas
+                    Expiradas ({stats.expired})
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleExportCSV}
+                    className="gap-2"
                   >
-                    <Download className="h-4 w-4 mr-2" />
-                    Exportar
+                    <Download className="h-4 w-4" />
+                    Exportar CSV
                   </Button>
                 </div>
               </div>
