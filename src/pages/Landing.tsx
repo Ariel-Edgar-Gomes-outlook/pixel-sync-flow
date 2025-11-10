@@ -68,20 +68,20 @@ const Landing = () => {
 
   const testimonials = [
     {
-      name: "João Silva",
-      role: "Fotógrafo de Casamentos",
+      name: "Tondel Fernandes",
+      role: "Designer Gráfico",
       content: "O ArgomFotos transformou completamente a gestão do meu estúdio. Agora consigo acompanhar tudo num único lugar!",
       rating: 5,
     },
     {
-      name: "Maria Santos",
-      role: "Estúdio Fotográfico",
+      name: "Josué Mendes",
+      role: "Fotógrafo Freelancer",
       content: "As galerias privadas facilitaram muito a entrega das fotos aos clientes. Sistema intuitivo e profissional!",
       rating: 5,
     },
     {
-      name: "Pedro Costa",
-      role: "Fotógrafo Freelancer",
+      name: "Márcio Andrade",
+      role: "Fotógrafo",
       content: "Consigo gerir todos os meus projetos e faturas de forma organizada. Valeu cada kwanza investido!",
       rating: 5,
     },
