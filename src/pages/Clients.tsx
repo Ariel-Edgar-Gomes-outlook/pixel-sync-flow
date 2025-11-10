@@ -59,25 +59,37 @@ export default function Clients() {
   if (isLoading) {
     return <div className="space-y-6">Carregando...</div>;
   }
-  return <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Clientes</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Gerencie sua carteira de clientes, contactos e histórico de trabalhos
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" className="gap-2 flex-1 sm:flex-none" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Exportar</span>
-          </Button>
-          <ClientDialog />
+  return <div className="space-y-6 animate-fade-in">
+      {/* Hero Header com Gradiente */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-accent p-8 shadow-2xl">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+              <Users className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Clientes</h1>
+              <p className="text-white/90 mt-1">Gerencie sua carteira de clientes e contactos</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" 
+              onClick={handleExport}
+            >
+              <Download className="h-4 w-4" />
+              Exportar
+            </Button>
+            <ClientDialog />
+          </div>
         </div>
       </div>
 
       {/* Estado vazio informativo */}
-      {showEmptyState ? <Card className="border-dashed">
+      {showEmptyState ? <Card className="border-dashed glass hover-lift">
           <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
             <div className="rounded-full bg-primary/10 p-6 mb-6">
               <Users className="h-12 w-12 text-primary" />
@@ -123,7 +135,7 @@ export default function Clients() {
               </p>
             </div>
           </CardContent>
-        </Card> : <Card className="p-6">
+        </Card> : <Card className="p-6 glass hover-lift">
           <div className="mb-6">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
@@ -157,7 +169,7 @@ export default function Clients() {
                 <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="font-medium mb-1">Nenhum cliente encontrado</p>
                 <p className="text-sm">Tente ajustar os termos de pesquisa</p>
-              </div> : filteredClients.map(client => <div key={client.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-border my-0 mx-0 px-[16px] py-[7px]">
+              </div> : filteredClients.map(client => <div key={client.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl bg-gradient-to-br from-card to-card/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-border/50 backdrop-blur-sm">
                 <div className="flex-1">
                   <div className="flex items-start sm:items-center gap-3">
                     <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm sm:text-base shrink-0">

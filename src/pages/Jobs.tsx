@@ -75,39 +75,54 @@ export default function Jobs() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col gap-3 sm:gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Trabalhos & Projetos</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Gerencie eventos, sessões e produções
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5 flex-1 sm:flex-none" onClick={handleExport}>
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Exportar</span>
-          </Button>
-          <Button 
-            variant="default"
-            size="sm"
-            className="gap-1.5 flex-1 sm:flex-none"
-            onClick={() => setQuickStartOpen(true)}
-          >
-            <Sparkles className="h-4 w-4" />
-            Início Rápido
-          </Button>
-          <JobDialog>
-            <Button variant="outline" size="sm" className="gap-1.5 flex-1 sm:flex-none">
-              <Plus className="h-4 w-4" />
-              Manual
+    <div className="space-y-6 animate-fade-in">
+      {/* Hero Header com Gradiente */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-accent p-8 shadow-2xl">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+        <div className="relative">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+              <Briefcase className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Trabalhos & Projetos</h1>
+              <p className="text-white/90 mt-1">Gerencie eventos, sessões e produções</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" 
+              onClick={handleExport}
+            >
+              <Download className="h-4 w-4" />
+              Exportar
             </Button>
-          </JobDialog>
+            <Button 
+              size="sm"
+              className="gap-2 bg-white text-primary hover:bg-white/90 shadow-lg"
+              onClick={() => setQuickStartOpen(true)}
+            >
+              <Sparkles className="h-4 w-4" />
+              Início Rápido
+            </Button>
+            <JobDialog>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+              >
+                <Plus className="h-4 w-4" />
+                Manual
+              </Button>
+            </JobDialog>
+          </div>
         </div>
       </div>
 
       {showEmptyState ? (
-        <Card className="border-dashed">
+        <Card className="border-dashed glass hover-lift">
           <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
             <div className="rounded-full bg-primary/10 p-6 mb-6">
               <Briefcase className="h-12 w-12 text-primary" />
@@ -181,7 +196,7 @@ export default function Jobs() {
           </div>
 
             <TabsContent value={activeTab} className="mt-4 sm:mt-6">
-              <Card className="p-4 sm:p-6">
+              <Card className="p-4 sm:p-6 glass hover-lift">
                 <div className="mb-4 sm:mb-6 space-y-3">
                   <div className="flex flex-col gap-2 sm:gap-3">
                     <div className="relative flex-1">
@@ -231,7 +246,7 @@ export default function Jobs() {
                 filteredJobs.map((job) => (
                   <div
                     key={job.id}
-                    className="p-3 sm:p-4 rounded-lg border border-border bg-card hover:shadow-md transition-all"
+                    className="p-3 sm:p-4 rounded-xl border border-border/50 bg-gradient-to-br from-card to-card/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm"
                   >
                     <div className="space-y-3">
                       <div className="flex flex-wrap items-start gap-2">

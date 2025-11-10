@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Plus, AlertTriangle, Users, Package } from "lucide-react";
+import { Plus, AlertTriangle, Users, Package, Calendar } from "lucide-react";
 import { useJobs } from "@/hooks/useJobs";
 import { useState, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -148,19 +148,26 @@ export default function CalendarView() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">Agenda</h1>
-          <p className="text-base text-muted-foreground mt-2">Calendário de Trabalho e disponibilidade</p>
-        </div>
-        <div className="flex flex-wrap gap-3">
+    <div className="space-y-6 animate-fade-in">
+      {/* Hero Header com Gradiente */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-accent p-8 shadow-2xl">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+              <Calendar className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Agenda</h1>
+              <p className="text-white/90 mt-1">Calendário de Trabalho e disponibilidade</p>
+            </div>
+          </div>
           <Button
             onClick={() => {
               setSelectedDate(new Date());
               setIsJobDialogOpen(true);
             }}
-            className="gap-2 shadow-md hover:shadow-lg transition-shadow"
+            className="gap-2 bg-white text-primary hover:bg-white/90 shadow-lg"
             size={isMobile ? "default" : "lg"}
           >
             <Plus className="h-5 w-5" />
@@ -170,7 +177,7 @@ export default function CalendarView() {
       </div>
 
       {/* Filters */}
-      <Card className="p-5 shadow-md">
+      <Card className="p-5 glass hover-lift">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">Status</label>
@@ -206,7 +213,7 @@ export default function CalendarView() {
       </Card>
 
       {/* View Selector */}
-      <Card className="p-4 shadow-md">
+      <Card className="p-4 glass hover-lift">
         <div className="flex gap-2">
           <Button
             variant={calendarView === 'month' ? 'default' : 'outline'}

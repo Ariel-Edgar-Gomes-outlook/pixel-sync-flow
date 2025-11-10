@@ -106,28 +106,43 @@ export default function Payments() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Financeiro</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Controle completo de pagamentos, receitas e fluxo de caixa
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={handleExport}>
-            <Download className="h-4 w-4" />
-            Exportar Excel
-          </Button>
-          <Button className="gap-2 w-full sm:w-auto" onClick={handleNewPayment}>
-            <Plus className="h-4 w-4" />
-            Novo Pagamento
-          </Button>
+    <div className="space-y-6 animate-fade-in">
+      {/* Hero Header com Gradiente */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-accent p-8 shadow-2xl">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+              <Wallet className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Financeiro</h1>
+              <p className="text-white/90 mt-1">Controle completo de pagamentos e receitas</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" 
+              onClick={handleExport}
+            >
+              <Download className="h-4 w-4" />
+              Exportar
+            </Button>
+            <Button 
+              className="gap-2 bg-white text-primary hover:bg-white/90 shadow-lg" 
+              onClick={handleNewPayment}
+            >
+              <Plus className="h-4 w-4" />
+              Novo Pagamento
+            </Button>
+          </div>
         </div>
       </div>
 
       {showEmptyState ? (
-        <Card className="border-dashed">
+        <Card className="border-dashed glass hover-lift">
           <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
             <div className="rounded-full bg-primary/10 p-6 mb-6">
               <Wallet className="h-12 w-12 text-primary" />
@@ -180,7 +195,7 @@ export default function Payments() {
       ) : (
         <>
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <Card className="p-6">
+        <Card className="p-6 glass hover-lift">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-success/10">
               <DollarSign className="h-6 w-6 text-success" />
@@ -192,7 +207,7 @@ export default function Payments() {
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 glass hover-lift">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-warning/10">
               <Calendar className="h-6 w-6 text-warning" />
@@ -204,7 +219,7 @@ export default function Payments() {
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 glass hover-lift">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
               <CreditCard className="h-6 w-6 text-primary" />
@@ -217,7 +232,7 @@ export default function Payments() {
           </Card>
         </div>
 
-        <Card className="p-6">
+        <Card className="p-6 glass hover-lift">
         <div className="mb-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -244,7 +259,7 @@ export default function Payments() {
               return (
               <Card
                 key={payment.id}
-                className="p-4 sm:p-5 hover:shadow-md transition-all"
+                className="p-4 sm:p-5 rounded-xl bg-gradient-to-br from-card to-card/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-border/50 backdrop-blur-sm"
               >
                 <div className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-2">
