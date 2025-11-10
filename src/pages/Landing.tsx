@@ -180,19 +180,17 @@ const Landing = () => {
             </p>
             
             {/* Video Section */}
-            <div className="relative w-full max-w-4xl mx-auto mt-12 mb-8 rounded-2xl overflow-hidden shadow-2xl hover-scale">
-              <div className="relative aspect-video">
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
+            <div className="relative w-full max-w-4xl mx-auto mt-12 mb-8 rounded-2xl overflow-hidden shadow-2xl hover-scale border-2 border-primary/20">
+              <div className="relative aspect-video bg-muted">
+                <iframe
+                  src="https://www.youtube.com/embed/FRdVHQg_o3k?autoplay=1&mute=1&loop=1&playlist=FRdVHQg_o3k&controls=0&showinfo=0&rel=0&modestbranding=1"
+                  title="Professional Photography"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
                   className="w-full h-full object-cover"
-                >
-                  <source src="https://videos.pexels.com/video-files/7988697/7988697-uhd_2560_1440_25fps.mp4" type="video/mp4" />
-                  O teu navegador não suporta a tag de vídeo.
-                </video>
-                <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent pointer-events-none" />
+                  style={{ border: 'none' }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent pointer-events-none" />
               </div>
             </div>
             
