@@ -142,35 +142,52 @@ serve(async (req) => {
       await supabaseClient.from("leads").insert(leadsData);
     }
 
-    // 4. JOBS (25 trabalhos)
-    if (clients && clients.length >= 25) {
-      const jobTypes = ['Casamento', 'Corporativo', 'Evento', 'Retrato', 'Produto'];
+    // 4. JOBS (40 trabalhos)
+    if (clients && clients.length >= 30) {
+      const jobTypes = ['Casamento', 'Corporativo', 'Evento', 'Retrato', 'Produto', 'Maternidade', 'Batizado', 'Formatura', 'Arquitectura', 'Moda'];
       const jobTitles = [
-        'Casamento Maria & João', 'Ensaio Maternidade', 'Sessão Corporativa', 'Batizado Bebé Miguel',
-        'Formatura ISPTEC', 'Book Profissional', 'Fotos de Produto', 'Evento Empresarial',
-        'Aniversário 30 Anos', 'Sessão Família', 'Baptizado Lucas', 'Retrato Empresarial',
-        'Casamento Ana & Pedro', 'Ensaio Gestante', 'Fotos Corporativas BCA', 'Evento Hotel Trópico',
-        'Book Modelo Fashion', 'Produto E-commerce', 'Formatura MBA', 'Sessão Newborn',
-        'Casamento Civil', 'Retrato LinkedIn', 'Fotos Restaurante', 'Evento Escola', 'Arquitectura Obra'
+        'Casamento Maria & João', 'Ensaio Maternidade Ana', 'Sessão Corporativa BCA', 'Batizado Bebé Miguel',
+        'Formatura ISPTEC 2025', 'Book Profissional Modelo', 'Fotos Produto Moda Angola', 'Evento Empresarial Petrolífera',
+        'Aniversário 30 Anos Sofia', 'Sessão Família Costa', 'Baptizado Lucas', 'Retrato Executivo LinkedIn',
+        'Casamento Ana & Pedro', 'Ensaio Gestante Beatriz', 'Fotos Corporativas Tropico Hotel', 'Evento Conferência',
+        'Book Fashion Week', 'Produto E-commerce Loja', 'Formatura MBA 2025', 'Sessão Newborn',
+        'Casamento Civil Isabel', 'Retrato Profissional', 'Fotos Menu Restaurante', 'Evento Escola EIL', 'Arquitectura Nova Era',
+        'Ensaio Casal Noivos', 'Fotos Imóveis Prime', 'Evento Inauguração', 'Book Fitness Academia', 'Retrato Corporativo',
+        'Casamento Destino Mussulo', 'Sessão Kids Aniversário', 'Fotos Produto Café', 'Evento Lançamento', 'Arquitectura Hotel',
+        'Book Teen 15 Anos', 'Ensaio Pré-Wedding', 'Corporativo Banco', 'Festa Empresa', 'Produto Joalheria'
       ];
-      const locations = ['Ilha de Luanda', 'Fortaleza de São Miguel', 'Marginal de Luanda', 'Talatona', 'Kilamba', 'Belas Shopping', 'Mussulo', 'Estúdio Principal'];
-      const statuses = ['scheduled', 'confirmed', 'in_progress', 'completed', 'cancelled'];
-
-      const jobsData = clients.slice(0, 25).map((client, idx) => {
-        const daysOffset = idx + 1;
+      const locations = ['Ilha de Luanda', 'Fortaleza de São Miguel', 'Marginal de Luanda', 'Talatona', 'Kilamba', 'Belas Shopping', 'Mussulo', 'Estúdio Principal', 'Hotel Trópico', 'Praia do Cabo Ledo'];
+      
+      const jobsData = clients.slice(0, 40).map((client, idx) => {
+        const daysOffset = idx - 10; // Alguns jobs no passado (completados), alguns no futuro
+        const startDate = new Date(Date.now() + daysOffset * 24 * 60 * 60 * 1000);
+        const endDate = new Date(startDate.getTime() + (3 + Math.floor(Math.random() * 5)) * 60 * 60 * 1000); // 3-8 horas depois
+        
+        let status;
+        if (daysOffset < -15) {
+          status = 'completed';
+        } else if (daysOffset < -5) {
+          status = 'in_progress';
+        } else if (daysOffset < 0) {
+          status = 'confirmed';
+        } else {
+          status = 'scheduled';
+        }
+        
         return {
           created_by: user.id,
           client_id: client.id,
           title: jobTitles[idx],
           type: jobTypes[idx % jobTypes.length],
-          status: idx < 5 ? 'scheduled' : idx < 12 ? 'confirmed' : idx < 18 ? 'in_progress' : idx < 22 ? 'completed' : 'cancelled',
-          start_datetime: new Date(Date.now() + daysOffset * 24 * 60 * 60 * 1000).toISOString(),
-          end_datetime: new Date(Date.now() + (daysOffset + 1) * 24 * 60 * 60 * 1000).toISOString(),
+          status: status,
+          start_datetime: startDate.toISOString(),
+          end_datetime: endDate.toISOString(),
           location: locations[idx % locations.length],
-          description: 'Job criado automaticamente com dados fictícios para demonstração do sistema.',
+          description: `Job de ${jobTypes[idx % jobTypes.length].toLowerCase()} criado para demonstração do sistema.`,
           estimated_revenue: 150000 + Math.floor(Math.random() * 850000),
           estimated_cost: 50000 + Math.floor(Math.random() * 200000),
-          tags: ['premium']
+          estimated_hours: 3 + Math.floor(Math.random() * 5),
+          tags: idx % 2 === 0 ? ['premium', 'prioritário'] : ['standard']
         };
       });
 
@@ -200,40 +217,87 @@ serve(async (req) => {
         await supabaseClient.from("quotes").insert(quotesData);
       }
 
-      // 6. FATURAS (18 invoices)
-      if (clients.length >= 18) {
-        const invoicesData = clients.slice(0, 18).map((client, idx) => ({
-          user_id: user.id,
-          client_id: client.id,
-          invoice_number: `FT${String(idx + 1).padStart(4, '0')}/2025`,
-          issue_date: new Date(Date.now() - idx * 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          due_date: new Date(Date.now() + idx * 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          items: [{ description: 'Sessão Fotográfica Completa', quantity: 1, unit_price: 300000, total: 300000 }],
-          subtotal: 300000,
-          tax_rate: 14,
-          tax_amount: 42000,
-          total: 342000,
-          status: ['issued', 'paid', 'overdue', 'partial'][idx % 4],
-          currency: 'AOA',
-          is_proforma: false
-        }));
+      // 6. FATURAS (20 invoices) - SEM FATURAS VENCIDAS
+      if (clients.length >= 20) {
+        const invoicesData = clients.slice(0, 20).map((client, idx) => {
+          const issueDate = new Date(Date.now() - idx * 3 * 24 * 60 * 60 * 1000);
+          const dueDate = new Date(issueDate.getTime() + (30 + idx * 5) * 24 * 60 * 60 * 1000); // 30-125 dias após emissão
+          const subtotal = 250000 + Math.floor(Math.random() * 500000);
+          const taxAmount = Math.floor(subtotal * 0.14);
+          const total = subtotal + taxAmount;
+          
+          // Definir status baseado em lógica consistente
+          let status, amountPaid, paidDate;
+          if (idx % 4 === 0) {
+            status = 'paid';
+            amountPaid = total;
+            paidDate = new Date(issueDate.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+          } else if (idx % 4 === 1) {
+            status = 'partial';
+            amountPaid = Math.floor(total * 0.5);
+            paidDate = null;
+          } else {
+            status = 'issued';
+            amountPaid = 0;
+            paidDate = null;
+          }
+          
+          return {
+            user_id: user.id,
+            client_id: client.id,
+            invoice_number: `FT${String(idx + 1).padStart(4, '0')}/2025`,
+            issue_date: issueDate.toISOString().split('T')[0],
+            due_date: dueDate.toISOString().split('T')[0],
+            paid_date: paidDate,
+            items: [
+              { description: 'Sessão Fotográfica Completa', quantity: 1, unit_price: subtotal * 0.7, total: subtotal * 0.7 },
+              { description: 'Edição e Pós-Produção', quantity: 1, unit_price: subtotal * 0.3, total: subtotal * 0.3 }
+            ],
+            subtotal: subtotal,
+            tax_rate: 14,
+            tax_amount: taxAmount,
+            total: total,
+            amount_paid: amountPaid,
+            status: status,
+            currency: 'AOA',
+            is_proforma: idx % 10 === 0,
+            notes: idx % 3 === 0 ? 'Pagamento via transferência bancária' : null,
+            payment_instructions: 'IBAN: AO06 0000 0000 0000 0000 0000 1 - BIC: BAIPAOLU'
+          };
+        });
 
         await supabaseClient.from("invoices").insert(invoicesData);
       }
 
-      // 7. PAGAMENTOS (25 payments)
-      if (clients.length >= 25) {
-        const paymentsData = clients.slice(0, 25).map((client, idx) => ({
-          created_by: user.id,
-          client_id: client.id,
-          type: ['deposit', 'installment', 'final'][idx % 3],
-          amount: 100000 + Math.floor(Math.random() * 400000),
-          status: ['paid', 'pending', 'overdue'][idx % 3],
-          method: ['Transferência Bancária', 'Dinheiro', 'Multicaixa', 'Cheque'][idx % 4],
-          due_date: new Date(Date.now() + idx * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          paid_at: idx % 3 === 0 ? new Date(Date.now() - idx * 24 * 60 * 60 * 1000).toISOString() : null,
-          currency: 'AOA'
-        }));
+      // 7. PAGAMENTOS (30 payments) - SEM PAGAMENTOS VENCIDOS
+      if (clients.length >= 30) {
+        const paymentsData = clients.slice(0, 30).map((client, idx) => {
+          const dueDate = new Date(Date.now() + (5 + idx * 7) * 24 * 60 * 60 * 1000); // Todos no futuro: 5-208 dias
+          const amount = 100000 + Math.floor(Math.random() * 400000);
+          
+          // Status baseado em lógica consistente
+          let status, paidAt;
+          if (idx % 3 === 0) {
+            status = 'paid';
+            paidAt = new Date(Date.now() - (idx + 1) * 2 * 24 * 60 * 60 * 1000).toISOString();
+          } else {
+            status = 'pending';
+            paidAt = null;
+          }
+          
+          return {
+            created_by: user.id,
+            client_id: client.id,
+            type: ['deposit', 'installment', 'final'][idx % 3],
+            amount: amount,
+            status: status,
+            method: ['Transferência Bancária', 'Dinheiro', 'Multicaixa', 'Cheque'][idx % 4],
+            due_date: dueDate.toISOString().split('T')[0],
+            paid_at: paidAt,
+            currency: 'AOA',
+            notes: status === 'paid' ? 'Pagamento recebido e confirmado' : 'Aguardando pagamento'
+          };
+        });
 
         await supabaseClient.from("payments").insert(paymentsData);
       }
@@ -429,12 +493,12 @@ O presente contrato tem por objeto a prestação de serviços fotográficos conf
         message: "Base de dados populada com sucesso!",
         summary: {
           clients: 45,
-          jobs: 25,
+          jobs: 40,
           resources: 20,
           leads: 15,
           quotes: 20,
-          invoices: 18,
-          payments: 25,
+          invoices: 20,
+          payments: 30,
           contracts: 12,
           checklists: 10,
           galleries: 8,
