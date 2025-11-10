@@ -57,16 +57,20 @@ export function useSmartBadges({ entityType, entity }: UseSmartBadgesProps): Sma
         break;
 
       case 'invoice':
-        // Invoice overdue
-        if (entity.status === 'overdue' || (entity.due_date && isPast(parseISO(entity.due_date)) && entity.status !== 'paid')) {
-          const daysOverdue = entity.due_date ? differenceInDays(new Date(), parseISO(entity.due_date)) : 0;
-          result.push({
-            id: 'invoice-overdue',
-            label: `🚨 Vencido há ${daysOverdue} dias`,
-            variant: 'destructive',
-            priority: 'urgent',
-            tooltip: 'Fatura vencida - enviar lembrete',
-          });
+        // Invoice overdue - only show if actually overdue (positive days)
+        if (entity.due_date) {
+          const daysOverdue = differenceInDays(new Date(), parseISO(entity.due_date));
+          const isActuallyOverdue = daysOverdue > 0 && entity.status !== 'paid' && entity.status !== 'cancelled';
+          
+          if (isActuallyOverdue) {
+            result.push({
+              id: 'invoice-overdue',
+              label: `🚨 Vencido há ${daysOverdue} dias`,
+              variant: 'destructive',
+              priority: 'urgent',
+              tooltip: 'Fatura vencida - enviar lembrete',
+            });
+          }
         }
 
         // Invoice issued for >30 days without payment

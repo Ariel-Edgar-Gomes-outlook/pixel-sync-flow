@@ -217,16 +217,18 @@ serve(async (req) => {
         await supabaseClient.from("quotes").insert(quotesData);
       }
 
-      // 6. FATURAS (20 invoices) - SEM FATURAS VENCIDAS
+      // 6. FATURAS (20 invoices) - TODAS COM VENCIMENTO NO FUTURO
       if (clients.length >= 20) {
         const invoicesData = clients.slice(0, 20).map((client, idx) => {
-          const issueDate = new Date(Date.now() - idx * 3 * 24 * 60 * 60 * 1000);
-          const dueDate = new Date(issueDate.getTime() + (30 + idx * 5) * 24 * 60 * 60 * 1000); // 30-125 dias após emissão
+          // Todas as datas de emissão no passado recente (últimos 60 dias)
+          const issueDate = new Date(Date.now() - idx * 2 * 24 * 60 * 60 * 1000);
+          // CRÍTICO: Todas as datas de vencimento NO FUTURO (45-90 dias após hoje)
+          const dueDate = new Date(Date.now() + (45 + idx * 2) * 24 * 60 * 60 * 1000);
           const subtotal = 250000 + Math.floor(Math.random() * 500000);
           const taxAmount = Math.floor(subtotal * 0.14);
           const total = subtotal + taxAmount;
           
-          // Definir status baseado em lógica consistente
+          // Definir status baseado em lógica consistente - NUNCA 'overdue'
           let status, amountPaid, paidDate;
           if (idx % 4 === 0) {
             status = 'paid';
@@ -237,6 +239,7 @@ serve(async (req) => {
             amountPaid = Math.floor(total * 0.5);
             paidDate = null;
           } else {
+            // Status 'issued' - com vencimento no futuro, nunca será 'overdue'
             status = 'issued';
             amountPaid = 0;
             paidDate = null;
