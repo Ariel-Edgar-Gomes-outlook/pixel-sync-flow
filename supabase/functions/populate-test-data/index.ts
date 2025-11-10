@@ -368,7 +368,13 @@ O presente contrato tem por objeto a prestação de serviços fotográficos conf
 
       // 11. TIME ENTRIES (30 registros)
       if (jobs && jobs.length >= 15) {
-        const timeEntriesData = [];
+        const timeEntriesData: Array<{
+          user_id: string;
+          job_id: string;
+          entry_date: string;
+          hours: number;
+          description: string;
+        }> = [];
         const descriptions = ['Sessão fotográfica', 'Edição e tratamento', 'Reunião com cliente', 'Pós-produção avançada', 'Preparação de equipamento'];
         
         jobs.slice(0, 15).forEach((job, idx) => {
@@ -513,10 +519,11 @@ O presente contrato tem por objeto a prestação de serviços fotográficos conf
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error populating test data:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to populate data";
     return new Response(
-      JSON.stringify({ error: error.message || "Failed to populate data" }),
+      JSON.stringify({ error: errorMessage }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

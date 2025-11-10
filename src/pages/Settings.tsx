@@ -18,6 +18,7 @@ import { BrowserNotificationToggle } from "@/components/BrowserNotificationToggl
 import { BusinessSettingsForm } from "@/components/BusinessSettingsForm";
 import { PasswordChangeDialog } from "@/components/PasswordChangeDialog";
 import { PopulateTestDataButton } from "@/components/PopulateTestDataButton";
+import { ClearTestDataButton } from "@/components/ClearTestDataButton";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
@@ -283,6 +284,7 @@ export default function Settings() {
         <TabsContent value="preferences" className="mt-6">
           <div className="grid gap-6">
             <PopulateTestDataButton />
+            <ClearTestDataButton />
             
             <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50">
               <div className="p-6">
