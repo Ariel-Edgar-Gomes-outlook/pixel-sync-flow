@@ -4,11 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, UserCheck, UserX, LogOut } from "lucide-react";
+import { ArrowLeft, Users, UserCheck, UserX, LogOut, Settings, Search, TrendingUp, Clock } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { SubscriptionEditDialog } from "@/components/SubscriptionEditDialog";
+import { toast } from "sonner";
 
 interface Profile {
   id: string;
@@ -30,7 +33,13 @@ const AdminSubscribers = () => {
     total: 0,
     active: 0,
     expired: 0,
+    unlimited: 0,
+    expiringSoon: 0,
   });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "expired">("all");
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchProfiles();
@@ -49,15 +58,25 @@ const AdminSubscribers = () => {
 
       // Calculate stats
       const now = new Date();
+      const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      
+      const unlimited = data?.filter(p => !p.subscription_end_date).length || 0;
       const active = data?.filter(p => {
         if (!p.subscription_end_date) return false;
         return new Date(p.subscription_end_date) > now;
+      }).length || 0;
+      const expiringSoon = data?.filter(p => {
+        if (!p.subscription_end_date) return false;
+        const endDate = new Date(p.subscription_end_date);
+        return endDate > now && endDate <= sevenDaysFromNow;
       }).length || 0;
 
       setStats({
         total: data?.length || 0,
         active,
-        expired: (data?.length || 0) - active,
+        expired: (data?.length || 0) - active - unlimited,
+        unlimited,
+        expiringSoon,
       });
     } catch (error) {
       console.error("Error fetching profiles:", error);
@@ -74,6 +93,40 @@ const AdminSubscribers = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const handleEditSubscription = (profile: Profile) => {
+    setSelectedProfile(profile);
+    setEditDialogOpen(true);
+  };
+
+  const filteredProfiles = profiles.filter(profile => {
+    const matchesSearch = 
+      profile.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      profile.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (!matchesSearch) return false;
+
+    if (filterStatus === "all") return true;
+    if (filterStatus === "active") {
+      if (!profile.subscription_end_date) return true;
+      return isSubscriptionActive(profile.subscription_end_date);
+    }
+    if (filterStatus === "expired") {
+      if (!profile.subscription_end_date) return false;
+      return !isSubscriptionActive(profile.subscription_end_date);
+    }
+
+    return true;
+  });
+
+  const getDaysRemaining = (endDate: string | null) => {
+    if (!endDate) return "Ilimitado";
+    const days = differenceInDays(new Date(endDate), new Date());
+    if (days < 0) return "Expirado";
+    if (days === 0) return "Expira hoje";
+    if (days === 1) return "1 dia";
+    return `${days} dias`;
   };
 
   return (
@@ -110,10 +163,10 @@ const AdminSubscribers = () => {
 
       {/* Stats Cards */}
       <div className="container mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-5 gap-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Utilizadores</CardTitle>
+              <CardTitle className="text-sm font-medium">Total</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -123,7 +176,7 @@ const AdminSubscribers = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Assinaturas Ativas</CardTitle>
+              <CardTitle className="text-sm font-medium">Ativas</CardTitle>
               <UserCheck className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
@@ -133,11 +186,31 @@ const AdminSubscribers = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Assinaturas Expiradas</CardTitle>
+              <CardTitle className="text-sm font-medium">Expiradas</CardTitle>
               <UserX className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-destructive">{stats.expired}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Ilimitadas</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{stats.unlimited}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">A Expirar (7d)</CardTitle>
+              <Clock className="h-4 w-4 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">{stats.expiringSoon}</div>
             </CardContent>
           </Card>
         </div>
@@ -145,10 +218,48 @@ const AdminSubscribers = () => {
         {/* Subscribers Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Lista de Assinantes</CardTitle>
-            <CardDescription>
-              Todos os utilizadores registados no sistema
-            </CardDescription>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <CardTitle>Lista de Assinantes</CardTitle>
+                <CardDescription>
+                  Todos os utilizadores registados no sistema
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <div className="relative flex-1 md:w-64">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Pesquisar por nome ou email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant={filterStatus === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilterStatus("all")}
+                  >
+                    Todos
+                  </Button>
+                  <Button
+                    variant={filterStatus === "active" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilterStatus("active")}
+                  >
+                    Ativas
+                  </Button>
+                  <Button
+                    variant={filterStatus === "expired" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilterStatus("expired")}
+                  >
+                    Expiradas
+                  </Button>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -164,41 +275,65 @@ const AdminSubscribers = () => {
                       <TableHead>Email</TableHead>
                       <TableHead>Telefone</TableHead>
                       <TableHead>Data de Registo</TableHead>
-                      <TableHead>Início da Assinatura</TableHead>
-                      <TableHead>Fim da Assinatura</TableHead>
+                      <TableHead>Início</TableHead>
+                      <TableHead>Término</TableHead>
+                      <TableHead>Dias Restantes</TableHead>
                       <TableHead>Estado</TableHead>
+                      <TableHead>Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {profiles.map((profile) => (
-                      <TableRow key={profile.id}>
-                        <TableCell className="font-medium">{profile.name}</TableCell>
-                        <TableCell>{profile.email}</TableCell>
-                        <TableCell>{profile.phone || "-"}</TableCell>
-                        <TableCell>
-                          {format(new Date(profile.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                        </TableCell>
-                        <TableCell>
-                          {profile.subscription_start_date
-                            ? format(new Date(profile.subscription_start_date), "dd/MM/yyyy", { locale: ptBR })
-                            : "-"}
-                        </TableCell>
-                        <TableCell>
-                          {profile.subscription_end_date
-                            ? format(new Date(profile.subscription_end_date), "dd/MM/yyyy", { locale: ptBR })
-                            : "-"}
-                        </TableCell>
-                        <TableCell>
-                          {isSubscriptionActive(profile.subscription_end_date) ? (
-                            <Badge variant="default" className="bg-green-600">
-                              Ativa
-                            </Badge>
-                          ) : (
-                            <Badge variant="destructive">Expirada</Badge>
-                          )}
+                    {filteredProfiles.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                          Nenhum utilizador encontrado
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      filteredProfiles.map((profile) => (
+                        <TableRow key={profile.id}>
+                          <TableCell className="font-medium">{profile.name}</TableCell>
+                          <TableCell className="text-sm">{profile.email}</TableCell>
+                          <TableCell>{profile.phone || "-"}</TableCell>
+                          <TableCell className="text-sm">
+                            {format(new Date(profile.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {profile.subscription_start_date
+                              ? format(new Date(profile.subscription_start_date), "dd/MM/yyyy", { locale: ptBR })
+                              : "-"}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {profile.subscription_end_date
+                              ? format(new Date(profile.subscription_end_date), "dd/MM/yyyy", { locale: ptBR })
+                              : "Ilimitado"}
+                          </TableCell>
+                          <TableCell className="text-sm font-medium">
+                            {getDaysRemaining(profile.subscription_end_date)}
+                          </TableCell>
+                          <TableCell>
+                            {!profile.subscription_end_date ? (
+                              <Badge className="bg-blue-600">Ilimitada</Badge>
+                            ) : isSubscriptionActive(profile.subscription_end_date) ? (
+                              <Badge variant="default" className="bg-green-600">
+                                Ativa
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive">Expirada</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditSubscription(profile)}
+                            >
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -206,6 +341,13 @@ const AdminSubscribers = () => {
           </CardContent>
         </Card>
       </div>
+
+      <SubscriptionEditDialog
+        profile={selectedProfile}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onUpdate={fetchProfiles}
+      />
     </div>
   );
 };
