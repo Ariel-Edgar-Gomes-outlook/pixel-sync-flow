@@ -20,20 +20,33 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
+      console.log("Tentando fazer login...");
       const { error } = await signIn(email.trim(), password);
       
       if (error) {
-        toast.error("Erro ao fazer login", {
-          description: "Credenciais inválidas ou utilizador não autorizado.",
-        });
+        console.error("Erro no login:", error);
+        
+        // Mensagem específica para email não confirmado
+        if (error.message?.includes("Email not confirmed") || error.message?.includes("email_not_confirmed")) {
+          toast.error("Email não confirmado", {
+            description: "Por favor, desabilite a confirmação de email no Supabase (Authentication → Providers → Email).",
+            duration: 6000,
+          });
+        } else {
+          toast.error("Erro ao fazer login", {
+            description: error.message || "Credenciais inválidas ou utilizador não autorizado.",
+          });
+        }
         return;
       }
 
+      console.log("Login bem-sucedido!");
       toast.success("Login realizado com sucesso!");
       navigate("/admin/subscribers");
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Erro inesperado:", error);
       toast.error("Erro ao fazer login", {
-        description: "Ocorreu um erro inesperado.",
+        description: error.message || "Ocorreu um erro inesperado.",
       });
     } finally {
       setLoading(false);
