@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Camera,
   Users,
@@ -676,6 +676,9 @@ const Landing = () => {
 
           <div className="border-t pt-8 text-center text-sm text-muted-foreground">
             <p>© 2024 ArgomFotos. Todos os direitos reservados.</p>
+            <Link to="/admin/subscribers" className="inline-block mt-2 text-xs text-muted-foreground/30 hover:text-muted-foreground/50 transition-colors">
+              Admin
+            </Link>
           </div>
         </div>
       </footer>

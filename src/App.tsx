@@ -32,6 +32,7 @@ import ContractSign from "./pages/ContractSign";
 import QuoteReview from "./pages/QuoteReview";
 import Notifications from "./pages/Notifications";
 import Landing from "./pages/Landing";
+import AdminSubscribers from "./pages/AdminSubscribers";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ function AppContent() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
+        <Route path="/admin/subscribers" element={<AdminSubscribers />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/gallery/:token" element={<ClientGallery />} />
