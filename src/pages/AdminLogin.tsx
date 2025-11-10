@@ -77,7 +77,15 @@ const AdminLogin = () => {
       if (authError) throw authError;
       if (!authData.user) throw new Error("Falha ao criar utilizador");
 
-      // Inserir na tabela admin_users
+      // Fazer login imediatamente para ter sessão autenticada
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) throw signInError;
+
+      // Inserir na tabela admin_users (agora com sessão autenticada)
       const { error: adminError } = await supabase
         .from('admin_users')
         .insert({
@@ -88,14 +96,13 @@ const AdminLogin = () => {
       if (adminError) throw adminError;
 
       toast.success("Primeiro administrador criado!", {
-        description: "Faça login com suas credenciais.",
+        description: "Redirecionando...",
       });
       
-      // Recarregar para mostrar tela de login
-      setIsFirstAdmin(false);
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
+      // Redirecionar para página de administração
+      setTimeout(() => {
+        navigate("/admin/subscribers");
+      }, 1000);
     } catch (error: any) {
       toast.error("Erro ao criar administrador", {
         description: error.message || "Ocorreu um erro inesperado.",
