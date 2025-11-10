@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { LayoutDashboard, Users, Briefcase, Calendar, UserPlus, FileText, CreditCard, Wrench, Settings, Menu, X, Camera, LogOut, Bell, BarChart3, Layers, Receipt, FileCheck } from "lucide-react";
+import { LayoutDashboard, Users, Briefcase, Calendar, UserPlus, FileText, CreditCard, Wrench, Settings, Menu, X, Camera, LogOut, Bell, BarChart3, Layers, Receipt, FileCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/NotificationBell";
 import { GlobalSearch } from "@/components/GlobalSearch";
@@ -70,12 +71,28 @@ const navigation = [{
 }];
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
   const {
     signOut,
     user
   } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Load sidebar state from localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    if (savedState !== null) {
+      setSidebarCollapsed(savedState === 'true');
+    }
+  }, []);
+
+  // Save sidebar state to localStorage
+  const toggleSidebar = () => {
+    const newState = !sidebarCollapsed;
+    setSidebarCollapsed(newState);
+    localStorage.setItem('sidebarCollapsed', newState.toString());
+  };
 
   // FASE 4: Centralize all automations in Layout
   useNotificationAutomation();
@@ -161,78 +178,164 @@ export default function Layout() {
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col bg-gradient-to-b from-sidebar via-sidebar to-sidebar/95 shadow-2xl border-r border-primary/10">
+      <div className={cn(
+        "hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-gradient-to-b from-sidebar via-sidebar to-sidebar/95 shadow-2xl border-r border-primary/10 transition-all duration-300",
+        sidebarCollapsed ? "lg:w-20" : "lg:w-72"
+      )}>
         {/* Header */}
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent" />
-          <div className="relative flex h-20 items-center px-6 border-b border-sidebar-border/30">
-            <div className="flex items-center gap-3">
+          <div className={cn(
+            "relative flex h-20 items-center border-b border-sidebar-border/30 transition-all duration-300",
+            sidebarCollapsed ? "px-4 justify-center" : "px-6"
+          )}>
+            {sidebarCollapsed ? (
               <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg ring-2 ring-primary/20">
                 <Camera className="h-6 w-6 text-primary-foreground" />
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-white/0 to-white/20" />
               </div>
-              <div>
-                <span className="text-xl font-bold text-sidebar-foreground tracking-tight">ArgomFotos</span>
-                <p className="text-xs text-sidebar-foreground/60">Studio Manager</p>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg ring-2 ring-primary/20">
+                  <Camera className="h-6 w-6 text-primary-foreground" />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-white/0 to-white/20" />
+                </div>
+                <div>
+                  <span className="text-xl font-bold text-sidebar-foreground tracking-tight">ArgomFotos</span>
+                  <p className="text-xs text-sidebar-foreground/60">Studio Manager</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
+        {/* Toggle button */}
+        <button
+          onClick={toggleSidebar}
+          className="absolute -right-3 top-24 z-50 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg ring-2 ring-background hover:scale-110 transition-transform"
+        >
+          {sidebarCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+        </button>
+
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-3 pt-6 overflow-y-auto scrollbar-hide pb-4">
-          {navigation.map(item => {
-            const isActive = location.pathname === item.href;
-            return <Link 
-              key={item.name} 
-              to={item.href} 
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all group relative overflow-hidden",
-                isActive 
-                  ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25" 
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
-              )}
-            >
-              {isActive && (
-                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent" />
-              )}
-              <div className={cn(
-                "p-1.5 rounded-lg transition-all",
-                isActive ? "bg-white/20" : "bg-sidebar-accent/50 group-hover:bg-sidebar-accent"
-              )}>
-                <item.icon className={cn(
-                  "h-4 w-4 shrink-0 transition-all group-hover:scale-110",
-                  isActive && "drop-shadow-sm"
-                )} />
-              </div>
-              <span className="font-medium relative">{item.name}</span>
-              {isActive && (
-                <div className="ml-auto h-2 w-2 rounded-full bg-primary-foreground/50 animate-pulse" />
-              )}
-            </Link>;
-          })}
-        </nav>
+        <TooltipProvider delayDuration={0}>
+          <nav className={cn(
+            "flex-1 space-y-1 pt-6 overflow-y-auto scrollbar-hide pb-4 transition-all duration-300",
+            sidebarCollapsed ? "px-2" : "px-3"
+          )}>
+            {navigation.map(item => {
+              const isActive = location.pathname === item.href;
+              
+              if (sidebarCollapsed) {
+                return (
+                  <Tooltip key={item.name}>
+                    <TooltipTrigger asChild>
+                      <Link 
+                        to={item.href} 
+                        className={cn(
+                          "flex items-center justify-center rounded-xl p-3 transition-all group relative overflow-hidden",
+                          isActive 
+                            ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25" 
+                            : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                        )}
+                      >
+                        {isActive && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent" />
+                        )}
+                        <item.icon className={cn(
+                          "h-5 w-5 shrink-0 transition-all group-hover:scale-110",
+                          isActive && "drop-shadow-sm"
+                        )} />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="font-medium">
+                      {item.name}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              }
+
+              return (
+                <Link 
+                  key={item.name} 
+                  to={item.href} 
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all group relative overflow-hidden",
+                    isActive 
+                      ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25" 
+                      : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                  )}
+                >
+                  {isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent" />
+                  )}
+                  <div className={cn(
+                    "p-1.5 rounded-lg transition-all",
+                    isActive ? "bg-white/20" : "bg-sidebar-accent/50 group-hover:bg-sidebar-accent"
+                  )}>
+                    <item.icon className={cn(
+                      "h-4 w-4 shrink-0 transition-all group-hover:scale-110",
+                      isActive && "drop-shadow-sm"
+                    )} />
+                  </div>
+                  <span className="font-medium relative">{item.name}</span>
+                  {isActive && (
+                    <div className="ml-auto h-2 w-2 rounded-full bg-primary-foreground/50 animate-pulse" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+        </TooltipProvider>
 
         {/* User section */}
-        <div className="mt-auto p-4 border-t border-sidebar-border/30">
-          <div className="mb-3 p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-            <p className="text-xs text-sidebar-foreground/60 mb-1 font-medium">Conta ativa</p>
-            <p className="text-xs text-sidebar-foreground truncate font-medium">{user?.email}</p>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-destructive/10 hover:border-destructive/20 rounded-xl font-medium transition-all border border-transparent"
-            onClick={signOut}
-          >
-            <LogOut className="mr-3 h-4 w-4" />
-            Sair da Conta
-          </Button>
+        <div className={cn(
+          "mt-auto border-t border-sidebar-border/30 transition-all duration-300",
+          sidebarCollapsed ? "p-2" : "p-4"
+        )}>
+          {sidebarCollapsed ? (
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full justify-center text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-destructive/10 hover:border-destructive/20 rounded-xl font-medium transition-all border border-transparent p-3"
+                    onClick={signOut}
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="font-medium">
+                  Sair da Conta
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <>
+              <div className="mb-3 p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                <p className="text-xs text-sidebar-foreground/60 mb-1 font-medium">Conta ativa</p>
+                <p className="text-xs text-sidebar-foreground truncate font-medium">{user?.email}</p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-destructive/10 hover:border-destructive/20 rounded-xl font-medium transition-all border border-transparent"
+                onClick={signOut}
+              >
+                <LogOut className="mr-3 h-4 w-4" />
+                Sair da Conta
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-72">
+      <div className={cn(
+        "transition-all duration-300",
+        sidebarCollapsed ? "lg:pl-20" : "lg:pl-72"
+      )}>
         <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-border/50 bg-gradient-to-r from-card via-card to-card/95 backdrop-blur-md px-6 shadow-sm">
           <button 
             onClick={() => setSidebarOpen(true)} 
