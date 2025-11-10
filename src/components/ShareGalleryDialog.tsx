@@ -1,4 +1,5 @@
 import { useState } from "react";
+import bcrypt from "bcryptjs";
 import {
   Dialog,
   DialogContent,
@@ -48,10 +49,18 @@ export function ShareGalleryDialog({ gallery, children }: ShareGalleryDialogProp
 
   const handleSavePassword = async () => {
     try {
+      let passwordHash = null;
+      
+      // Se houver senha, fazer hash antes de salvar
+      if (password && password.length > 0) {
+        const salt = await bcrypt.genSalt(10);
+        passwordHash = await bcrypt.hash(password, salt);
+      }
+
       await updateGallery.mutateAsync({
         id: gallery.id,
         password_protected: password.length > 0,
-        password_hash: password || null,
+        password_hash: passwordHash,
       });
 
       toast({

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import bcrypt from "bcryptjs";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,16 +76,30 @@ export default function ClientGallery() {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!gallery) return;
+    if (!gallery || !gallery.password_hash) return;
 
-    // Verificação simples (em produção, usar hash adequado)
-    if (password === gallery.password_hash) {
-      setAuthenticated(true);
-    } else {
+    try {
+      // Verificar senha usando bcrypt
+      const isValidPassword = await bcrypt.compare(password, gallery.password_hash);
+      
+      if (isValidPassword) {
+        setAuthenticated(true);
+        toast({
+          title: "Acesso Concedido",
+          description: "Bem-vindo à galeria!",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Senha Incorreta",
+          description: "Por favor, tente novamente",
+        });
+      }
+    } catch (error) {
       toast({
         variant: "destructive",
-        title: "Senha Incorreta",
-        description: "Por favor, tente novamente",
+        title: "Erro de Autenticação",
+        description: "Ocorreu um erro ao verificar a senha",
       });
     }
   };
