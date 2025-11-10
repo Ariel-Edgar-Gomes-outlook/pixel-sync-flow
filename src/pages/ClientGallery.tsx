@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ interface GalleryData {
 
 export default function ClientGallery() {
   const { token } = useParams<{ token: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -135,6 +136,25 @@ export default function ClientGallery() {
     );
   }
 
+  // Filtrar links baseado nos parâmetros da URL
+  const getFilteredLinks = () => {
+    const linksParam = searchParams.get('links');
+    if (!linksParam || !gallery) {
+      return gallery?.gallery_links || [];
+    }
+
+    try {
+      const selectedIndices = linksParam.split(',').map(Number);
+      return gallery.gallery_links.filter((_, index) => 
+        selectedIndices.includes(index)
+      );
+    } catch {
+      return gallery?.gallery_links || [];
+    }
+  };
+
+  const filteredLinks = getFilteredLinks();
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-background">
@@ -147,7 +167,7 @@ export default function ClientGallery() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <GalleryLinksDisplay links={gallery.gallery_links || []} />
+        <GalleryLinksDisplay links={filteredLinks} />
       </main>
     </div>
   );

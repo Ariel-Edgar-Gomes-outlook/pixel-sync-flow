@@ -4,7 +4,8 @@ import { Card } from "@/components/ui/card";
 import { useGalleries } from "@/hooks/useGalleries";
 import { GalleryDialog } from "./GalleryDialog";
 import { AddLinkDialog } from "./AddLinkDialog";
-import { Plus, ExternalLink, Image, Copy, Link as LinkIcon } from "lucide-react";
+import { ShareGalleryDialog } from "./ShareGalleryDialog";
+import { Plus, ExternalLink, Image, Copy, Link as LinkIcon, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 interface JobGalleryTabProps {
@@ -91,11 +92,12 @@ export function JobGalleryTab({
                   Ver Fotos
                 </Button>
                 
-                
-                
-                <Button variant="outline" size="sm" asChild>
-                  
-                </Button>
+                <ShareGalleryDialog gallery={gallery}>
+                  <Button variant="outline" size="sm">
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Partilhar
+                  </Button>
+                </ShareGalleryDialog>
               </div>
             </Card>)}
         </div>}
