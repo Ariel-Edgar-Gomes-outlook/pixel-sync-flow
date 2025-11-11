@@ -379,12 +379,12 @@ Valor total: [Valor acordado]`,
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="w-[95vw] sm:w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              {contract ? "Editar Contrato" : "Novo Contrato Profissional"}
+              <span className="text-base sm:text-lg">{contract ? "Editar Contrato" : "Novo Contrato Profissional"}</span>
             </DialogTitle>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {contract && (
                 <Button
                   type="button"
@@ -392,14 +392,15 @@ Valor total: [Valor acordado]`,
                   size="sm"
                   onClick={handleGeneratePDF}
                   disabled={isGeneratingPDF}
+                  className="text-xs sm:text-sm"
                 >
-                  <FileDown className="h-4 w-4 mr-2" />
+                  <FileDown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   {isGeneratingPDF ? "Gerando..." : "Gerar PDF"}
                 </Button>
               )}
               {contract?.signature_token && (
-                <Button variant="outline" size="sm" onClick={copySignatureLink}>
-                  <Copy className="h-4 w-4 mr-2" />
+                <Button variant="outline" size="sm" onClick={copySignatureLink} className="text-xs sm:text-sm">
+                  <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   Link Assinatura
                 </Button>
               )}
