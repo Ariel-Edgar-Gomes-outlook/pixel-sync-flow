@@ -436,6 +436,7 @@ export type Database = {
           issued_at: string | null
           job_id: string | null
           late_delivery_clause: string | null
+          pdf_url: string | null
           reschedule_policy: string | null
           revision_policy: string | null
           signature_token: string | null
@@ -459,6 +460,7 @@ export type Database = {
           issued_at?: string | null
           job_id?: string | null
           late_delivery_clause?: string | null
+          pdf_url?: string | null
           reschedule_policy?: string | null
           revision_policy?: string | null
           signature_token?: string | null
@@ -482,6 +484,7 @@ export type Database = {
           issued_at?: string | null
           job_id?: string | null
           late_delivery_clause?: string | null
+          pdf_url?: string | null
           reschedule_policy?: string | null
           revision_policy?: string | null
           signature_token?: string | null
