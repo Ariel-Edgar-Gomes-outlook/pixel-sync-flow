@@ -63,17 +63,21 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
     if (!template) return;
 
     try {
+      const items = template.items.map((item, idx) => ({ 
+        id: `${Date.now()}-${idx}`,
+        text: item.text,
+        completed: false
+      }));
+
       await createChecklist.mutateAsync({
         job_id: jobId,
         type: template.label,
-        items: template.items.map((item, idx) => ({ 
-          ...item, 
-          id: `${Date.now()}-${idx}` 
-        })),
+        items: items,
         estimated_time: null,
       });
       toast.success("Checklist criada!");
     } catch (error) {
+      console.error("Erro ao criar checklist:", error);
       toast.error("Erro ao criar checklist");
     }
   };
@@ -85,16 +89,23 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
     }
 
     try {
+      const items = customItems.map((item) => ({
+        id: item.id,
+        text: item.text,
+        completed: false
+      }));
+
       await createChecklist.mutateAsync({
         job_id: jobId,
         type: newChecklistType,
-        items: customItems,
+        items: items,
         estimated_time: null,
       });
       toast.success("Checklist criada!");
       setNewChecklistType("");
       setCustomItems([]);
     } catch (error) {
+      console.error("Erro ao criar checklist:", error);
       toast.error("Erro ao criar checklist");
     }
   };
@@ -133,14 +144,21 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
     if (!checklist) return;
     
     try {
+      const items = checklist.items.map((item: ChecklistItem) => ({
+        id: item.id,
+        text: item.text,
+        completed: false
+      }));
+
       await createTemplate.mutateAsync({
         name: `Template: ${checklist.type}`,
         job_type: checklist.type,
-        items: checklist.items,
+        items: items,
         estimated_time: checklist.estimated_time,
       });
       toast.success("Template salvo!");
     } catch (error) {
+      console.error("Erro ao salvar template:", error);
       toast.error("Erro ao salvar template");
     }
   };
@@ -150,14 +168,21 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
     if (!template) return;
 
     try {
+      const items = template.items.map((item: any, idx: number) => ({
+        id: `${Date.now()}-${idx}`,
+        text: item.text,
+        completed: false
+      }));
+
       await createChecklist.mutateAsync({
         job_id: jobId,
         type: template.job_type,
-        items: template.items,
+        items: items,
         estimated_time: template.estimated_time,
       });
       toast.success("Template aplicado!");
     } catch (error) {
+      console.error("Erro ao aplicar template:", error);
       toast.error("Erro ao aplicar template");
     }
   };
@@ -295,24 +320,28 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
               </div>
 
               <div className="space-y-2">
-                {checklist.items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`${checklist.id}-${item.id}`}
-                      checked={item.completed}
-                      onCheckedChange={() => handleToggleItem(checklist.id, checklist.items, item.id)}
-                    />
-                    <label
-                      htmlFor={`${checklist.id}-${item.id}`}
-                      className={`flex-1 text-sm cursor-pointer ${
-                        item.completed ? 'line-through text-muted-foreground' : ''
-                      }`}
-                    >
-                      {item.text}
-                    </label>
-                    {item.completed && <CheckCircle2 className="h-4 w-4 text-success" />}
-                  </div>
-                ))}
+                {checklist.items && checklist.items.length > 0 ? (
+                  checklist.items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`${checklist.id}-${item.id}`}
+                        checked={item.completed}
+                        onCheckedChange={() => handleToggleItem(checklist.id, checklist.items, item.id)}
+                      />
+                      <label
+                        htmlFor={`${checklist.id}-${item.id}`}
+                        className={`flex-1 text-sm cursor-pointer ${
+                          item.completed ? 'line-through text-muted-foreground' : ''
+                        }`}
+                      >
+                        {item.text || "Item sem texto"}
+                      </label>
+                      {item.completed && <CheckCircle2 className="h-4 w-4 text-success" />}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">Nenhum item nesta checklist</p>
+                )}
               </div>
             </Card>
           );
