@@ -659,8 +659,8 @@ Valor total: [Valor acordado]`,
             </TabsContent>
           </Tabs>
 
-          <div className="flex gap-2 justify-between mt-6">
-            <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:justify-between mt-6">
+            <div className="flex flex-col sm:flex-row gap-2 order-2 sm:order-1">
               {contract && (
                 <Button
                   type="button"
@@ -668,6 +668,7 @@ Valor total: [Valor acordado]`,
                   size="sm"
                   onClick={() => setShowDeleteDialog(true)}
                   disabled={deleteContract.isPending}
+                  className="w-full sm:w-auto"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Eliminar
@@ -680,18 +681,28 @@ Valor total: [Valor acordado]`,
                 onClick={handleSaveAsTemplate}
                 disabled={!formData.terms_text || formData.terms_text.length < 50}
                 title="Salvar este contrato como template reutilizável"
+                className="w-full sm:w-auto"
               >
                 <Save className="h-4 w-4 mr-2" />
-                Salvar como Template
+                <span className="hidden sm:inline">Salvar como </span>Template
               </Button>
             </div>
             
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={() => actualOnOpenChange(false)}>
+            <div className="flex flex-col sm:flex-row gap-2 order-1 sm:order-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => actualOnOpenChange(false)}
+                className="w-full sm:w-auto"
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={createContract.isPending || updateContract.isPending || isGeneratingPDF}>
-                {isGeneratingPDF ? 'A gerar PDF...' : (contract ? "Atualizar" : "Criar") + ' Contrato'}
+              <Button 
+                type="submit" 
+                disabled={createContract.isPending || updateContract.isPending || isGeneratingPDF}
+                className="w-full sm:w-auto"
+              >
+                {isGeneratingPDF ? 'A gerar...' : (contract ? "Atualizar" : "Criar")}
               </Button>
               {contract && formData.status === 'draft' && (
                 <Button
@@ -704,6 +715,7 @@ Valor total: [Valor acordado]`,
                     });
                     toast.success("Contrato marcado como enviado!");
                   }}
+                  className="w-full sm:w-auto"
                 >
                   <Send className="h-4 w-4 mr-2" />
                   Marcar como Enviado
