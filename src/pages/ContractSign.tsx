@@ -157,6 +157,12 @@ export default function ContractSign() {
             signature_url: publicUrl,
           });
 
+          // Update contract with new PDF URL
+          await supabase
+            .from('contracts')
+            .update({ pdf_url: pdfUrl })
+            .eq('id', contract!.id);
+
           // Send signed copy email
           await supabase.functions.invoke('send-contract-email', {
             body: {

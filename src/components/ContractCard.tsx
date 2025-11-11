@@ -170,7 +170,11 @@ export function ContractCard({
                 </Badge>
               </div>
               <div className="flex items-center gap-3">
-                <div className="relative w-32 h-16 bg-white rounded border border-border overflow-hidden">
+                <div 
+                  className="relative w-32 h-16 bg-white rounded border border-border overflow-hidden cursor-pointer hover:border-primary transition-colors"
+                  onClick={() => window.open(contract.signature_url, '_blank')}
+                  title="Clique para ampliar assinatura"
+                >
                   <img 
                     src={contract.signature_url} 
                     alt="Assinatura do cliente" 
