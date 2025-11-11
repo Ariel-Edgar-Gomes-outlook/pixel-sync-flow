@@ -478,7 +478,7 @@ Valor total: [Valor acordado]`,
                     <Label>Cliente *</Label>
                     <Select
                       value={formData.client_id}
-                      onValueChange={(value) => setFormData({ ...formData, client_id: value })}
+                      onValueChange={(value) => setFormData({ ...formData, client_id: value, job_id: null })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o cliente" />
@@ -500,13 +500,14 @@ Valor total: [Valor acordado]`,
                       onValueChange={(value) => 
                         setFormData({ ...formData, job_id: value === "none" ? null : value })
                       }
+                      disabled={!formData.client_id}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Opcional" />
+                        <SelectValue placeholder={!formData.client_id ? "Selecione um cliente primeiro" : "Opcional"} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Nenhum</SelectItem>
-                        {jobs?.map((job) => (
+                        {jobs?.filter(job => job.client_id === formData.client_id).map((job) => (
                           <SelectItem key={job.id} value={job.id}>
                             {job.title}
                           </SelectItem>
