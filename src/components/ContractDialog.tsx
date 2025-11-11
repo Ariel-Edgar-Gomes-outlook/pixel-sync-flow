@@ -409,12 +409,14 @@ Valor total: [Valor acordado]`,
 
         <form onSubmit={handleSubmit}>
           <Tabs defaultValue="basics" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
-              <TabsTrigger value="basics">Básico</TabsTrigger>
-              <TabsTrigger value="terms">Termos</TabsTrigger>
-              <TabsTrigger value="policies">Políticas</TabsTrigger>
-              <TabsTrigger value="rights">Direitos</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto pb-2">
+              <TabsList className="grid w-full grid-cols-4 min-w-max sm:min-w-0">
+                <TabsTrigger value="basics" className="whitespace-nowrap">Básico</TabsTrigger>
+                <TabsTrigger value="terms" className="whitespace-nowrap">Termos</TabsTrigger>
+                <TabsTrigger value="policies" className="whitespace-nowrap">Políticas</TabsTrigger>
+                <TabsTrigger value="rights" className="whitespace-nowrap">Direitos</TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="basics" className="space-y-4 mt-4">
               <Card className="p-4 bg-muted/50">
