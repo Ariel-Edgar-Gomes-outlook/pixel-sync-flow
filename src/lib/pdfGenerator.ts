@@ -360,13 +360,19 @@ export async function generateProfessionalContractPDF(contract: ProfessionalCont
   doc.setFont(undefined, 'normal');
   if (contract.signature_url && contract.signed_at) {
     try {
+      console.log('Loading client signature from:', contract.signature_url);
       const signatureBase64 = await loadImageWithCache(contract.signature_url);
       if (signatureBase64) {
         doc.addImage(signatureBase64, 'PNG', 20, yPos, 70, 25, undefined, 'FAST');
+        console.log('Client signature loaded successfully');
+      } else {
+        console.warn('Client signature is empty');
       }
     } catch (e) {
-      console.warn('Failed to load signature:', e);
+      console.error('Failed to load client signature:', e);
     }
+  } else {
+    console.log('No signature URL or signed_at date:', { signature_url: contract.signature_url, signed_at: contract.signed_at });
   }
   
   doc.line(20, yPos + 30, 90, yPos + 30);

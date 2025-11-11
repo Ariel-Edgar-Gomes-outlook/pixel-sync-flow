@@ -96,12 +96,12 @@ export default function ContractSign() {
     try {
       const signatureDataUrl = signatureRef.current.toDataURL();
       
-      // Upload signature to storage
+      // Upload signature to public bucket
       const signatureBlob = await fetch(signatureDataUrl).then(r => r.blob());
       const signaturePath = `signatures/${contract!.id}_${Date.now()}.png`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('contracts')
+        .from('client-signatures')
         .upload(signaturePath, signatureBlob, {
           contentType: 'image/png',
           cacheControl: '3600',
@@ -110,7 +110,7 @@ export default function ContractSign() {
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('contracts')
+        .from('client-signatures')
         .getPublicUrl(uploadData.path);
       
       // Update contract with signature

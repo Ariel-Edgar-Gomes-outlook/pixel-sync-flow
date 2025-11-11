@@ -179,6 +179,11 @@ export function ContractCard({
                     src={contract.signature_url} 
                     alt="Assinatura do cliente" 
                     className="w-full h-full object-contain"
+                    onError={(e) => {
+                      console.error('Failed to load signature:', contract.signature_url);
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.parentElement!.innerHTML = '<span class="text-xs text-muted-foreground flex items-center justify-center h-full">Erro ao carregar</span>';
+                    }}
                   />
                 </div>
                 <div className="flex-1 min-w-0">
