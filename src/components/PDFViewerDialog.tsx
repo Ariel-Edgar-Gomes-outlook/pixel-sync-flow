@@ -46,7 +46,14 @@ export function PDFViewerDialog({
 }: PDFViewerDialogProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
-  const [scale, setScale] = useState<number>(1.4); // Increased initial scale for better visibility
+  // Set initial scale based on screen size - lower for mobile
+  const getInitialScale = () => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768 ? 0.8 : 1.2;
+    }
+    return 1.2;
+  };
+  const [scale, setScale] = useState<number>(getInitialScale());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +76,7 @@ export function PDFViewerDialog({
         setIsLoading(true);
         setError(null);
         setPageNumber(1);
-        setScale(1.4);
+        setScale(getInitialScale());
 
         // Determine PDF source (prioritize pdfSource over legacy pdfUrl)
         const source: PDFSource = pdfSource || (pdfUrl ? { type: 'url', url: pdfUrl } : null);
@@ -280,7 +287,7 @@ export function PDFViewerDialog({
 
   const resetAndClose = () => {
     setPageNumber(1);
-    setScale(1.4);
+    setScale(getInitialScale());
     setIsLoading(true);
     onOpenChange(false);
     
@@ -303,63 +310,90 @@ export function PDFViewerDialog({
   return (
     <Dialog open={open} onOpenChange={resetAndClose}>
       <DialogContent className="max-w-6xl h-[95vh] flex flex-col p-0">
-        <DialogHeader className="px-6 py-4 border-b">
-          <div className="flex items-center justify-between">
-            <DialogTitle>{title}</DialogTitle>
-            <Button variant="ghost" size="icon" onClick={resetAndClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+        <DialogHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b">
+          <DialogTitle className="text-base sm:text-lg">{title}</DialogTitle>
         </DialogHeader>
 
-        {/* Toolbar */}
-        <div className="flex items-center justify-between px-6 py-3 border-b bg-muted/30">
-          <div className="flex items-center gap-2">
+        {/* Toolbar - Responsive Layout */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 px-3 sm:px-6 py-2 sm:py-3 border-b bg-muted/30">
+          {/* Page Navigation */}
+          <div className="flex items-center justify-center sm:justify-start gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={goToPreviousPage}
               disabled={pageNumber <= 1}
+              className="h-8 w-8 sm:h-9 sm:w-9 p-0"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
-            <span className="text-sm font-medium min-w-[100px] text-center">
-              {numPages > 0 ? `${pageNumber} / ${numPages}` : 'Carregando...'}
+            <span className="text-xs sm:text-sm font-medium min-w-[70px] sm:min-w-[100px] text-center">
+              {numPages > 0 ? `${pageNumber} / ${numPages}` : 'A carregar...'}
             </span>
             <Button
               variant="outline"
               size="sm"
               onClick={goToNextPage}
               disabled={pageNumber >= numPages}
+              className="h-8 w-8 sm:h-9 sm:w-9 p-0"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={zoomOut} disabled={scale <= 0.5}>
-              <ZoomOut className="h-4 w-4" />
+          {/* Zoom Controls */}
+          <div className="flex items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={zoomOut} 
+              disabled={scale <= 0.5}
+              className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+            >
+              <ZoomOut className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
-            <span className="text-sm font-medium min-w-[60px] text-center">
+            <span className="text-xs sm:text-sm font-medium min-w-[50px] sm:min-w-[60px] text-center">
               {Math.round(scale * 100)}%
             </span>
-            <Button variant="outline" size="sm" onClick={zoomIn} disabled={scale >= 3.0}>
-              <ZoomIn className="h-4 w-4" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={zoomIn} 
+              disabled={scale >= 3.0}
+              className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+            >
+              <ZoomIn className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleOpenInNewTab}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Nova Aba</span>
+          {/* Action Buttons */}
+          <div className="flex items-center justify-center sm:justify-end gap-1 sm:gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleOpenInNewTab}
+              className="h-8 sm:h-9 px-2 sm:px-3"
+            >
+              <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="hidden sm:inline text-xs sm:text-sm">Nova Aba</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleDownload}>
-              <Download className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Download</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleDownload}
+              className="h-8 sm:h-9 px-2 sm:px-3"
+            >
+              <Download className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="hidden sm:inline text-xs sm:text-sm">Download</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Printer className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Imprimir</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handlePrint}
+              className="h-8 sm:h-9 px-2 sm:px-3"
+            >
+              <Printer className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="hidden sm:inline text-xs sm:text-sm">Imprimir</span>
             </Button>
           </div>
         </div>
