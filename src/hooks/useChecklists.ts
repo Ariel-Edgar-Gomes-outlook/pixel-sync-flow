@@ -99,3 +99,22 @@ export function useUpdateChecklist() {
     },
   });
 }
+
+export function useDeleteChecklist() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, job_id }: { id: string; job_id: string }) => {
+      const { error } = await supabase
+        .from('checklists')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { id, job_id };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['checklists', data.job_id] });
+    },
+  });
+}

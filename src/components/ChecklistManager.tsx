@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, CheckCircle2, Save } from "lucide-react";
-import { useChecklistsByJob, useCreateChecklist, useUpdateChecklist, ChecklistItem } from "@/hooks/useChecklists";
+import { Plus, X, CheckCircle2, Save, Trash2 } from "lucide-react";
+import { useChecklistsByJob, useCreateChecklist, useUpdateChecklist, useDeleteChecklist, ChecklistItem } from "@/hooks/useChecklists";
 import { useChecklistTemplates, useCreateChecklistTemplate } from "@/hooks/useTemplates";
 import { toast } from "sonner";
 
@@ -56,6 +56,7 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
   const { data: templates } = useChecklistTemplates();
   const createChecklist = useCreateChecklist();
   const updateChecklist = useUpdateChecklist();
+  const deleteChecklist = useDeleteChecklist();
   const createTemplate = useCreateChecklistTemplate();
 
   const handleCreateFromTemplate = async (type: string) => {
@@ -160,6 +161,19 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
     } catch (error) {
       console.error("Erro ao salvar template:", error);
       toast.error("Erro ao salvar template");
+    }
+  };
+
+  const handleDeleteChecklist = async (checklistId: string) => {
+    try {
+      await deleteChecklist.mutateAsync({
+        id: checklistId,
+        job_id: jobId
+      });
+      toast.success("Checklist deletada!");
+    } catch (error) {
+      console.error("Erro ao deletar checklist:", error);
+      toast.error("Erro ao deletar checklist");
     }
   };
 
@@ -300,6 +314,15 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={() => handleDeleteChecklist(checklist.id)}
+                    disabled={deleteChecklist.isPending}
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Deletar
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleSaveAsTemplate(checklist)}
                     disabled={createTemplate.isPending}
                   >
@@ -321,24 +344,27 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
 
               <div className="space-y-2">
                 {checklist.items && checklist.items.length > 0 ? (
-                  checklist.items.map((item) => (
-                    <div key={item.id} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`${checklist.id}-${item.id}`}
-                        checked={item.completed}
-                        onCheckedChange={() => handleToggleItem(checklist.id, checklist.items, item.id)}
-                      />
-                      <label
-                        htmlFor={`${checklist.id}-${item.id}`}
-                        className={`flex-1 text-sm cursor-pointer ${
-                          item.completed ? 'line-through text-muted-foreground' : ''
-                        }`}
-                      >
-                        {item.text || "Item sem texto"}
-                      </label>
-                      {item.completed && <CheckCircle2 className="h-4 w-4 text-success" />}
-                    </div>
-                  ))
+                  checklist.items.map((item, itemIndex) => {
+                    const uniqueCheckboxId = `checklist-${checklist.id}-item-${item.id || itemIndex}`;
+                    return (
+                      <div key={item.id || itemIndex} className="flex items-center gap-2">
+                        <Checkbox
+                          id={uniqueCheckboxId}
+                          checked={item.completed}
+                          onCheckedChange={() => handleToggleItem(checklist.id, checklist.items, item.id)}
+                        />
+                        <label
+                          htmlFor={uniqueCheckboxId}
+                          className={`flex-1 text-sm cursor-pointer ${
+                            item.completed ? 'line-through text-muted-foreground' : ''
+                          }`}
+                        >
+                          {item.text || "Item sem texto"}
+                        </label>
+                        {item.completed && <CheckCircle2 className="h-4 w-4 text-success" />}
+                      </div>
+                    );
+                  })
                 ) : (
                   <p className="text-sm text-muted-foreground">Nenhum item nesta checklist</p>
                 )}
