@@ -88,6 +88,33 @@ export function ContractCard({
               </div>
             )}
           </div>
+
+          {contract.status === 'signed' && contract.signature_url && (
+            <div className="mt-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+              <span className="text-xs text-muted-foreground block mb-2">Assinatura Digital:</span>
+              <div className="flex items-center gap-3">
+                <div className="relative w-32 h-16 bg-white rounded border border-border overflow-hidden">
+                  <img 
+                    src={contract.signature_url} 
+                    alt="Assinatura do cliente" 
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate">{contract.clients?.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(contract.signed_at).toLocaleDateString('pt-PT', { 
+                      day: '2-digit', 
+                      month: 'short', 
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-2 pt-2 border-t">
