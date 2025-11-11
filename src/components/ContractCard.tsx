@@ -1,9 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FileText, Edit, Link2, Send } from "lucide-react";
+import { FileText, Edit, Link2, Send, Download } from "lucide-react";
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
 import { useSmartBadges } from "@/hooks/useSmartBadges";
+import { useToast } from "@/hooks/use-toast";
 
 const statusConfig = {
   draft: { label: "Rascunho", variant: "secondary" as const },
@@ -30,6 +31,43 @@ export function ContractCard({
   onViewPDF,
 }: ContractCardProps) {
   const smartBadges = useSmartBadges({ entityType: 'contract', entity: contract });
+  const { toast } = useToast();
+
+  const handleDownloadPDF = async () => {
+    if (!contract.pdf_url) {
+      toast({
+        variant: "destructive",
+        title: "PDF não disponível",
+        description: "O PDF deste contrato ainda não foi gerado.",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(contract.pdf_url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contrato_${contract.clients?.name || 'cliente'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Download iniciado",
+        description: "O PDF do contrato está sendo baixado.",
+      });
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro no download",
+        description: "Não foi possível baixar o PDF. Tente novamente.",
+      });
+    }
+  };
 
   return (
     <Card className="p-4 sm:p-5 hover:shadow-md transition-shadow">
@@ -126,6 +164,17 @@ export function ContractCard({
             <FileText className="h-3 w-3 sm:mr-2" />
             <span className="hidden sm:inline">Ver PDF</span>
           </Button>
+
+          {contract.status === 'signed' && contract.pdf_url && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleDownloadPDF}
+            >
+              <Download className="h-3 w-3 sm:mr-2" />
+              <span className="hidden sm:inline">Download</span>
+            </Button>
+          )}
           
           <Button
             variant="outline"
