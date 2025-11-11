@@ -1,10 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FileText, Edit, Link2, Send, Download } from "lucide-react";
+import { FileText, Edit, Link2, Send, Download, CheckCircle } from "lucide-react";
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
 import { useSmartBadges } from "@/hooks/useSmartBadges";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const statusConfig = {
   draft: { label: "Rascunho", variant: "secondary" as const },
@@ -21,6 +22,7 @@ interface ContractCardProps {
   onCopyLink: (contract: any) => void;
   onSendForSignature: (contract: any) => void;
   onViewPDF: (contract: any) => void;
+  onRefresh?: () => void;
 }
 
 export function ContractCard({
@@ -29,9 +31,41 @@ export function ContractCard({
   onCopyLink,
   onSendForSignature,
   onViewPDF,
+  onRefresh,
 }: ContractCardProps) {
   const smartBadges = useSmartBadges({ entityType: 'contract', entity: contract });
   const { toast } = useToast();
+
+  const handleMarkAsSigned = async () => {
+    try {
+      const { error } = await supabase
+        .from('contracts')
+        .update({
+          status: 'signed',
+          signed_at: new Date().toISOString(),
+          signature_type: 'manual',
+        })
+        .eq('id', contract.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Contrato marcado como assinado",
+        description: "O contrato foi marcado como assinado manualmente.",
+      });
+
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error: any) {
+      console.error('Error marking as signed:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: error.message || "Não foi possível marcar o contrato como assinado.",
+      });
+    }
+  };
 
   const handleDownloadPDF = async () => {
     if (!contract.pdf_url) {
@@ -129,7 +163,12 @@ export function ContractCard({
 
           {contract.status === 'signed' && contract.signature_url && (
             <div className="mt-3 p-3 bg-muted/30 rounded-lg border border-border/50">
-              <span className="text-xs text-muted-foreground block mb-2">Assinatura Digital:</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-muted-foreground">Assinatura Digital:</span>
+                <Badge variant="outline" className="text-xs">
+                  {contract.signature_type === 'manual' ? 'Assinatura Manual' : 'Assinatura Digital'}
+                </Badge>
+              </div>
               <div className="flex items-center gap-3">
                 <div className="relative w-32 h-16 bg-white rounded border border-border overflow-hidden">
                   <img 
@@ -140,6 +179,26 @@ export function ContractCard({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">{contract.clients?.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(contract.signed_at).toLocaleDateString('pt-PT', { 
+                      day: '2-digit', 
+                      month: 'short', 
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {contract.status === 'signed' && !contract.signature_url && (
+            <div className="mt-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-success" />
+                <div className="flex-1">
+                  <p className="text-xs font-medium">Assinado Manualmente</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(contract.signed_at).toLocaleDateString('pt-PT', { 
                       day: '2-digit', 
@@ -195,14 +254,25 @@ export function ContractCard({
           </Button>
           
           {!['signed', 'active', 'cancelled'].includes(contract.status) && (
-            <Button 
-              onClick={() => onSendForSignature(contract)} 
-              variant="default"
-              size="sm"
-            >
-              <Send className="h-3 w-3 sm:mr-2" />
-              <span className="hidden sm:inline">Enviar</span>
-            </Button>
+            <>
+              <Button 
+                onClick={() => onSendForSignature(contract)} 
+                variant="default"
+                size="sm"
+              >
+                <Send className="h-3 w-3 sm:mr-2" />
+                <span className="hidden sm:inline">Enviar</span>
+              </Button>
+              <Button 
+                onClick={handleMarkAsSigned}
+                variant="outline"
+                size="sm"
+                className="border-success text-success hover:bg-success/10"
+              >
+                <CheckCircle className="h-3 w-3 sm:mr-2" />
+                <span className="hidden sm:inline">Marcar Assinado</span>
+              </Button>
+            </>
           )}
         </div>
       </div>

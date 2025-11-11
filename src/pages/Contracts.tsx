@@ -16,7 +16,7 @@ export default function Contracts() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [selectedPdfSource, setSelectedPdfSource] = useState<any>(null);
-  const { data: contracts, isLoading } = useContracts();
+  const { data: contracts, isLoading, refetch } = useContracts();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -204,6 +204,7 @@ export default function Contracts() {
                 onCopyLink={copySignatureLink}
                 onSendForSignature={sendForSignature}
                 onViewPDF={handleViewPDF}
+                onRefresh={refetch}
               />
             ))}
           </div>

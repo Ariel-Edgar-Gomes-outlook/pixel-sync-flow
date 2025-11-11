@@ -439,6 +439,7 @@ export type Database = {
           reschedule_policy: string | null
           revision_policy: string | null
           signature_token: string | null
+          signature_type: string | null
           signature_url: string | null
           signed_at: string | null
           status: Database["public"]["Enums"]["contract_status"]
@@ -461,6 +462,7 @@ export type Database = {
           reschedule_policy?: string | null
           revision_policy?: string | null
           signature_token?: string | null
+          signature_type?: string | null
           signature_url?: string | null
           signed_at?: string | null
           status?: Database["public"]["Enums"]["contract_status"]
@@ -483,6 +485,7 @@ export type Database = {
           reschedule_policy?: string | null
           revision_policy?: string | null
           signature_token?: string | null
+          signature_type?: string | null
           signature_url?: string | null
           signed_at?: string | null
           status?: Database["public"]["Enums"]["contract_status"]

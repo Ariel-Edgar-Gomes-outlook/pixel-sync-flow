@@ -120,6 +120,7 @@ export default function ContractSign() {
           status: 'signed',
           signature_url: publicUrl,
           signed_at: new Date().toISOString(),
+          signature_type: 'digital',
         })
         .eq('id', contract!.id);
 
