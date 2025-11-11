@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, CheckCircle2, Save, Trash2 } from "lucide-react";
+import { Plus, X, CheckCircle2, Save, Trash2, Edit2, Check } from "lucide-react";
 import { useChecklistsByJob, useCreateChecklist, useUpdateChecklist, useDeleteChecklist, ChecklistItem } from "@/hooks/useChecklists";
 import { useChecklistTemplates, useCreateChecklistTemplate } from "@/hooks/useTemplates";
 import { toast } from "sonner";
@@ -51,6 +51,10 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
   const [newChecklistType, setNewChecklistType] = useState("");
   const [customItems, setCustomItems] = useState<ChecklistItem[]>([]);
   const [newItemText, setNewItemText] = useState("");
+  const [editingItem, setEditingItem] = useState<{ checklistId: string; itemId: string } | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [addingItemToChecklist, setAddingItemToChecklist] = useState<string | null>(null);
+  const [newItemForChecklist, setNewItemForChecklist] = useState("");
 
   const { data: checklists } = useChecklistsByJob(jobId);
   const { data: templates } = useChecklistTemplates();
@@ -174,6 +178,78 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
     } catch (error) {
       console.error("Erro ao deletar checklist:", error);
       toast.error("Erro ao deletar checklist");
+    }
+  };
+
+  const handleStartEditItem = (checklistId: string, itemId: string, currentText: string) => {
+    setEditingItem({ checklistId, itemId });
+    setEditingText(currentText);
+  };
+
+  const handleSaveEditItem = async (checklistId: string, items: ChecklistItem[], itemId: string) => {
+    if (!editingText.trim()) {
+      toast.error("O texto do item não pode estar vazio");
+      return;
+    }
+
+    const updatedItems = items.map(item => 
+      item.id === itemId ? { ...item, text: editingText.trim() } : item
+    );
+
+    try {
+      await updateChecklist.mutateAsync({
+        id: checklistId,
+        items: updatedItems,
+      });
+      setEditingItem(null);
+      setEditingText("");
+      toast.success("Item atualizado!");
+    } catch (error) {
+      console.error("Erro ao atualizar item:", error);
+      toast.error("Erro ao atualizar item");
+    }
+  };
+
+  const handleDeleteItem = async (checklistId: string, items: ChecklistItem[], itemId: string) => {
+    const updatedItems = items.filter(item => item.id !== itemId);
+
+    try {
+      await updateChecklist.mutateAsync({
+        id: checklistId,
+        items: updatedItems,
+      });
+      toast.success("Item deletado!");
+    } catch (error) {
+      console.error("Erro ao deletar item:", error);
+      toast.error("Erro ao deletar item");
+    }
+  };
+
+  const handleAddItemToChecklist = async (checklistId: string, items: ChecklistItem[]) => {
+    if (!newItemForChecklist.trim()) {
+      toast.error("Digite o texto do novo item");
+      return;
+    }
+
+    const newItem: ChecklistItem = {
+      id: `${Date.now()}`,
+      text: newItemForChecklist.trim(),
+      completed: false
+    };
+
+    const updatedItems = [...items, newItem];
+
+    try {
+      await updateChecklist.mutateAsync({
+        id: checklistId,
+        items: updatedItems,
+      });
+      setNewItemForChecklist("");
+      setAddingItemToChecklist(null);
+      toast.success("Item adicionado!");
+    } catch (error) {
+      console.error("Erro ao adicionar item:", error);
+      toast.error("Erro ao adicionar item");
     }
   };
 
@@ -308,18 +384,12 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
 
           return (
             <Card key={checklist.id} className="p-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <h4 className="font-semibold text-foreground">{checklist.type}</h4>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteChecklist(checklist.id)}
-                    disabled={deleteChecklist.isPending}
-                  >
-                    <Trash2 className="h-3 w-3 mr-1" />
-                    Deletar
-                  </Button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant={progress === 100 ? "success" : "secondary"}>
+                    {completedCount}/{totalCount}
+                  </Badge>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -329,9 +399,15 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
                     <Save className="h-3 w-3 mr-1" />
                     Salvar Template
                   </Button>
-                  <Badge variant={progress === 100 ? "success" : "secondary"}>
-                    {completedCount}/{totalCount}
-                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteChecklist(checklist.id)}
+                    disabled={deleteChecklist.isPending}
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Deletar
+                  </Button>
                 </div>
               </div>
 
@@ -346,27 +422,128 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
                 {checklist.items && checklist.items.length > 0 ? (
                   checklist.items.map((item, itemIndex) => {
                     const uniqueCheckboxId = `checklist-${checklist.id}-item-${item.id || itemIndex}`;
+                    const isEditing = editingItem?.checklistId === checklist.id && editingItem?.itemId === item.id;
+                    
                     return (
-                      <div key={item.id || itemIndex} className="flex items-center gap-2">
-                        <Checkbox
-                          id={uniqueCheckboxId}
-                          checked={item.completed}
-                          onCheckedChange={() => handleToggleItem(checklist.id, checklist.items, item.id)}
-                        />
-                        <label
-                          htmlFor={uniqueCheckboxId}
-                          className={`flex-1 text-sm cursor-pointer ${
-                            item.completed ? 'line-through text-muted-foreground' : ''
-                          }`}
-                        >
-                          {item.text || "Item sem texto"}
-                        </label>
-                        {item.completed && <CheckCircle2 className="h-4 w-4 text-success" />}
+                      <div key={item.id || itemIndex} className="flex items-center gap-2 group">
+                        {!isEditing ? (
+                          <>
+                            <Checkbox
+                              id={uniqueCheckboxId}
+                              checked={item.completed}
+                              onCheckedChange={() => handleToggleItem(checklist.id, checklist.items, item.id)}
+                            />
+                            <label
+                              htmlFor={uniqueCheckboxId}
+                              className={`flex-1 text-sm cursor-pointer ${
+                                item.completed ? 'line-through text-muted-foreground' : ''
+                              }`}
+                            >
+                              {item.text || "Item sem texto"}
+                            </label>
+                            {item.completed && <CheckCircle2 className="h-4 w-4 text-success" />}
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleStartEditItem(checklist.id, item.id, item.text)}
+                                className="h-6 w-6 p-0"
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteItem(checklist.id, checklist.items, item.id)}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <Input
+                              value={editingText}
+                              onChange={(e) => setEditingText(e.target.value)}
+                              className="flex-1 h-8"
+                              autoFocus
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleSaveEditItem(checklist.id, checklist.items, item.id);
+                                }
+                              }}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSaveEditItem(checklist.id, checklist.items, item.id)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingItem(null);
+                                setEditingText("");
+                              }}
+                              className="h-8 w-8 p-0"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     );
                   })
                 ) : (
                   <p className="text-sm text-muted-foreground">Nenhum item nesta checklist</p>
+                )}
+                
+                {/* Add new item to existing checklist */}
+                {addingItemToChecklist === checklist.id ? (
+                  <div className="flex gap-2 pt-2 border-t">
+                    <Input
+                      placeholder="Novo item..."
+                      value={newItemForChecklist}
+                      onChange={(e) => setNewItemForChecklist(e.target.value)}
+                      className="flex-1"
+                      autoFocus
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddItemToChecklist(checklist.id, checklist.items);
+                        }
+                      }}
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAddItemToChecklist(checklist.id, checklist.items)}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setAddingItemToChecklist(null);
+                        setNewItemForChecklist("");
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAddingItemToChecklist(checklist.id)}
+                    className="w-full mt-2"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Adicionar Item
+                  </Button>
                 )}
               </div>
             </Card>
