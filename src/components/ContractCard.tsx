@@ -109,25 +109,24 @@ export function ContractCard({
             <span className="hidden sm:inline">Editar</span>
           </Button>
           
+          <Button 
+            onClick={() => onCopyLink(contract)} 
+            variant="outline"
+            size="sm"
+          >
+            <Link2 className="h-3 w-3 sm:mr-2" />
+            <span className="hidden sm:inline">Link</span>
+          </Button>
+          
           {!['signed', 'active', 'cancelled'].includes(contract.status) && (
-            <>
-              <Button 
-                onClick={() => onCopyLink(contract)} 
-                variant="outline"
-                size="sm"
-              >
-                <Link2 className="h-3 w-3 sm:mr-2" />
-                <span className="hidden sm:inline">Link</span>
-              </Button>
-              <Button 
-                onClick={() => onSendForSignature(contract)} 
-                variant="default"
-                size="sm"
-              >
-                <Send className="h-3 w-3 sm:mr-2" />
-                <span className="hidden sm:inline">Enviar</span>
-              </Button>
-            </>
+            <Button 
+              onClick={() => onSendForSignature(contract)} 
+              variant="default"
+              size="sm"
+            >
+              <Send className="h-3 w-3 sm:mr-2" />
+              <span className="hidden sm:inline">Enviar</span>
+            </Button>
           )}
         </div>
       </div>

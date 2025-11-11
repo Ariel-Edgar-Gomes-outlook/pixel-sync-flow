@@ -360,9 +360,12 @@ export async function generateProfessionalContractPDF(contract: ProfessionalCont
   doc.setFont(undefined, 'normal');
   if (contract.signature_url && contract.signed_at) {
     try {
-      doc.addImage(contract.signature_url, 'PNG', 20, yPos, 70, 25);
+      const signatureBase64 = await loadImageWithCache(contract.signature_url);
+      if (signatureBase64) {
+        doc.addImage(signatureBase64, 'PNG', 20, yPos, 70, 25, undefined, 'FAST');
+      }
     } catch (e) {
-      console.warn('Failed to load signature');
+      console.warn('Failed to load signature:', e);
     }
   }
   
@@ -374,9 +377,12 @@ export async function generateProfessionalContractPDF(contract: ProfessionalCont
   // Professional signature
   if (businessSettings?.signature_url) {
     try {
-      doc.addImage(businessSettings.signature_url, 'PNG', 120, yPos, 70, 25);
+      const businessSigBase64 = await loadImageWithCache(businessSettings.signature_url);
+      if (businessSigBase64) {
+        doc.addImage(businessSigBase64, 'PNG', 120, yPos, 70, 25, undefined, 'FAST');
+      }
     } catch (e) {
-      console.warn('Failed to load business signature');
+      console.warn('Failed to load business signature:', e);
     }
   }
   
