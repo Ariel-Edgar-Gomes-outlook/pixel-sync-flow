@@ -760,15 +760,18 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
 
-  // CONTRATANTE (esquerda)
+  // CONTRATANTE (esquerda) - CLIENTE
   if (clientSigData) {
     try {
+      console.log('Adding client signature to contract PDF');
       doc.addImage(clientSigData, 'PNG', signatureLeftX - 20, yPos, 40, 20);
       yPos += 25;
     } catch (error) {
+      console.error('Error adding client signature:', error);
       yPos += 25;
     }
   } else {
+    console.log('No client signature available');
     yPos += 25;
   }
   
@@ -780,13 +783,26 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   yPos += 5;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text(businessSettings.business_name || '', signatureLeftX, yPos, { align: 'center' });
+  doc.text(contract.clients?.name || '', signatureLeftX, yPos, { align: 'center' });
 
   // Reset yPos para CONTRATADO
   yPos -= 35;
 
-  // CONTRATADO (direita)
-  yPos += 25;
+  // CONTRATADO (direita) - EMPRESA
+  if (businessSigData) {
+    try {
+      console.log('Adding business signature to contract PDF');
+      doc.addImage(businessSigData, 'PNG', signatureRightX - 20, yPos, 40, 20);
+      yPos += 25;
+    } catch (error) {
+      console.error('Error adding business signature:', error);
+      yPos += 25;
+    }
+  } else {
+    console.log('No business signature available');
+    yPos += 25;
+  }
+  
   doc.setFontSize(10);
   doc.setLineWidth(0.2);
   doc.line(signatureRightX - 30, yPos, signatureRightX + 30, yPos);
@@ -796,7 +812,7 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   yPos += 5;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text(contract.clients?.name || '', signatureRightX, yPos, { align: 'center' });
+  doc.text(companyName || businessSettings.business_name || '', signatureRightX, yPos, { align: 'center' });
 
   yPos += 10;
 

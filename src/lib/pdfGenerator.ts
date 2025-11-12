@@ -383,13 +383,20 @@ export async function generateProfessionalContractPDF(contract: ProfessionalCont
   // Professional signature
   if (businessSettings?.signature_url) {
     try {
+      console.log('Loading business signature from:', businessSettings.signature_url);
       const businessSigBase64 = await loadImageWithCache(businessSettings.signature_url);
+      console.log('Business signature loaded, base64 length:', businessSigBase64?.length);
       if (businessSigBase64) {
         doc.addImage(businessSigBase64, 'PNG', 120, yPos, 70, 25, undefined, 'FAST');
+        console.log('Business signature added to PDF successfully');
+      } else {
+        console.error('Business signature is empty after loading');
       }
     } catch (e) {
-      console.warn('Failed to load business signature:', e);
+      console.error('Failed to load business signature:', e);
     }
+  } else {
+    console.warn('No business signature URL found in settings');
   }
   
   doc.line(120, yPos + 30, 190, yPos + 30);
@@ -451,23 +458,46 @@ export interface ProfessionalQuoteData {
 const imageCache = new Map<string, string>();
 
 async function loadImageWithCache(url: string): Promise<string> {
+  if (!url || url.trim() === '') {
+    console.error('Invalid image URL provided:', url);
+    return '';
+  }
+
   if (imageCache.has(url)) {
+    console.log('Loading image from cache:', url);
     return imageCache.get(url)!;
   }
 
   try {
-    const response = await fetch(url, { cache: 'force-cache' });
+    console.log('Fetching image from URL:', url);
+    const response = await fetch(url, { 
+      cache: 'force-cache',
+      mode: 'cors'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+    }
+    
     const blob = await response.blob();
-    const base64 = await new Promise<string>((resolve) => {
+    console.log('Image blob loaded, size:', blob.size, 'type:', blob.type);
+    
+    const base64 = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('Failed to read blob as base64'));
       reader.readAsDataURL(blob);
     });
     
+    if (!base64 || base64.length < 100) {
+      throw new Error('Invalid base64 result');
+    }
+    
+    console.log('Image successfully converted to base64, length:', base64.length);
     imageCache.set(url, base64);
     return base64;
   } catch (error) {
-    console.error('Error loading image:', error);
+    console.error('Error loading image from', url, ':', error);
     return '';
   }
 }
