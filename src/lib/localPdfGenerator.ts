@@ -782,6 +782,20 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.text(contract.clients?.name || '', signatureLeftX, yPos, { align: 'center' });
+  
+  // Data de assinatura do cliente
+  if (contract.signed_at) {
+    yPos += 4;
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    const signedDate = new Date(contract.signed_at).toLocaleDateString('pt-AO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    doc.text(`Assinado em: ${signedDate}`, signatureLeftX, yPos, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+  }
 
   // CONTRATADO (direita) - EMPRESA
   yPos = clientYStart;
@@ -805,6 +819,18 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.text(companyName || businessSettings.business_name || '', signatureRightX, yPos, { align: 'center' });
+  
+  // Data de emissão do contrato
+  yPos += 4;
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
+  const issuedDate = new Date(contract.issued_at).toLocaleDateString('pt-AO', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+  doc.text(`Emitido em: ${issuedDate}`, signatureRightX, yPos, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
 
   yPos += 10;
 
