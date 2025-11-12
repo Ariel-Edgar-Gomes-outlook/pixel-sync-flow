@@ -1,125 +1,87 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { useGalleries, useUpdateGallery } from '@/hooks/useGalleries';
+import { GalleryDialog } from './GalleryDialog';
+import { ShareGalleryDialog } from './ShareGalleryDialog';
 import { 
-  useDeliverables, 
-  useCreateDeliverable, 
-  useMarkDeliverableAsSent,
-  useDeleteDeliverable,
-  type Deliverable 
-} from '@/hooks/useDeliverables';
-import { 
-  FileText, 
-  Image as ImageIcon, 
-  Film, 
-  File, 
   ExternalLink,
   Send,
-  Trash2,
   Plus,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Image,
+  Copy,
+  Share2,
+  CheckCircle2
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface JobDeliverablesProps {
   jobId: string;
 }
 
 export function JobDeliverables({ jobId }: JobDeliverablesProps) {
-  const { data: deliverables, isLoading } = useDeliverables(jobId);
-  const createDeliverable = useCreateDeliverable();
-  const markAsSent = useMarkDeliverableAsSent();
-  const deleteDeliverable = useDeleteDeliverable();
-  
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deliverableToDelete, setDeliverableToDelete] = useState<string | null>(null);
-  
-  const [newDeliverable, setNewDeliverable] = useState({
-    type: 'Foto Final',
-    file_name: '',
-    file_url: '',
-    external_platform: 'gdrive' as string | null,
-    access_instructions: '' as string | null,
-  });
+  const { data: galleries, isLoading } = useGalleries(jobId);
+  const updateGallery = useUpdateGallery();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedGalleryId, setSelectedGalleryId] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const handleAddDeliverable = async () => {
-    if (!newDeliverable.file_name || !newDeliverable.file_url) return;
-
-    await createDeliverable.mutateAsync({
-      job_id: jobId,
-      type: newDeliverable.type,
-      file_name: newDeliverable.file_name,
-      file_url: newDeliverable.file_url,
-      file_size: null,
-      external_platform: newDeliverable.external_platform,
-      access_instructions: newDeliverable.access_instructions,
+  const handleMarkAsSent = async (galleryId: string) => {
+    const gallery = galleries?.find(g => g.id === galleryId);
+    if (!gallery) return;
+    
+    await updateGallery.mutateAsync({
+      id: galleryId,
+      status: 'active' as any,
+      gallery_links: (gallery.gallery_links || []) as any
     });
-
-    setNewDeliverable({
-      type: 'Foto Final',
-      file_name: '',
-      file_url: '',
-      external_platform: 'gdrive',
-      access_instructions: '',
+    
+    toast({
+      title: "Galeria marcada como enviada",
+      description: "O cliente foi notificado sobre a disponibilidade.",
     });
-    setShowAddForm(false);
   };
 
-  const handleMarkAsSent = async (id: string) => {
-    await markAsSent.mutateAsync({ id, jobId });
+  const copyShareLink = (token: string) => {
+    const url = `${window.location.origin}/gallery/${token}`;
+    navigator.clipboard.writeText(url);
+    toast({
+      title: "Link Copiado!",
+      description: "O link da galeria foi copiado para a área de transferência"
+    });
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteDeliverable.mutateAsync({ id, jobId });
-    setDeleteDialogOpen(false);
-    setDeliverableToDelete(null);
-  };
-
-  const getFileIcon = (type: string) => {
-    const lowerType = type.toLowerCase();
-    if (lowerType.includes('foto') || lowerType.includes('imagem')) {
-      return <ImageIcon className="h-5 w-5" />;
-    }
-    if (lowerType.includes('video') || lowerType.includes('vídeo')) {
-      return <Film className="h-5 w-5" />;
-    }
-    if (lowerType.includes('pdf') || lowerType.includes('documento')) {
-      return <FileText className="h-5 w-5" />;
-    }
-    return <File className="h-5 w-5" />;
-  };
-
-  const platformIcons: Record<string, string> = {
-    gdrive: '🔷',
-    dropbox: '📦',
-    wetransfer: '✈️',
-    onedrive: '☁️',
-    other: '🔗',
+  const getPlatformIcon = (platform: string) => {
+    const icons: Record<string, string> = {
+      'google_drive': '📁',
+      'gdrive': '📁',
+      'dropbox': '📦',
+      'wetransfer': '📤',
+      'onedrive': '☁️',
+      'mega': '💾',
+      'other': '🔗'
+    };
+    return icons[platform] || icons.other;
   };
 
   if (isLoading) {
-    return <div>Carregando entregáveis...</div>;
+    return <div>Carregando galerias...</div>;
   }
 
-  const sentCount = deliverables?.filter(d => d.sent_to_client_at).length || 0;
-  const pendingCount = (deliverables?.length || 0) - sentCount;
+  // Conta galerias que foram compartilhadas (tem share_token e status active)
+  const sentCount = galleries?.filter(g => g.share_token && g.status === 'active').length || 0;
+  const pendingCount = (galleries?.length || 0) - sentCount;
+  const totalLinks = galleries?.reduce((acc, g) => {
+    const links = Array.isArray(g.gallery_links) ? g.gallery_links.length : 0;
+    return acc + links;
+  }, 0) || 0;
+
+  const selectedGallery = galleries?.find(g => g.id === selectedGalleryId);
+  const galleryLinks = selectedGallery?.gallery_links as any[] || [];
 
   return (
     <div className="space-y-6">
@@ -127,241 +89,179 @@ export function JobDeliverables({ jobId }: JobDeliverablesProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{deliverables?.length || 0}</div>
-            <p className="text-sm text-muted-foreground">Total de Entregáveis</p>
+            <div className="text-2xl font-bold">{galleries?.length || 0}</div>
+            <p className="text-sm text-muted-foreground">Total de Galerias</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-green-600">{sentCount}</div>
-            <p className="text-sm text-muted-foreground">Enviados</p>
+            <p className="text-sm text-muted-foreground">Compartilhadas</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-orange-600">{pendingCount}</div>
-            <p className="text-sm text-muted-foreground">Pendentes</p>
+            <div className="text-2xl font-bold text-blue-600">{totalLinks}</div>
+            <p className="text-sm text-muted-foreground">Links Externos</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Add Form */}
-      {showAddForm ? (
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Galerias Criadas</h3>
+          <p className="text-sm text-muted-foreground">
+            Visualize e compartilhe as galerias de fotos com o cliente
+          </p>
+        </div>
+        <GalleryDialog jobId={jobId} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Galeria
+          </Button>
+        </GalleryDialog>
+      </div>
+
+      {/* Galleries List */}
+      {!galleries || galleries.length === 0 ? (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LinkIcon className="h-5 w-5" />
-              Adicionar Link de Entregável
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <Label htmlFor="type">Tipo</Label>
-                <Select
-                  value={newDeliverable.type}
-                  onValueChange={(value) => setNewDeliverable({ ...newDeliverable, type: value })}
-                >
-                  <SelectTrigger id="type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Foto Final">📸 Foto Final</SelectItem>
-                    <SelectItem value="Foto RAW">🎞️ Foto RAW</SelectItem>
-                    <SelectItem value="Vídeo">🎬 Vídeo</SelectItem>
-                    <SelectItem value="PDF">📄 PDF</SelectItem>
-                    <SelectItem value="Outro">📦 Outro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="platform">Plataforma</Label>
-                <Select
-                  value={newDeliverable.external_platform || 'gdrive'}
-                  onValueChange={(value) => setNewDeliverable({ ...newDeliverable, external_platform: value })}
-                >
-                  <SelectTrigger id="platform">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="gdrive">🔷 Google Drive</SelectItem>
-                    <SelectItem value="dropbox">📦 Dropbox</SelectItem>
-                    <SelectItem value="wetransfer">✈️ WeTransfer</SelectItem>
-                    <SelectItem value="onedrive">☁️ OneDrive</SelectItem>
-                    <SelectItem value="other">🔗 Outro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="file-name">Nome do Arquivo/Pasta</Label>
-              <Input
-                id="file-name"
-                value={newDeliverable.file_name}
-                onChange={(e) => setNewDeliverable({ ...newDeliverable, file_name: e.target.value })}
-                placeholder="Ex: Fotos Editadas - Casamento Maria & João"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="file-url">URL do Link</Label>
-              <Input
-                id="file-url"
-                type="url"
-                value={newDeliverable.file_url}
-                onChange={(e) => setNewDeliverable({ ...newDeliverable, file_url: e.target.value })}
-                placeholder="https://..."
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="instructions">Instruções de Acesso</Label>
-              <Textarea
-                id="instructions"
-                value={newDeliverable.access_instructions || ''}
-                onChange={(e) => setNewDeliverable({ ...newDeliverable, access_instructions: e.target.value })}
-                placeholder="Ex: Senha: abc123, Baixe todas as fotos em alta resolução..."
-                rows={3}
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <Button onClick={handleAddDeliverable} disabled={!newDeliverable.file_name || !newDeliverable.file_url}>
+          <CardContent className="py-12 text-center">
+            <Image className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhuma galeria criada</h3>
+            <p className="text-muted-foreground mb-4">
+              Crie galerias para compartilhar fotos e links com seus clientes de forma organizada
+            </p>
+            <GalleryDialog jobId={jobId} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Adicionar
+                Criar Primeira Galeria
               </Button>
-              <Button variant="outline" onClick={() => setShowAddForm(false)}>
-                Cancelar
-              </Button>
-            </div>
+            </GalleryDialog>
           </CardContent>
         </Card>
       ) : (
-        <Button onClick={() => setShowAddForm(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Adicionar Link de Entregável
-        </Button>
-      )}
-
-      {/* Deliverables List */}
-      <div className="grid gap-4">
-        {deliverables?.map((deliverable) => (
-          <Card key={deliverable.id}>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3 flex-1">
-                  <div className="p-2 bg-muted rounded-lg">
-                    {getFileIcon(deliverable.type)}
-                  </div>
-                  
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold">{deliverable.file_name}</h3>
-                      <Badge variant="secondary">{deliverable.type}</Badge>
-                      {deliverable.version && (
-                        <Badge variant="outline">{deliverable.version}</Badge>
-                      )}
-                      {deliverable.external_platform && (
-                        <span className="text-xl">{platformIcons[deliverable.external_platform]}</span>
-                      )}
+        <div className="grid gap-4">
+          {galleries.map((gallery: any) => {
+            const links = Array.isArray(gallery.gallery_links) ? gallery.gallery_links : [];
+            const isShared = gallery.share_token && gallery.status === 'active';
+            
+            return (
+              <Card key={gallery.id}>
+                <CardContent className="pt-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Image className="h-5 w-5" />
+                      </div>
+                      
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold">{gallery.name}</h3>
+                          <Badge variant={isShared ? "default" : "secondary"}>
+                            {links.length} {links.length === 1 ? 'link' : 'links'}
+                          </Badge>
+                          {isShared && (
+                            <Badge className="bg-green-600">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              Compartilhada
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {gallery.access_instructions && (
+                          <p className="text-sm text-muted-foreground">
+                            📝 {gallery.access_instructions}
+                          </p>
+                        )}
+                        
+                        {/* Links externos da galeria */}
+                        {links.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            {links.slice(0, 3).map((link: any, index: number) => {
+                              const platformType = link.platform || link.type || 'other';
+                              return (
+                                <div key={index} className="flex items-center gap-2 text-sm">
+                                  <span className="text-lg">{getPlatformIcon(platformType)}</span>
+                                  <span className="text-muted-foreground">{link.name}</span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(link.url);
+                                      toast({
+                                        title: "Link Copiado!",
+                                        description: "O link foi copiado"
+                                      });
+                                    }}
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    asChild
+                                  >
+                                    <a href={link.url} target="_blank" rel="noopener noreferrer">
+                                      <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                            {links.length > 3 && (
+                              <p className="text-xs text-muted-foreground">
+                                + {links.length - 3} mais {links.length - 3 === 1 ? 'link' : 'links'}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span>
+                            Criada {formatDistanceToNow(new Date(gallery.created_at), { 
+                              addSuffix: true, 
+                              locale: ptBR 
+                            })}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    
-                    {deliverable.file_url && (
-                      <a 
-                        href={deliverable.file_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
-                      >
-                        {deliverable.file_url.substring(0, 60)}...
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                    
-                    {deliverable.access_instructions && (
-                      <p className="text-sm text-muted-foreground">
-                        📝 {deliverable.access_instructions}
-                      </p>
-                    )}
-                    
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>
-                        Adicionado {formatDistanceToNow(new Date(deliverable.uploaded_at), { 
-                          addSuffix: true, 
-                          locale: ptBR 
-                        })}
-                      </span>
-                      {deliverable.sent_to_client_at && (
-                        <Badge variant="default" className="bg-green-600">
-                          ✓ Enviado ao Cliente
-                        </Badge>
+
+                    <div className="flex gap-2">
+                      {!isShared ? (
+                        <ShareGalleryDialog gallery={gallery}>
+                          <Button size="sm" variant="outline">
+                            <Share2 className="h-4 w-4 mr-2" />
+                            Compartilhar
+                          </Button>
+                        </ShareGalleryDialog>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyShareLink(gallery.share_token)}
+                        >
+                          <LinkIcon className="h-4 w-4 mr-2" />
+                          Copiar Link
+                        </Button>
                       )}
+                      
+                      <GalleryDialog jobId={jobId} gallery={gallery} open={false} onOpenChange={setIsDialogOpen}>
+                        <Button size="sm" variant="ghost">
+                          Editar
+                        </Button>
+                      </GalleryDialog>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex gap-2">
-                  {!deliverable.sent_to_client_at && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleMarkAsSent(deliverable.id)}
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      Marcar como Enviado
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setDeliverableToDelete(deliverable.id);
-                      setDeleteDialogOpen(true);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {deliverables?.length === 0 && !showAddForm && (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <File className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Nenhum entregável adicionado</h3>
-            <p className="text-muted-foreground mb-4">
-              Adicione links para fotos finais, vídeos ou outros arquivos
-            </p>
-            <Button onClick={() => setShowAddForm(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Primeiro Entregável
-            </Button>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       )}
-
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja remover este entregável? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deliverableToDelete && handleDelete(deliverableToDelete)}>
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
