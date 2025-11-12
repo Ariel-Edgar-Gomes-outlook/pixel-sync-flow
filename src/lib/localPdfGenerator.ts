@@ -739,45 +739,43 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   }
 
   // === SEÇÃO DE ASSINATURAS (Formal) ===
-  if (yPos > 210) {
+  if (yPos > 200) {
     doc.addPage();
     yPos = margin + 10;
   }
 
-  yPos += 15;
+  yPos += 20;
   doc.setLineWidth(0.3);
   doc.line(margin, yPos, pageWidth - margin, yPos);
-  yPos += 12;
+  yPos += 15;
 
-  doc.setFontSize(11);
+  doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.text('ASSINATURAS', pageWidth / 2, yPos, { align: 'center' });
-  yPos += 15;
+  yPos += 25;
 
   const signatureLeftX = margin + 35;
   const signatureRightX = pageWidth / 2 + 35;
+  const signatureBoxHeight = 30;
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
 
   // CONTRATANTE (esquerda) - CLIENTE
+  const clientYStart = yPos;
   if (clientSigData) {
     try {
       console.log('Adding client signature to contract PDF');
       doc.addImage(clientSigData, 'PNG', signatureLeftX - 20, yPos, 40, 20);
-      yPos += 25;
     } catch (error) {
       console.error('Error adding client signature:', error);
-      yPos += 25;
     }
-  } else {
-    console.log('No client signature available');
-    yPos += 25;
   }
   
+  yPos += signatureBoxHeight;
   doc.setLineWidth(0.2);
   doc.line(signatureLeftX - 30, yPos, signatureLeftX + 30, yPos);
-  yPos += 5;
+  yPos += 6;
   doc.setFont('helvetica', 'bold');
   doc.text('CONTRATANTE', signatureLeftX, yPos, { align: 'center' });
   yPos += 5;
@@ -785,28 +783,22 @@ export async function generateContractPDFLocal(contractId: string): Promise<Blob
   doc.setFontSize(9);
   doc.text(contract.clients?.name || '', signatureLeftX, yPos, { align: 'center' });
 
-  // Reset yPos para CONTRATADO
-  yPos -= 35;
-
   // CONTRATADO (direita) - EMPRESA
+  yPos = clientYStart;
   if (businessSigData) {
     try {
       console.log('Adding business signature to contract PDF');
       doc.addImage(businessSigData, 'PNG', signatureRightX - 20, yPos, 40, 20);
-      yPos += 25;
     } catch (error) {
       console.error('Error adding business signature:', error);
-      yPos += 25;
     }
-  } else {
-    console.log('No business signature available');
-    yPos += 25;
   }
   
+  yPos += signatureBoxHeight;
   doc.setFontSize(10);
   doc.setLineWidth(0.2);
   doc.line(signatureRightX - 30, yPos, signatureRightX + 30, yPos);
-  yPos += 5;
+  yPos += 6;
   doc.setFont('helvetica', 'bold');
   doc.text('CONTRATADO', signatureRightX, yPos, { align: 'center' });
   yPos += 5;
