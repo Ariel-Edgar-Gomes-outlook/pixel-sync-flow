@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useGalleries } from "@/hooks/useGalleries";
+import { useGalleries, useUpdateGallery } from "@/hooks/useGalleries";
 import { GalleryDialog } from "./GalleryDialog";
 import { AddLinkDialog } from "./AddLinkDialog";
 import { ShareGalleryDialog } from "./ShareGalleryDialog";
-import { Plus, ExternalLink, Image, Copy, Link as LinkIcon, Share2 } from "lucide-react";
+import { Plus, ExternalLink, Image, Copy, Link as LinkIcon, Share2, CheckCircle2, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 interface JobGalleryTabProps {
   jobId: string;
 }
@@ -18,6 +19,7 @@ export function JobGalleryTab({
     data: galleries,
     isLoading
   } = useGalleries(jobId);
+  const updateGalleryMutation = useUpdateGallery();
   const [selectedGalleryId, setSelectedGalleryId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const {
@@ -25,6 +27,45 @@ export function JobGalleryTab({
   } = useToast();
   const selectedGallery = galleries?.find(g => g.id === selectedGalleryId);
   const galleryLinks = selectedGallery?.gallery_links as any[] || [];
+  
+  const handleMarkAsSent = async (galleryId: string) => {
+    try {
+      await updateGalleryMutation.mutateAsync({
+        id: galleryId,
+        sent_to_client_at: new Date().toISOString()
+      });
+      toast({
+        title: "Galeria Marcada como Enviada",
+        description: "O status de envio foi atualizado com sucesso"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status de envio",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleMarkAsNotSent = async (galleryId: string) => {
+    try {
+      await updateGalleryMutation.mutateAsync({
+        id: galleryId,
+        sent_to_client_at: null
+      });
+      toast({
+        title: "Status Atualizado",
+        description: "A galeria foi marcada como não enviada"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status",
+        variant: "destructive"
+      });
+    }
+  };
+  
   const copyShareLink = (token: string) => {
     const url = `${window.location.origin}/gallery/${token}`;
     navigator.clipboard.writeText(url);
