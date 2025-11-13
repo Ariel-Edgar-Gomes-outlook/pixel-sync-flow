@@ -22,6 +22,7 @@ export interface Gallery {
   share_token: string;
   gallery_links: GalleryLink[];
   access_instructions: string | null;
+  sent_to_client_at: string | null;
   created_at: string;
   updated_at: string;
 }
