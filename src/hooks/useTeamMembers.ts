@@ -8,6 +8,7 @@ export interface TeamMember {
   phone: string | null;
   type: string;
   notes: string | null;
+  archived: boolean;
   created_at: string;
   updated_at: string;
 }

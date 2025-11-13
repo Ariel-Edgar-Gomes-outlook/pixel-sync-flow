@@ -1,25 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserPlus } from "lucide-react";
-import { useCreateTeamMember } from "@/hooks/useTeamMembers";
+import { useCreateTeamMember, useUpdateTeamMember } from "@/hooks/useTeamMembers";
 import { toast } from "sonner";
 
 interface TeamMemberDialogProps {
   trigger?: React.ReactNode;
+  children?: React.ReactNode;
+  member?: any;
 }
 
-export function TeamMemberDialog({ trigger }: TeamMemberDialogProps) {
+export function TeamMemberDialog({ trigger, children, member }: TeamMemberDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [type, setType] = useState("");
+  const [notes, setNotes] = useState("");
 
   const createMember = useCreateTeamMember();
+  const updateMember = useUpdateTeamMember();
+
+  // Populate form when editing
+  useEffect(() => {
+    if (member) {
+      setName(member.name || "");
+      setEmail(member.email || "");
+      setPhone(member.phone || "");
+      setType(member.type || "");
+      setNotes(member.notes || "");
+    }
+  }, [member]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,23 +46,41 @@ export function TeamMemberDialog({ trigger }: TeamMemberDialogProps) {
     }
 
     try {
-      await createMember.mutateAsync({
-        name,
-        email,
-        phone,
-        type,
-      });
+      if (member) {
+        // Update existing member
+        await updateMember.mutateAsync({
+          id: member.id,
+          name,
+          email,
+          phone,
+          type,
+          notes,
+        });
+        toast.success("Membro atualizado!");
+      } else {
+        // Create new member
+        await createMember.mutateAsync({
+          name,
+          email,
+          phone,
+          type,
+          notes,
+        });
+        toast.success("Membro adicionado!");
+      }
 
-      toast.success("Membro da equipe adicionado!");
       setOpen(false);
       
-      // Reset form
-      setName("");
-      setEmail("");
-      setPhone("");
-      setType("");
+      // Reset form if creating
+      if (!member) {
+        setName("");
+        setEmail("");
+        setPhone("");
+        setType("");
+        setNotes("");
+      }
     } catch (error) {
-      toast.error("Erro ao adicionar membro");
+      toast.error(member ? "Erro ao atualizar membro" : "Erro ao adicionar membro");
       console.error(error);
     }
   };
@@ -54,7 +88,7 @@ export function TeamMemberDialog({ trigger }: TeamMemberDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || (
+        {children || trigger || (
           <Button variant="outline" className="gap-2">
             <UserPlus className="h-4 w-4" />
             Novo Membro de Equipe
@@ -63,10 +97,14 @@ export function TeamMemberDialog({ trigger }: TeamMemberDialogProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Adicionar Membro de Equipe</DialogTitle>
+          <DialogTitle>
+            {member ? "Editar Membro" : "Adicionar Membro de Equipe"}
+          </DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Crie um novo membro de equipe que poderá ser atribuído a projetos
+          {member 
+            ? "Atualize as informações do membro da equipe"
+            : "Crie um novo membro de equipe que poderá ser atribuído a projetos"}
         </p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -122,6 +160,17 @@ export function TeamMemberDialog({ trigger }: TeamMemberDialogProps) {
             </Select>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notas</Label>
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Informações adicionais sobre o membro"
+              rows={3}
+            />
+          </div>
+
           <div className="flex gap-2 justify-end pt-4">
             <Button
               type="button"
@@ -130,8 +179,13 @@ export function TeamMemberDialog({ trigger }: TeamMemberDialogProps) {
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={createMember.isPending}>
-              {createMember.isPending ? "Adicionando..." : "Adicionar"}
+            <Button 
+              type="submit" 
+              disabled={createMember.isPending || updateMember.isPending}
+            >
+              {createMember.isPending || updateMember.isPending
+                ? "Salvando..." 
+                : member ? "Atualizar" : "Adicionar"}
             </Button>
           </div>
         </form>
