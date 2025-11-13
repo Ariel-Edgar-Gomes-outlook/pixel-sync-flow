@@ -31,19 +31,43 @@ export function JobDeliverables({ jobId }: JobDeliverablesProps) {
   const { toast } = useToast();
 
   const handleMarkAsSent = async (galleryId: string) => {
-    const gallery = galleries?.find(g => g.id === galleryId);
-    if (!gallery) return;
-    
-    await updateGallery.mutateAsync({
-      id: galleryId,
-      status: 'active' as any,
-      gallery_links: (gallery.gallery_links || []) as any
-    });
-    
-    toast({
-      title: "Galeria marcada como enviada",
-      description: "O cliente foi notificado sobre a disponibilidade.",
-    });
+    try {
+      await updateGallery.mutateAsync({
+        id: galleryId,
+        sent_to_client_at: new Date().toISOString()
+      });
+      
+      toast({
+        title: "Galeria Marcada como Enviada",
+        description: "O status de envio foi atualizado com sucesso"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status de envio",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleMarkAsNotSent = async (galleryId: string) => {
+    try {
+      await updateGallery.mutateAsync({
+        id: galleryId,
+        sent_to_client_at: null
+      });
+      
+      toast({
+        title: "Status Atualizado",
+        description: "A galeria foi marcada como não enviada"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status",
+        variant: "destructive"
+      });
+    }
   };
 
   const copyShareLink = (token: string) => {
@@ -72,8 +96,8 @@ export function JobDeliverables({ jobId }: JobDeliverablesProps) {
     return <div>Carregando galerias...</div>;
   }
 
-  // Conta galerias que foram compartilhadas (tem share_token e status active)
-  const sentCount = galleries?.filter(g => g.share_token && g.status === 'active').length || 0;
+  // Conta galerias que foram enviadas ao cliente
+  const sentCount = galleries?.filter((g: any) => g.sent_to_client_at).length || 0;
   const pendingCount = (galleries?.length || 0) - sentCount;
   const totalLinks = galleries?.reduce((acc, g) => {
     const links = Array.isArray(g.gallery_links) ? g.gallery_links.length : 0;
@@ -144,6 +168,7 @@ export function JobDeliverables({ jobId }: JobDeliverablesProps) {
         <div className="grid gap-4">
           {galleries.map((gallery: any) => {
             const links = Array.isArray(gallery.gallery_links) ? gallery.gallery_links : [];
+            const isSent = !!gallery.sent_to_client_at;
             const isShared = gallery.share_token && gallery.status === 'active';
             
             return (
@@ -161,10 +186,10 @@ export function JobDeliverables({ jobId }: JobDeliverablesProps) {
                           <Badge variant={isShared ? "default" : "secondary"}>
                             {links.length} {links.length === 1 ? 'link' : 'links'}
                           </Badge>
-                          {isShared && (
+                          {isSent && (
                             <Badge className="bg-green-600">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
-                              Compartilhada
+                              Enviada
                             </Badge>
                           )}
                         </div>
@@ -226,11 +251,39 @@ export function JobDeliverables({ jobId }: JobDeliverablesProps) {
                               locale: ptBR 
                             })}
                           </span>
+                          {isSent && gallery.sent_to_client_at && (
+                            <span className="text-green-600">
+                              • Enviada {formatDistanceToNow(new Date(gallery.sent_to_client_at), { 
+                                addSuffix: true, 
+                                locale: ptBR 
+                              })}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
+                      {isSent ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleMarkAsNotSent(gallery.id)}
+                        >
+                          <CheckCircle2 className="h-4 w-4 mr-2" />
+                          Marcar como Não Enviada
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => handleMarkAsSent(gallery.id)}
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          Marcar como Enviada
+                        </Button>
+                      )}
+                      
                       {!isShared ? (
                         <ShareGalleryDialog gallery={gallery}>
                           <Button size="sm" variant="outline">
