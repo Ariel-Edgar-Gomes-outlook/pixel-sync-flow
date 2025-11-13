@@ -15,9 +15,10 @@ import {
   Briefcase,
   Clock,
   Mail,
-  Phone
+  Phone,
+  Trash2
 } from "lucide-react";
-import { useTeamMembers } from "@/hooks/useTeamMembers";
+import { useTeamMembers, useUpdateTeamMember, useDeleteTeamMember } from "@/hooks/useTeamMembers";
 import { TeamMemberDialog } from "@/components/TeamMemberDialog";
 import { 
   Dialog,
@@ -25,10 +26,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 export default function TeamMembers() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,8 +48,11 @@ export default function TeamMembers() {
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isStatsDialogOpen, setIsStatsDialogOpen] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<any>(null);
 
   const { data: teamMembers, isLoading } = useTeamMembers();
+  const updateMember = useUpdateTeamMember();
+  const deleteMember = useDeleteTeamMember();
 
   // Query para pegar estatísticas de um membro
   const { data: memberStats } = useQuery({
@@ -89,7 +104,8 @@ export default function TeamMembers() {
   const filteredMembers = teamMembers?.filter((member: any) => {
     const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesArchived = showArchived ? true : !member.archived;
+    // Se showArchived é true, mostra todos. Se false, mostra apenas não arquivados
+    const matchesArchived = showArchived || !member.archived;
     return matchesSearch && matchesArchived;
   });
 
@@ -98,16 +114,27 @@ export default function TeamMembers() {
 
   const handleArchiveToggle = async (member: any) => {
     try {
-      const { error } = await supabase
-        .from('team_members')
-        .update({ archived: !member.archived })
-        .eq('id', member.id);
-
-      if (error) throw error;
-
-      window.location.reload();
+      await updateMember.mutateAsync({
+        id: member.id,
+        archived: !member.archived
+      });
+      toast.success(member.archived ? "Membro restaurado!" : "Membro arquivado!");
     } catch (error) {
       console.error('Error toggling archive:', error);
+      toast.error("Erro ao atualizar membro");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!memberToDelete) return;
+    
+    try {
+      await deleteMember.mutateAsync(memberToDelete.id);
+      toast.success("Membro eliminado com sucesso!");
+      setMemberToDelete(null);
+    } catch (error) {
+      console.error('Error deleting member:', error);
+      toast.error("Erro ao eliminar membro");
     }
   };
 
@@ -210,7 +237,7 @@ export default function TeamMembers() {
               className="gap-2"
             >
               <Archive className="h-4 w-4" />
-              {showArchived ? "Esconder Arquivados" : "Mostrar Arquivados"}
+              {showArchived ? "Esconder Arquivados" : `Mostrar Arquivados (${archivedCount})`}
             </Button>
           </div>
         </CardContent>
@@ -328,6 +355,15 @@ export default function TeamMembers() {
                       <Archive className="h-4 w-4" />
                     )}
                   </Button>
+                  
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setMemberToDelete(member)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -443,6 +479,28 @@ export default function TeamMembers() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!memberToDelete} onOpenChange={() => setMemberToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Membro da Equipe?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja eliminar <strong>{memberToDelete?.name}</strong>?
+              Esta ação não pode ser desfeita e removerá o membro de todos os projetos associados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
