@@ -66,6 +66,7 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
   const [addingItemToChecklist, setAddingItemToChecklist] = useState<string | null>(null);
   const [newItemForChecklist, setNewItemForChecklist] = useState("");
   const [deletingItem, setDeletingItem] = useState<{ checklistId: string; itemId: string; items: ChecklistItem[] } | null>(null);
+  const [deletingChecklist, setDeletingChecklist] = useState<string | null>(null);
 
   const { data: checklists } = useChecklistsByJob(jobId);
   const { data: templates } = useChecklistTemplates();
@@ -179,16 +180,20 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
     }
   };
 
-  const handleDeleteChecklist = async (checklistId: string) => {
+  const handleDeleteChecklist = async () => {
+    if (!deletingChecklist) return;
+
     try {
       await deleteChecklist.mutateAsync({
-        id: checklistId,
+        id: deletingChecklist,
         job_id: jobId
       });
       toast.success("Checklist deletada!");
+      setDeletingChecklist(null);
     } catch (error) {
       console.error("Erro ao deletar checklist:", error);
       toast.error("Erro ao deletar checklist");
+      setDeletingChecklist(null);
     }
   };
 
@@ -417,7 +422,7 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleDeleteChecklist(checklist.id)}
+                    onClick={() => setDeletingChecklist(checklist.id)}
                     disabled={deleteChecklist.isPending}
                   >
                     <Trash2 className="h-3 w-3 mr-1" />
@@ -572,6 +577,7 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
         })}
       </div>
 
+      {/* Confirm delete item dialog */}
       <AlertDialog open={!!deletingItem} onOpenChange={(open) => !open && setDeletingItem(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -587,6 +593,27 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm delete checklist dialog */}
+      <AlertDialog open={!!deletingChecklist} onOpenChange={(open) => !open && setDeletingChecklist(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão da checklist</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta checklist inteira? Todos os itens serão permanentemente removidos e esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteChecklist}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir checklist
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
