@@ -211,9 +211,9 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
   };
 
   const handleDeleteItem = async (checklistId: string, items: ChecklistItem[], itemId: string) => {
-    const updatedItems = items.filter(item => item.id !== itemId);
-
     try {
+      const updatedItems = items.filter(item => item.id !== itemId);
+      
       await updateChecklist.mutateAsync({
         id: checklistId,
         items: updatedItems,
@@ -446,7 +446,10 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleStartEditItem(checklist.id, item.id, item.text)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStartEditItem(checklist.id, item.id, item.text);
+                                }}
                                 className="h-6 w-6 p-0"
                               >
                                 <Edit2 className="h-3 w-3" />
@@ -454,7 +457,10 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDeleteItem(checklist.id, checklist.items, item.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteItem(checklist.id, checklist.items, item.id);
+                                }}
                                 className="h-6 w-6 p-0"
                               >
                                 <X className="h-3 w-3" />
