@@ -9,6 +9,16 @@ import { Plus, X, CheckCircle2, Save, Trash2, Edit2, Check } from "lucide-react"
 import { useChecklistsByJob, useCreateChecklist, useUpdateChecklist, useDeleteChecklist, ChecklistItem } from "@/hooks/useChecklists";
 import { useChecklistTemplates, useCreateChecklistTemplate } from "@/hooks/useTemplates";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ChecklistManagerProps {
   jobId: string;
@@ -55,6 +65,7 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
   const [editingText, setEditingText] = useState("");
   const [addingItemToChecklist, setAddingItemToChecklist] = useState<string | null>(null);
   const [newItemForChecklist, setNewItemForChecklist] = useState("");
+  const [deletingItem, setDeletingItem] = useState<{ checklistId: string; itemId: string; items: ChecklistItem[] } | null>(null);
 
   const { data: checklists } = useChecklistsByJob(jobId);
   const { data: templates } = useChecklistTemplates();
@@ -210,18 +221,22 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
     }
   };
 
-  const handleDeleteItem = async (checklistId: string, items: ChecklistItem[], itemId: string) => {
+  const handleDeleteItem = async () => {
+    if (!deletingItem) return;
+
     try {
-      const updatedItems = items.filter(item => item.id !== itemId);
+      const updatedItems = deletingItem.items.filter(item => item.id !== deletingItem.itemId);
       
       await updateChecklist.mutateAsync({
-        id: checklistId,
+        id: deletingItem.checklistId,
         items: updatedItems,
       });
       toast.success("Item deletado!");
+      setDeletingItem(null);
     } catch (error) {
       console.error("Erro ao deletar item:", error);
       toast.error("Erro ao deletar item");
+      setDeletingItem(null);
     }
   };
 
@@ -459,7 +474,7 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleDeleteItem(checklist.id, checklist.items, item.id);
+                                  setDeletingItem({ checklistId: checklist.id, itemId: item.id, items: checklist.items });
                                 }}
                                 className="h-6 w-6 p-0"
                               >
@@ -556,6 +571,26 @@ export function ChecklistManager({ jobId }: ChecklistManagerProps) {
           );
         })}
       </div>
+
+      <AlertDialog open={!!deletingItem} onOpenChange={(open) => !open && setDeletingItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este item da checklist? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteItem}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
