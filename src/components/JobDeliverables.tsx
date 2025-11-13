@@ -150,22 +150,22 @@ export function JobDeliverables({ jobId }: JobDeliverablesProps) {
       {/* Galleries List */}
       {!galleries || galleries.length === 0 ? (
         <Card>
-          <CardContent className="py-12 text-center">
-            <Image className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Nenhuma galeria criada</h3>
-            <p className="text-muted-foreground mb-4">
-              Crie galerias para compartilhar fotos e links com seus clientes de forma organizada
+          <CardContent className="py-8 text-center">
+            <Image className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+            <h3 className="font-semibold mb-2">Nenhuma galeria criada</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Crie galerias para compartilhar fotos e links com clientes
             </p>
             <GalleryDialog jobId={jobId} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <Button>
+              <Button size="sm">
                 <Plus className="h-4 w-4 mr-2" />
-                Criar Primeira Galeria
+                Criar Galeria
               </Button>
             </GalleryDialog>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="space-y-3">
           {galleries.map((gallery: any) => {
             const links = Array.isArray(gallery.gallery_links) ? gallery.gallery_links : [];
             const isSent = !!gallery.sent_to_client_at;
@@ -173,137 +173,103 @@ export function JobDeliverables({ jobId }: JobDeliverablesProps) {
             
             return (
               <Card key={gallery.id}>
-                <CardContent className="pt-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className="p-2 bg-muted rounded-lg">
-                        <Image className="h-5 w-5" />
-                      </div>
-                      
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-semibold">{gallery.name}</h3>
-                          <Badge variant={isShared ? "default" : "secondary"}>
-                            {links.length} {links.length === 1 ? 'link' : 'links'}
-                          </Badge>
-                          {isSent && (
-                            <Badge className="bg-green-600">
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
-                              Enviada
+                <CardContent className="p-4">
+                  <div className="flex flex-col lg:flex-row lg:items-start gap-3">
+                    {/* Main info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-2 mb-2">
+                        <Image className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-sm truncate">{gallery.name}</h3>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <Badge variant="secondary" className="text-xs">
+                              {links.length} {links.length === 1 ? 'link' : 'links'}
                             </Badge>
-                          )}
-                        </div>
-                        
-                        {gallery.access_instructions && (
-                          <p className="text-sm text-muted-foreground">
-                            📝 {gallery.access_instructions}
-                          </p>
-                        )}
-                        
-                        {/* Links externos da galeria */}
-                        {links.length > 0 && (
-                          <div className="mt-3 space-y-2">
-                            {links.slice(0, 3).map((link: any, index: number) => {
-                              const platformType = link.platform || link.type || 'other';
-                              return (
-                                <div key={index} className="flex items-center gap-2 text-sm">
-                                  <span className="text-lg">{getPlatformIcon(platformType)}</span>
-                                  <span className="text-muted-foreground">{link.name}</span>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(link.url);
-                                      toast({
-                                        title: "Link Copiado!",
-                                        description: "O link foi copiado"
-                                      });
-                                    }}
-                                  >
-                                    <Copy className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    asChild
-                                  >
-                                    <a href={link.url} target="_blank" rel="noopener noreferrer">
-                                      <ExternalLink className="h-3 w-3" />
-                                    </a>
-                                  </Button>
-                                </div>
-                              );
-                            })}
-                            {links.length > 3 && (
-                              <p className="text-xs text-muted-foreground">
-                                + {links.length - 3} mais {links.length - 3 === 1 ? 'link' : 'links'}
-                              </p>
+                            {isSent && (
+                              <Badge className="bg-green-600 text-xs">
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                Enviada
+                              </Badge>
                             )}
                           </div>
-                        )}
-                        
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>
-                            Criada {formatDistanceToNow(new Date(gallery.created_at), { 
+                        </div>
+                      </div>
+                      
+                      {/* Links preview - só mostrar em telas maiores */}
+                      {links.length > 0 && (
+                        <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground mt-2">
+                          {links.slice(0, 2).map((link: any, index: number) => {
+                            const platformType = link.platform || link.type || 'other';
+                            return (
+                              <span key={index} className="flex items-center gap-1">
+                                <span>{getPlatformIcon(platformType)}</span>
+                                <span className="truncate max-w-[120px]">{link.name}</span>
+                              </span>
+                            );
+                          })}
+                          {links.length > 2 && <span>+{links.length - 2}</span>}
+                        </div>
+                      )}
+                      
+                      {/* Timestamps */}
+                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-2">
+                        <span className="flex items-center">
+                          Criada {formatDistanceToNow(new Date(gallery.created_at), { 
+                            addSuffix: true, 
+                            locale: ptBR 
+                          })}
+                        </span>
+                        {isSent && gallery.sent_to_client_at && (
+                          <span className="text-green-600">
+                            • Enviada {formatDistanceToNow(new Date(gallery.sent_to_client_at), { 
                               addSuffix: true, 
                               locale: ptBR 
                             })}
                           </span>
-                          {isSent && gallery.sent_to_client_at && (
-                            <span className="text-green-600">
-                              • Enviada {formatDistanceToNow(new Date(gallery.sent_to_client_at), { 
-                                addSuffix: true, 
-                                locale: ptBR 
-                              })}
-                            </span>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
 
-                    <div className="flex gap-2 flex-wrap">
+                    {/* Actions */}
+                    <div className="flex flex-wrap gap-2 lg:flex-shrink-0">
                       {isSent ? (
                         <Button
                           size="sm"
                           variant="outline"
+                          className="text-xs"
                           onClick={() => handleMarkAsNotSent(gallery.id)}
                         >
-                          <CheckCircle2 className="h-4 w-4 mr-2" />
-                          Marcar como Não Enviada
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          <span className="hidden sm:inline">Não Enviada</span>
+                          <span className="sm:hidden">Não Enviada</span>
                         </Button>
                       ) : (
                         <Button
                           size="sm"
                           variant="default"
+                          className="text-xs"
                           onClick={() => handleMarkAsSent(gallery.id)}
                         >
-                          <Send className="h-4 w-4 mr-2" />
-                          Marcar como Enviada
+                          <Send className="h-3 w-3 mr-1" />
+                          <span className="hidden sm:inline">Marcar Enviada</span>
+                          <span className="sm:hidden">Enviada</span>
                         </Button>
                       )}
                       
-                      {!isShared ? (
-                        <ShareGalleryDialog gallery={gallery}>
-                          <Button size="sm" variant="outline">
-                            <Share2 className="h-4 w-4 mr-2" />
-                            Compartilhar
-                          </Button>
-                        </ShareGalleryDialog>
-                      ) : (
+                      {isShared && (
                         <Button
                           size="sm"
                           variant="outline"
+                          className="text-xs"
                           onClick={() => copyShareLink(gallery.share_token)}
                         >
-                          <LinkIcon className="h-4 w-4 mr-2" />
-                          Copiar Link
+                          <LinkIcon className="h-3 w-3 sm:mr-1" />
+                          <span className="hidden sm:inline">Link</span>
                         </Button>
                       )}
                       
                       <GalleryDialog jobId={jobId} gallery={gallery} open={false} onOpenChange={setIsDialogOpen}>
-                        <Button size="sm" variant="ghost">
+                        <Button size="sm" variant="ghost" className="text-xs">
                           Editar
                         </Button>
                       </GalleryDialog>
