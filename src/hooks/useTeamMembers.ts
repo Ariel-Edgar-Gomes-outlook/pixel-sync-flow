@@ -27,7 +27,7 @@ export function useTeamMembers() {
         .order('name');
       
       if (error) throw error;
-      return data as TeamMember[];
+      return data;
     },
   });
 }
@@ -82,6 +82,7 @@ export function useUpdateTeamMember() {
       phone?: string;
       type?: string;
       notes?: string;
+      archived?: boolean;
     }) => {
       const { data, error } = await supabase
         .from('team_members')
