@@ -434,43 +434,95 @@ const Landing = () => {
             </p>
           </div>
 
-          <Card className="max-w-2xl mx-auto border-4 border-primary shadow-2xl relative overflow-hidden pulse-glow hover-scale">
+          <Card className="max-w-4xl mx-auto border-4 border-primary shadow-2xl relative overflow-hidden pulse-glow hover-scale">
             <div className="absolute inset-0 gradient-animate opacity-5" />
-            <div className="absolute top-0 right-0 bg-gradient-to-br from-destructive to-destructive/80 text-destructive-foreground px-6 py-2 text-sm font-bold transform rotate-12 translate-x-8 translate-y-4 shimmer">
+            <div className="absolute top-0 right-0 bg-gradient-to-br from-destructive to-destructive/80 text-destructive-foreground px-6 py-2 text-sm font-bold transform rotate-12 translate-x-8 translate-y-4 shimmer z-10">
               POUPA 47.5%
             </div>
             <CardContent className="p-8 md:p-12 space-y-8">
               <div className="text-center space-y-4">
                 <h3 className="text-2xl font-bold text-foreground">Plano Profissional</h3>
-                <div className="space-y-2">
-                  <p className="text-muted-foreground line-through text-2xl">12.000 Kz/mês</p>
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-5xl md:text-6xl font-bold text-primary">6.300</span>
-                    <span className="text-2xl text-muted-foreground">Kz/mês</span>
+              </div>
+
+              {/* Pricing Options Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {/* Mensal */}
+                <div className="border-2 border-primary/30 rounded-lg p-6 hover:border-primary hover:shadow-lg transition-all bg-card/50">
+                  <div className="text-center space-y-3">
+                    <Badge variant="secondary" className="mb-2">Mensal</Badge>
+                    <p className="text-muted-foreground line-through text-lg">12.000 Kz/mês</p>
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-4xl font-bold text-primary">6.300</span>
+                      <span className="text-lg text-muted-foreground">Kz/mês</span>
+                    </div>
                   </div>
-                  <Badge variant="secondary" className="text-base px-4 py-2">
-                    Oferta por Tempo Limitado
+                </div>
+
+                {/* Trimestral */}
+                <div className="border-2 border-primary/30 rounded-lg p-6 hover:border-primary hover:shadow-lg transition-all bg-card/50">
+                  <div className="text-center space-y-3">
+                    <Badge variant="secondary" className="mb-2">Trimestral</Badge>
+                    <p className="text-muted-foreground line-through text-lg">36.000 Kz</p>
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-4xl font-bold text-primary">18.900</span>
+                      <span className="text-lg text-muted-foreground">Kz</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">6.300 Kz/mês</p>
+                  </div>
+                </div>
+
+                {/* Semestral */}
+                <div className="border-2 border-primary/30 rounded-lg p-6 hover:border-primary hover:shadow-lg transition-all bg-card/50">
+                  <div className="text-center space-y-3">
+                    <Badge variant="secondary" className="mb-2">Semestral</Badge>
+                    <p className="text-muted-foreground line-through text-lg">72.000 Kz</p>
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-4xl font-bold text-primary">37.800</span>
+                      <span className="text-lg text-muted-foreground">Kz</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">6.300 Kz/mês</p>
+                  </div>
+                </div>
+
+                {/* Anual */}
+                <div className="border-2 border-primary rounded-lg p-6 shadow-lg bg-primary/5 relative">
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2" variant="default">
+                    Mais Popular
                   </Badge>
+                  <div className="text-center space-y-3">
+                    <Badge variant="secondary" className="mb-2">Anual</Badge>
+                    <p className="text-muted-foreground line-through text-lg">144.000 Kz</p>
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-4xl font-bold text-primary">75.600</span>
+                      <span className="text-lg text-muted-foreground">Kz</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">6.300 Kz/mês</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                {[
-                  "Clientes e leads ilimitados",
-                  "Jobs e projetos sem limites",
-                  "Faturas e orçamentos profissionais",
-                  "Galerias privadas para clientes",
-                  "Gestão de equipa e equipamentos",
-                  "Contratos com assinatura digital",
-                  "Notificações automáticas",
-                  "Relatórios financeiros completos",
-                  "Suporte por email",
-                ].map((feature, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                    <span className="text-foreground">{feature}</span>
-                  </div>
-                ))}
+              <div className="border-t pt-6">
+                <p className="text-center text-sm text-muted-foreground mb-4 font-semibold">
+                  Todos os planos incluem:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {[
+                    "Clientes e leads ilimitados",
+                    "Jobs e projetos sem limites",
+                    "Faturas e orçamentos profissionais",
+                    "Galerias privadas para clientes",
+                    "Gestão de equipa e equipamentos",
+                    "Contratos com assinatura digital",
+                    "Notificações automáticas",
+                    "Relatórios financeiros completos",
+                    "Suporte por email",
+                  ].map((feature, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="text-foreground text-sm">{feature}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <Button
