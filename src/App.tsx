@@ -36,6 +36,7 @@ import Notifications from "./pages/Notifications";
 import Landing from "./pages/Landing";
 import AdminSubscribers from "./pages/AdminSubscribers";
 import AdminLogin from "./pages/AdminLogin";
+import TeamMembers from "./pages/TeamMembers";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +86,7 @@ function AppContent() {
           <Route path="contracts" element={<Contracts />} />
           <Route path="reports" element={<Reports />} />
           <Route path="templates" element={<Templates />} />
+          <Route path="team" element={<TeamMembers />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="settings" element={<Settings />} />
         </Route>
