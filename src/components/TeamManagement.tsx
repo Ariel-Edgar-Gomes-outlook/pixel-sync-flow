@@ -125,7 +125,7 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
             Equipa do Projeto
           </h3>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Adicione fotógrafos, assistentes e outros membros da sua equipe
+            Adicione fotógrafos, assistentes e outros membros da equipe (não clientes)
           </p>
         </div>
         <div className="flex-shrink-0">
@@ -138,7 +138,8 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Não há membros de equipe disponíveis. Crie novos membros usando o botão "Novo Membro de Equipe" acima.
+            <p className="font-medium mb-1">Nenhum membro de equipe cadastrado</p>
+            <p className="text-xs">Crie membros da sua equipe (fotógrafos, assistentes, editores) usando o botão "Novo Membro de Equipe" acima. Estes membros podem ser reutilizados em vários projetos.</p>
           </AlertDescription>
         </Alert>
       )}
@@ -149,7 +150,7 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Select value={selectedUserId} onValueChange={setSelectedUserId}>
               <SelectTrigger className="h-10 sm:h-11">
-                <SelectValue placeholder="Selecionar membro" />
+                <SelectValue placeholder="Selecionar membro da equipe" />
               </SelectTrigger>
               <SelectContent>
                 {availableUsers.map((user) => (
