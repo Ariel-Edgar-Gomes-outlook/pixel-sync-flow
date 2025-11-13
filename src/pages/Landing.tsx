@@ -485,8 +485,8 @@ const Landing = () => {
                 </div>
 
                 {/* Anual */}
-                <div className="border-2 border-primary rounded-lg p-6 shadow-lg bg-primary/5 relative">
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2" variant="default">
+                <div className="border-2 border-primary rounded-lg p-6 shadow-lg bg-primary/5 relative pt-10">
+                  <Badge className="absolute top-2 left-1/2 -translate-x-1/2 z-10 whitespace-nowrap" variant="default">
                     Mais Popular
                   </Badge>
                   <div className="text-center space-y-3">
