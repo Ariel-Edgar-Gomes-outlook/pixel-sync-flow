@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { EntityQuickLinks } from '@/components/EntityQuickLinks';
 import { useSmartBadges } from '@/hooks/useSmartBadges';
 import {
@@ -18,6 +29,7 @@ import {
   AlertCircle,
   MoreVertical,
   Eye,
+  Trash2,
 } from 'lucide-react';
 
 interface InvoiceCardProps {
@@ -26,6 +38,7 @@ interface InvoiceCardProps {
   onViewPDF: (invoice: any) => void;
   onEdit: (invoice: any) => void;
   onUpdateStatus: (id: string, status: string) => void;
+  onDelete: (id: string) => void;
 }
 
 export function InvoiceCard({
@@ -34,7 +47,9 @@ export function InvoiceCard({
   onViewPDF,
   onEdit,
   onUpdateStatus,
+  onDelete,
 }: InvoiceCardProps) {
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const smartBadges = useSmartBadges({ entityType: 'invoice', entity: invoice });
   const status = statusConfig[invoice.status as keyof typeof statusConfig];
   const StatusIcon = status.icon;
@@ -172,12 +187,43 @@ export function InvoiceCard({
                     <AlertCircle className="h-4 w-4 mr-2" />
                     Marcar como Vencida
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setShowDeleteAlert(true)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Eliminar Fatura
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
         </div>
       </CardContent>
+
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Fatura?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja eliminar a fatura <strong>{invoice.invoice_number}</strong>? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDelete(invoice.id);
+                setShowDeleteAlert(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
