@@ -15,7 +15,6 @@ import {
   Image,
   Package,
   CheckSquare,
-  Timer,
   CreditCard,
   Eye
 } from "lucide-react";
@@ -26,7 +25,6 @@ import { TeamManagement } from "./TeamManagement";
 import { JobDeliverables } from "./JobDeliverables";
 import { JobResources } from "./JobResources";
 import { ChecklistManager } from "./ChecklistManager";
-import { TimeTracker } from "./TimeTracker";
 import { JobGalleryTab } from "./JobGalleryTab";
 import { PaymentPlanViewer } from "./PaymentPlanViewer";
 
@@ -59,7 +57,6 @@ export function JobDetailsDialog({ jobId, open, onOpenChange }: JobDetailsDialog
   const tabOptions = [
     { value: "details", label: "Detalhes", icon: FileText },
     { value: "team", label: "Equipa", icon: Users },
-    { value: "time", label: "Tempo", icon: Timer },
     { value: "deliverables", label: "Entregáveis", icon: Image },
     { value: "gallery", label: "Galeria", icon: Image },
     { value: "equipment", label: "Equipamentos", icon: Package },
@@ -200,19 +197,6 @@ export function JobDetailsDialog({ jobId, open, onOpenChange }: JobDetailsDialog
                   </div>
                 </Card>
               )}
-
-              {/* Time Spent */}
-              {job.time_spent !== undefined && (
-                <Card className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Timer className="h-5 w-5 text-primary mt-0.5" />
-                    <div className="flex-1">
-                      <p className="font-medium mb-1">Tempo Gasto</p>
-                      <p className="text-sm text-muted-foreground">{job.time_spent}h</p>
-                    </div>
-                  </div>
-                </Card>
-              )}
             </div>
 
             {/* Description */}
@@ -248,11 +232,6 @@ export function JobDetailsDialog({ jobId, open, onOpenChange }: JobDetailsDialog
           {/* Team Tab */}
           <TabsContent value="team" className="mt-4">
             <TeamManagement jobId={jobId} />
-          </TabsContent>
-
-          {/* Time Tracking Tab */}
-          <TabsContent value="time" className="mt-4">
-            <TimeTracker jobId={jobId} />
           </TabsContent>
 
           {/* Deliverables Tab */}
