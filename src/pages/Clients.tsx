@@ -54,6 +54,19 @@ export default function Clients() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!clientToDelete) return;
+
+    try {
+      await deleteClient.mutateAsync(clientToDelete.id);
+      toast.success("Cliente e todos os dados relacionados eliminados com sucesso");
+      setClientToDelete(null);
+    } catch (error: any) {
+      console.error("Erro ao eliminar cliente:", error);
+      toast.error("Erro ao eliminar cliente");
+    }
+  };
+
   const handleDeleteClick = async (client: any) => {
     try {
       const jobsCount = await getClientJobsCount(client.id);
