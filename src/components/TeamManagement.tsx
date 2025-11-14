@@ -6,6 +6,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, UserPlus, X, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -18,6 +28,7 @@ interface TeamManagementProps {
 export function TeamManagement({ jobId }: TeamManagementProps) {
   const [selectedUserId, setSelectedUserId] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
+  const [memberToRemove, setMemberToRemove] = useState<{ id: string; name: string } | null>(null);
   const queryClient = useQueryClient();
 
   // Fetch all team members
@@ -97,11 +108,26 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['job_team_members', jobId] });
       toast.success("Membro removido!");
+      setMemberToRemove(null);
     },
     onError: () => {
       toast.error("Erro ao remover membro");
+      setMemberToRemove(null);
     },
   });
+
+  const handleRemoveMember = (member: any) => {
+    setMemberToRemove({
+      id: member.id,
+      name: member.team_members?.name || 'este membro'
+    });
+  };
+
+  const confirmRemoveMember = () => {
+    if (memberToRemove) {
+      removeMember.mutate(memberToRemove.id);
+    }
+  };
 
   const handleAddMember = () => {
     if (!selectedUserId || !selectedRole) {
@@ -213,7 +239,7 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
-                    onClick={() => removeMember.mutate(member.id)}
+                    onClick={() => handleRemoveMember(member)}
                     disabled={removeMember.isPending}
                   >
                     <X className="h-4 w-4" />
@@ -230,6 +256,23 @@ export function TeamManagement({ jobId }: TeamManagementProps) {
           </Card>
         )}
       </div>
+
+      <AlertDialog open={!!memberToRemove} onOpenChange={() => setMemberToRemove(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Remoção</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover <span className="font-semibold">{memberToRemove?.name}</span> deste projeto? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveMember}>
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
