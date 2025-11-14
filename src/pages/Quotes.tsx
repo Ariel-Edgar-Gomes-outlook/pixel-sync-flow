@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Search, FileText, Calendar, Pencil, DollarSign, Send, CheckCircle, Download, CreditCard, Briefcase, Clock, Users, Receipt } from "lucide-react";
-import { useQuotes, useUpdateQuote } from "@/hooks/useQuotes";
+import { useQuotes, useUpdateQuote, useDeleteQuote } from "@/hooks/useQuotes";
 import { useCreateJob } from "@/hooks/useJobs";
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,6 +47,7 @@ export default function Quotes() {
   const { data: quotes, isLoading } = useQuotes();
   const createJob = useCreateJob();
   const updateQuote = useUpdateQuote();
+  const deleteQuote = useDeleteQuote();
   const createInvoice = useCreateInvoice();
   const { user } = useAuth();
   const { data: businessSettings } = useBusinessSettings(user?.id);
@@ -81,6 +82,10 @@ export default function Quotes() {
       exportToExcel(formatted, "orcamentos.xlsx", "Orçamentos");
       toast.success("Orçamentos exportados com sucesso!");
     }
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteQuote.mutateAsync(id);
   };
 
   const handleGenerateInvoice = async (quote: any) => {
@@ -358,6 +363,7 @@ export default function Quotes() {
                     setPaymentPlanQuote(q);
                     setPaymentPlanDialogOpen(true);
                   }}
+                  onDelete={handleDelete}
                 />
               ))
             )}

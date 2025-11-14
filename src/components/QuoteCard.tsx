@@ -1,7 +1,18 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Eye, Edit, FileDown, CreditCard, Banknote, ChevronRight } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { FileText, Eye, Edit, FileDown, CreditCard, Banknote, ChevronRight, Trash2 } from "lucide-react";
 import { useSmartBadges } from "@/hooks/useSmartBadges";
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
 
@@ -13,6 +24,7 @@ interface QuoteCardProps {
   onGenerateInvoice: (quote: any) => void;
   onConvertToJob: (quote: any) => void;
   onSetPaymentPlan: (quote: any) => void;
+  onDelete: (id: string) => void;
 }
 
 export function QuoteCard({
@@ -23,7 +35,9 @@ export function QuoteCard({
   onGenerateInvoice,
   onConvertToJob,
   onSetPaymentPlan,
+  onDelete,
 }: QuoteCardProps) {
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const smartBadges = useSmartBadges({ entityType: 'quote', entity: quote });
 
   return (
@@ -144,6 +158,16 @@ export function QuoteCard({
             </>
           )}
 
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowDeleteAlert(true)}
+            className="flex-1 sm:flex-initial border-destructive text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="h-4 w-4" />
+            <span className="sm:inline">Eliminar</span>
+          </Button>
+
           <EntityQuickLinks 
             links={[
               { type: 'client', id: quote.client_id, name: quote.clients?.name || 'Cliente' },
@@ -152,6 +176,30 @@ export function QuoteCard({
           />
         </div>
       </div>
+
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Orçamento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja eliminar o orçamento para <strong>{quote.clients?.name}</strong>? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDelete(quote.id);
+                setShowDeleteAlert(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
