@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, DollarSign, Calendar, CreditCard, Edit, TrendingUp, Wallet, Receipt, Download, FileText, Users, Briefcase, Trash2 } from "lucide-react";
+import { Plus, Search, DollarSign, Calendar, CreditCard, Edit, TrendingUp, Wallet, Receipt, Download, FileText, Users, Briefcase, Trash2, Filter, X } from "lucide-react";
 import { usePayments, useDeletePayment, type Payment } from "@/hooks/usePayments";
 import PaymentDialog from "@/components/PaymentDialog";
 import { PaymentReceiptDialog } from "@/components/PaymentReceiptDialog";
@@ -11,6 +11,9 @@ import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
 import { exportToExcel, formatPaymentsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +24,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
 const statusConfig = {
   pending: { label: "Pendente", variant: "warning" as const },
@@ -37,6 +53,10 @@ export default function Payments() {
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [selectedPdfSource, setSelectedPdfSource] = useState<any>(null);
   const [paymentToDelete, setPaymentToDelete] = useState<Payment | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [methodFilter, setMethodFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
   const { data: payments, isLoading } = usePayments();
   const deletePayment = useDeletePayment();
 
@@ -100,9 +120,48 @@ export default function Payments() {
     }
   };
 
-  const filteredPayments = payments?.filter(payment =>
-    payment.clients?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const clearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setMethodFilter("all");
+    setDateFrom(undefined);
+    setDateTo(undefined);
+  };
+
+  const hasActiveFilters = searchQuery || statusFilter !== "all" || methodFilter !== "all" || dateFrom || dateTo;
+
+  const filteredPayments = payments?.filter(payment => {
+    // Search filter
+    if (searchQuery && !payment.clients?.name?.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    
+    // Status filter
+    if (statusFilter !== "all" && payment.status !== statusFilter) {
+      return false;
+    }
+    
+    // Method filter
+    if (methodFilter !== "all" && payment.method !== methodFilter) {
+      return false;
+    }
+    
+    // Date range filter
+    if (dateFrom || dateTo) {
+      const paymentDate = new Date(payment.paid_at || payment.created_at);
+      if (dateFrom && paymentDate < dateFrom) {
+        return false;
+      }
+      if (dateTo && paymentDate > dateTo) {
+        return false;
+      }
+    }
+    
+    return true;
+  }) || [];
+
+  // Get unique payment methods for filter
+  const paymentMethods = Array.from(new Set(payments?.map(p => p.method).filter(Boolean))) as string[];
 
   const totalRevenue = payments?.filter(p => p.status === 'paid')
     .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
@@ -266,15 +325,106 @@ export default function Payments() {
         </div>
 
         <Card className="p-6 glass hover-lift">
-        <div className="mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Pesquisar por cliente..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+          <div className="mb-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Filter className="h-5 w-5 text-muted-foreground" />
+                <h3 className="font-semibold">Filtros</h3>
+              </div>
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="h-8 text-xs"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Limpar Filtros
+                </Button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Pesquisar cliente..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="paid">Pago</SelectItem>
+                  <SelectItem value="partial">Parcial</SelectItem>
+                  <SelectItem value="refunded">Reembolsado</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={methodFilter} onValueChange={setMethodFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Método" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Métodos</SelectItem>
+                  {paymentMethods.map(method => (
+                    <SelectItem key={method} value={method}>
+                      {method}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "justify-start text-left font-normal",
+                      !dateFrom && !dateTo && "text-muted-foreground"
+                    )}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {dateFrom && dateTo
+                      ? `${format(dateFrom, "dd/MM/yy")} - ${format(dateTo, "dd/MM/yy")}`
+                      : dateFrom
+                      ? `A partir de ${format(dateFrom, "dd/MM/yy")}`
+                      : dateTo
+                      ? `Até ${format(dateTo, "dd/MM/yy")}`
+                      : "Intervalo de datas"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="p-3 space-y-2">
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Data Inicial</label>
+                      <CalendarComponent
+                        mode="single"
+                        selected={dateFrom}
+                        onSelect={setDateFrom}
+                        initialFocus
+                        className={cn("pointer-events-auto")}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium mb-1 block">Data Final</label>
+                      <CalendarComponent
+                        mode="single"
+                        selected={dateTo}
+                        onSelect={setDateTo}
+                        className={cn("pointer-events-auto")}
+                      />
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
