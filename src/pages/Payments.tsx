@@ -3,14 +3,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, DollarSign, Calendar, CreditCard, Edit, TrendingUp, Wallet, Receipt, Download, FileText, Users, Briefcase } from "lucide-react";
-import { usePayments, type Payment } from "@/hooks/usePayments";
+import { Plus, Search, DollarSign, Calendar, CreditCard, Edit, TrendingUp, Wallet, Receipt, Download, FileText, Users, Briefcase, Trash2 } from "lucide-react";
+import { usePayments, useDeletePayment, type Payment } from "@/hooks/usePayments";
 import PaymentDialog from "@/components/PaymentDialog";
 import { PaymentReceiptDialog } from "@/components/PaymentReceiptDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
 import { exportToExcel, formatPaymentsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const statusConfig = {
   pending: { label: "Pendente", variant: "warning" as const },
@@ -26,7 +36,9 @@ export default function Payments() {
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [selectedPdfSource, setSelectedPdfSource] = useState<any>(null);
+  const [paymentToDelete, setPaymentToDelete] = useState<Payment | null>(null);
   const { data: payments, isLoading } = usePayments();
+  const deletePayment = useDeletePayment();
 
   useEffect(() => {
     const handleOpenPDFViewer = (event: any) => {
@@ -64,6 +76,27 @@ export default function Payments() {
       const formatted = formatPaymentsForExport(payments);
       exportToExcel(formatted, "pagamentos.xlsx", "Pagamentos");
       toast.success("Pagamentos exportados com sucesso!");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!paymentToDelete) return;
+
+    // Validar se o pagamento está vinculado a uma fatura ou orçamento
+    if (paymentToDelete.invoice_id || paymentToDelete.quote_id) {
+      const linkedTo = paymentToDelete.invoice_id ? 'fatura' : 'orçamento';
+      toast.error(`Este pagamento está vinculado a um(a) ${linkedTo}. Não pode ser eliminado.`);
+      setPaymentToDelete(null);
+      return;
+    }
+
+    try {
+      await deletePayment.mutateAsync(paymentToDelete.id);
+      toast.success("Pagamento eliminado com sucesso");
+      setPaymentToDelete(null);
+    } catch (error: any) {
+      console.error("Erro ao eliminar pagamento:", error);
+      toast.error("Erro ao eliminar pagamento");
     }
   };
 
@@ -347,6 +380,15 @@ export default function Payments() {
                       <Edit className="h-4 w-4 sm:mr-2" />
                       <span className="hidden sm:inline">Editar</span>
                     </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setPaymentToDelete(payment)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Eliminar</span>
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -375,6 +417,38 @@ export default function Payments() {
         onOpenChange={setPdfViewerOpen}
         pdfSource={selectedPdfSource}
       />
+
+      <AlertDialog open={!!paymentToDelete} onOpenChange={() => setPaymentToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Pagamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              {paymentToDelete?.invoice_id || paymentToDelete?.quote_id ? (
+                <span className="text-destructive font-medium">
+                  Este pagamento está vinculado a {paymentToDelete.invoice_id ? 'uma fatura' : 'um orçamento'} e não pode ser eliminado.
+                </span>
+              ) : (
+                <>
+                  Tem certeza que deseja eliminar este pagamento no valor de <strong>Kz {Number(paymentToDelete?.amount || 0).toFixed(2)}</strong>?
+                  <br /><br />
+                  Esta ação não pode ser desfeita.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            {!paymentToDelete?.invoice_id && !paymentToDelete?.quote_id && (
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Eliminar
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
