@@ -1,7 +1,18 @@
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FileText, Edit, Link2, Send, Download, CheckCircle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { FileText, Edit, Link2, Send, Download, CheckCircle, Trash2 } from "lucide-react";
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
 import { useSmartBadges } from "@/hooks/useSmartBadges";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +33,7 @@ interface ContractCardProps {
   onCopyLink: (contract: any) => void;
   onSendForSignature: (contract: any) => void;
   onViewPDF: (contract: any) => void;
+  onDelete: (id: string) => void;
   onRefresh?: () => void;
 }
 
@@ -31,8 +43,10 @@ export function ContractCard({
   onCopyLink,
   onSendForSignature,
   onViewPDF,
+  onDelete,
   onRefresh,
 }: ContractCardProps) {
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const smartBadges = useSmartBadges({ entityType: 'contract', entity: contract });
   const { toast } = useToast();
 
@@ -283,8 +297,42 @@ export function ContractCard({
               </Button>
             </>
           )}
+          
+          <Button 
+            onClick={() => setShowDeleteAlert(true)}
+            variant="outline"
+            size="sm"
+            className="border-destructive text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="h-3 w-3 sm:mr-2" />
+            <span className="hidden sm:inline">Eliminar</span>
+          </Button>
         </div>
       </div>
+
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Contrato?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja eliminar o contrato com <strong>{contract.clients?.name}</strong>? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDelete(contract.id);
+                setShowDeleteAlert(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

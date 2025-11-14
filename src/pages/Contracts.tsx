@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, FileText, FileSignature, Shield, CheckCircle2 } from "lucide-react";
-import { useContracts } from "@/hooks/useContracts";
+import { useContracts, useDeleteContract } from "@/hooks/useContracts";
 import { ContractDialog } from "@/components/ContractDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { ContractCard } from "@/components/ContractCard";
@@ -17,6 +17,7 @@ export default function Contracts() {
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [selectedPdfSource, setSelectedPdfSource] = useState<any>(null);
   const { data: contracts, isLoading, refetch } = useContracts();
+  const deleteContract = useDeleteContract();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -89,6 +90,10 @@ export default function Contracts() {
       entityId: contract.id
     });
     setPdfViewerOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteContract.mutateAsync(id);
   };
 
   const filteredContracts = contracts?.filter((contract) => {
@@ -204,6 +209,7 @@ export default function Contracts() {
                 onCopyLink={copySignatureLink}
                 onSendForSignature={sendForSignature}
                 onViewPDF={handleViewPDF}
+                onDelete={handleDelete}
                 onRefresh={refetch}
               />
             ))}
