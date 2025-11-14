@@ -4,12 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Mail, Phone, MapPin, ExternalLink, Edit, Users, UserPlus, Building, Download, Eye } from "lucide-react";
-import { useClients } from "@/hooks/useClients";
+import { Plus, Search, Mail, Phone, MapPin, ExternalLink, Edit, Users, UserPlus, Building, Download, Eye, Trash2 } from "lucide-react";
+import { useClients, useDeleteClient, getClientJobsCount } from "@/hooks/useClients";
 import { ClientDialog } from "@/components/ClientDialog";
 import { ClientDetailsDialog } from "@/components/ClientDetailsDialog";
 import { exportToExcel, formatClientsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 export default function Clients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState<any>(null);
@@ -17,10 +27,13 @@ export default function Clients() {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"name" | "recent">("name");
+  const [clientToDelete, setClientToDelete] = useState<any>(null);
+  const [deleteJobsCount, setDeleteJobsCount] = useState<number>(0);
   const {
     data: clients,
     isLoading
   } = useClients();
+  const deleteClient = useDeleteClient();
   const handleEdit = (client: any) => {
     setSelectedClient(client);
     setIsDialogOpen(true);
@@ -38,6 +51,35 @@ export default function Clients() {
       const formatted = formatClientsForExport(clients);
       exportToExcel(formatted, "clientes.xlsx", "Clientes");
       toast.success("Clientes exportados com sucesso!");
+    }
+  };
+
+  const handleDeleteClick = async (client: any) => {
+    try {
+      const jobsCount = await getClientJobsCount(client.id);
+      setDeleteJobsCount(jobsCount);
+      setClientToDelete(client);
+    } catch (error) {
+      console.error("Erro ao verificar trabalhos:", error);
+      toast.error("Erro ao verificar dados do cliente");
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!clientToDelete) return;
+
+    try {
+      await deleteClient.mutateAsync(clientToDelete.id);
+      toast.success(
+        deleteJobsCount > 0
+          ? `Cliente e ${deleteJobsCount} trabalho(s) associado(s) eliminados com sucesso`
+          : "Cliente eliminado com sucesso"
+      );
+      setClientToDelete(null);
+      setDeleteJobsCount(0);
+    } catch (error: any) {
+      console.error("Erro ao eliminar cliente:", error);
+      toast.error("Erro ao eliminar cliente");
     }
   };
   const filteredClients = useMemo(() => {
@@ -207,6 +249,15 @@ export default function Clients() {
                     <Edit className="h-3 w-3" />
                     <span className="hidden sm:inline">Editar</span>
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleDeleteClick(client)}
+                    className="gap-2 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    <span className="hidden sm:inline">Eliminar</span>
+                  </Button>
                   {client.external_folder_link && <Button variant="ghost" size="sm" asChild>
                       <a href={client.external_folder_link} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="h-4 w-4" />
@@ -220,5 +271,41 @@ export default function Clients() {
       <ClientDialog client={selectedClient} open={isDialogOpen} onOpenChange={handleCloseDialog} />
 
       <ClientDetailsDialog client={selectedClient} open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} />
+
+      <AlertDialog open={!!clientToDelete} onOpenChange={() => setClientToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Cliente</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteJobsCount > 0 ? (
+                <>
+                  <span className="text-warning font-medium">⚠️ Atenção:</span> Este cliente tem <strong>{deleteJobsCount} trabalho(s)</strong> associado(s).
+                  <br /><br />
+                  Ao eliminar o cliente <strong>{clientToDelete?.name}</strong>, todos os trabalhos, orçamentos, contratos, faturas e pagamentos associados também serão eliminados permanentemente.
+                  <br /><br />
+                  <span className="text-destructive font-medium">Esta ação não pode ser desfeita.</span>
+                  <br /><br />
+                  Tem certeza que deseja continuar?
+                </>
+              ) : (
+                <>
+                  Tem certeza que deseja eliminar o cliente <strong>{clientToDelete?.name}</strong>?
+                  <br /><br />
+                  Esta ação não pode ser desfeita.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteJobsCount > 0 ? `Eliminar Cliente e ${deleteJobsCount} Trabalho(s)` : 'Eliminar Cliente'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>;
 }
