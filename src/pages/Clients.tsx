@@ -54,35 +54,30 @@ export default function Clients() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!clientToDelete) return;
-
-    try {
-      await deleteClient.mutateAsync(clientToDelete.id);
-      toast.success("Cliente e todos os dados relacionados eliminados com sucesso");
-      setClientToDelete(null);
-    } catch (error: any) {
-      console.error("Erro ao eliminar cliente:", error);
-      toast.error("Erro ao eliminar cliente");
-    }
-  };
-
   const handleDeleteClick = async (client: any) => {
+    console.log("🔵 Botão eliminar clicado para cliente:", client.name);
     try {
       const jobsCount = await getClientJobsCount(client.id);
+      console.log("📊 Jobs count:", jobsCount);
       setDeleteJobsCount(jobsCount);
       setClientToDelete(client);
     } catch (error) {
-      console.error("Erro ao verificar trabalhos:", error);
+      console.error("❌ Erro ao verificar trabalhos:", error);
       toast.error("Erro ao verificar dados do cliente");
     }
   };
 
   const handleConfirmDelete = async () => {
-    if (!clientToDelete) return;
+    console.log("🔴 Confirmar delete chamado para:", clientToDelete?.name);
+    if (!clientToDelete) {
+      console.log("⚠️ Nenhum cliente para deletar");
+      return;
+    }
 
     try {
+      console.log("🗑️ Iniciando delete do cliente ID:", clientToDelete.id);
       await deleteClient.mutateAsync(clientToDelete.id);
+      console.log("✅ Cliente deletado com sucesso");
       toast.success(
         deleteJobsCount > 0
           ? `Cliente e ${deleteJobsCount} trabalho(s) associado(s) eliminados com sucesso`
@@ -91,8 +86,8 @@ export default function Clients() {
       setClientToDelete(null);
       setDeleteJobsCount(0);
     } catch (error: any) {
-      console.error("Erro ao eliminar cliente:", error);
-      toast.error("Erro ao eliminar cliente");
+      console.error("❌ Erro ao eliminar cliente:", error);
+      toast.error(`Erro ao eliminar cliente: ${error.message || 'Erro desconhecido'}`);
     }
   };
   const filteredClients = useMemo(() => {
