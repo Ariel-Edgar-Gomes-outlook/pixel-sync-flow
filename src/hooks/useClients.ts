@@ -93,6 +93,20 @@ export function useDeleteClient() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['quotes'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
   });
+}
+
+export async function getClientJobsCount(clientId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('jobs')
+    .select('*', { count: 'exact', head: true })
+    .eq('client_id', clientId);
+
+  if (error) throw error;
+  return count || 0;
 }
