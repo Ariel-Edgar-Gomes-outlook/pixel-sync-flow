@@ -15,7 +15,7 @@ import { InvoiceDialog } from '@/components/InvoiceDialog';
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { InvoiceCard } from '@/components/InvoiceCard';
 import { EntityQuickLinks } from '@/components/EntityQuickLinks';
-import { useInvoices, useInvoiceStats, useUpdateInvoice } from '@/hooks/useInvoices';
+import { useInvoices, useInvoiceStats, useUpdateInvoice, useDeleteInvoice } from '@/hooks/useInvoices';
 import {
   Plus,
   Search,
@@ -52,6 +52,7 @@ export default function Invoices() {
   const { data: invoices, isLoading } = useInvoices();
   const { data: stats } = useInvoiceStats();
   const updateInvoice = useUpdateInvoice();
+  const deleteInvoice = useDeleteInvoice();
 
   useEffect(() => {
     const handleOpenPDFViewer = (event: any) => {
@@ -100,6 +101,10 @@ export default function Invoices() {
       entityId: invoice.id
     });
     setPdfViewerOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteInvoice.mutateAsync(id);
   };
 
   const filteredInvoices = invoices?.filter((invoice: any) => {
@@ -267,6 +272,7 @@ export default function Invoices() {
                   });
                 }
               }}
+              onDelete={handleDelete}
             />
           ))}
         </div>
