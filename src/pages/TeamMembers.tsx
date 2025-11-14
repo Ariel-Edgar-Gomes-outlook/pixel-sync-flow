@@ -16,7 +16,8 @@ import {
   Clock,
   Mail,
   Phone,
-  Trash2
+  Trash2,
+  Info
 } from "lucide-react";
 import { useTeamMembers, useUpdateTeamMember, useDeleteTeamMember } from "@/hooks/useTeamMembers";
 import { TeamMemberDialog } from "@/components/TeamMemberDialog";
@@ -48,6 +49,7 @@ export default function TeamMembers() {
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isStatsDialogOpen, setIsStatsDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<any>(null);
 
   const { data: teamMembers, isLoading } = useTeamMembers();
@@ -273,103 +275,167 @@ export default function TeamMembers() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
           {filteredMembers.map((member: any) => (
             <Card key={member.id} className={member.archived ? "opacity-60" : ""}>
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-3 mb-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                      {member.name.charAt(0).toUpperCase()}
+              <CardContent className="p-4">
+                <div className="flex flex-col items-center text-center gap-3">
+                  <Avatar className="h-16 w-16">
+                    <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
+                      {member.name.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold truncate">{member.name}</h3>
-                    <Badge variant="secondary" className="mt-1 text-xs">
-                      {member.type || "Membro"}
-                    </Badge>
-                  </div>
-                  {member.archived && (
-                    <Badge variant="outline" className="text-xs">
-                      Arquivado
-                    </Badge>
-                  )}
-                </div>
-
-                {member.email && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                    <Mail className="h-4 w-4" />
-                    <span className="truncate">{member.email}</span>
-                  </div>
-                )}
-
-                {member.phone && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                    <Phone className="h-4 w-4" />
-                    <span>{member.phone}</span>
-                  </div>
-                )}
-
-                {member.notes && (
-                  <p className="text-xs text-muted-foreground mb-4 line-clamp-2">
-                    {member.notes}
-                  </p>
-                )}
-
-                <div className="text-xs text-muted-foreground mb-4">
-                  Criado {formatDistanceToNow(new Date(member.created_at), { 
-                    addSuffix: true, 
-                    locale: ptBR 
-                  })}
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 gap-2"
-                    onClick={() => {
-                      setSelectedMember(member);
-                      setIsStatsDialogOpen(true);
-                    }}
-                  >
-                    <BarChart3 className="h-4 w-4" />
-                    <span className="hidden sm:inline">Estatísticas</span>
-                  </Button>
                   
-                  <TeamMemberDialog member={member}>
-                    <Button size="sm" variant="outline" className="gap-2">
-                      <Edit className="h-4 w-4" />
-                      <span className="hidden sm:inline">Editar</span>
-                    </Button>
-                  </TeamMemberDialog>
-
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleArchiveToggle(member)}
-                  >
-                    {member.archived ? (
-                      <ArchiveRestore className="h-4 w-4" />
-                    ) : (
-                      <Archive className="h-4 w-4" />
+                  <div className="w-full">
+                    <h3 className="font-semibold text-sm truncate mb-1">
+                      {member.name}
+                    </h3>
+                    <Badge variant="secondary" className="text-xs">
+                      {member.type === 'photographer' && 'Fotógrafo'}
+                      {member.type === 'videographer' && 'Cinegrafista'}
+                      {member.type === 'assistant' && 'Assistente'}
+                      {member.type === 'editor' && 'Editor'}
+                      {member.type === 'makeup_artist' && 'Maquiador(a)'}
+                      {member.type === 'drone_operator' && 'Op. Drone'}
+                      {member.type === 'other' && 'Outro'}
+                    </Badge>
+                    {member.archived && (
+                      <Badge variant="outline" className="text-xs mt-1">
+                        Arquivado
+                      </Badge>
                     )}
-                  </Button>
-                  
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setMemberToDelete(member)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1 w-full justify-center">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0"
+                      onClick={() => {
+                        setSelectedMember(member);
+                        setIsDetailsDialogOpen(true);
+                      }}
+                    >
+                      <Info className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0"
+                      onClick={() => {
+                        setSelectedMember(member);
+                        setIsStatsDialogOpen(true);
+                      }}
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                    </Button>
+                    
+                    <TeamMemberDialog member={member}>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </TeamMemberDialog>
+
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0"
+                      onClick={() => handleArchiveToggle(member)}
+                    >
+                      {member.archived ? (
+                        <ArchiveRestore className="h-4 w-4" />
+                      ) : (
+                        <Archive className="h-4 w-4" />
+                      )}
+                    </Button>
+                    
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      onClick={() => setMemberToDelete(member)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      {/* Details Dialog */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <Info className="h-5 w-5" />
+              Detalhes - {selectedMember?.name}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-20 w-20">
+                <AvatarFallback className="bg-primary/10 text-primary text-2xl font-semibold">
+                  {selectedMember?.name?.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="font-semibold text-lg">{selectedMember?.name}</h3>
+                <Badge variant="secondary">
+                  {selectedMember?.type === 'photographer' && 'Fotógrafo'}
+                  {selectedMember?.type === 'videographer' && 'Cinegrafista'}
+                  {selectedMember?.type === 'assistant' && 'Assistente'}
+                  {selectedMember?.type === 'editor' && 'Editor'}
+                  {selectedMember?.type === 'makeup_artist' && 'Maquiador(a)'}
+                  {selectedMember?.type === 'drone_operator' && 'Operador de Drone'}
+                  {selectedMember?.type === 'other' && 'Outro'}
+                </Badge>
+              </div>
+            </div>
+
+            {selectedMember?.email && (
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <Mail className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-sm font-medium">{selectedMember.email}</p>
+                </div>
+              </div>
+            )}
+
+            {selectedMember?.phone && (
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <Phone className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Telefone</p>
+                  <p className="text-sm font-medium">{selectedMember.phone}</p>
+                </div>
+              </div>
+            )}
+
+            {selectedMember?.notes && (
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <p className="text-xs text-muted-foreground mb-1">Notas</p>
+                <p className="text-sm">{selectedMember.notes}</p>
+              </div>
+            )}
+
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-xs text-muted-foreground mb-1">Criado</p>
+              <p className="text-sm">
+                {selectedMember?.created_at && formatDistanceToNow(new Date(selectedMember.created_at), { 
+                  addSuffix: true, 
+                  locale: ptBR 
+                })}
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Statistics Dialog */}
       <Dialog open={isStatsDialogOpen} onOpenChange={setIsStatsDialogOpen}>
