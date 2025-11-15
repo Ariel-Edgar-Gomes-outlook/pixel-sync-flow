@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase, Download, CreditCard, Sparkles, FileText, Package, Wrench, Eye } from "lucide-react";
+import { Plus, Search, Calendar, MapPin, Pencil, Camera, Video, Users as UsersIcon, Briefcase, Download, CreditCard, Sparkles, FileText, Package, Wrench, Eye, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useJobs } from "@/hooks/useJobs";
+import { useJobs, useDeleteJob } from "@/hooks/useJobs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { JobDialog } from "@/components/JobDialog";
 import { JobDetailsDialog } from "@/components/JobDetailsDialog";
 import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
@@ -34,7 +35,24 @@ export default function Jobs() {
   const [quickStartOpen, setQuickStartOpen] = useState(false);
   const [detailsJobId, setDetailsJobId] = useState<string | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { data: jobs, isLoading } = useJobs();
+  const deleteJob = useDeleteJob();
+
+  const handleDeleteJob = async () => {
+    if (!deleteJobId) return;
+    
+    try {
+      await deleteJob.mutateAsync(deleteJobId);
+      toast.success("Trabalho eliminado com sucesso!");
+      setDeleteDialogOpen(false);
+      setDeleteJobId(null);
+    } catch (error: any) {
+      console.error("Erro ao eliminar trabalho:", error);
+      toast.error("Erro ao eliminar trabalho: " + error.message);
+    }
+  };
 
   const handleExport = () => {
     if (jobs && jobs.length > 0) {
@@ -314,6 +332,18 @@ export default function Jobs() {
                             <CreditCard className="h-3 w-3" />
                             <span className="hidden sm:inline">Plano</span>
                           </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-1 text-xs h-8 text-destructive hover:text-destructive"
+                            onClick={() => {
+                              setDeleteJobId(job.id);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            <span className="hidden sm:inline">Eliminar</span>
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -341,10 +371,31 @@ export default function Jobs() {
         onOpenChange={setPaymentPlanDialogOpen}
       />
       
-      <QuickStartWizard
+      <QuickStartWizard 
         open={quickStartOpen}
         onOpenChange={setQuickStartOpen}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar trabalho?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser revertida. Isto irá eliminar permanentemente este trabalho
+              e todos os dados relacionados (contratos, faturas, pagamentos, galerias, etc).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteJob}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
