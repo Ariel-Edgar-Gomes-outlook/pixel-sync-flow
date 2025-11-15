@@ -12,7 +12,7 @@ import { useCreateChecklist } from "@/hooks/useChecklists";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, Heart, Briefcase, Camera, Package, PartyPopper, ImageIcon, Check } from "lucide-react";
 import { format } from "date-fns";
 
 interface QuickStartWizardProps {
@@ -21,12 +21,12 @@ interface QuickStartWizardProps {
 }
 
 const JOB_TYPES = [
-  { value: "wedding", label: "Casamento", icon: "💍" },
-  { value: "corporate", label: "Evento Corporativo", icon: "🏢" },
-  { value: "portrait", label: "Retrato/Ensaio", icon: "📸" },
-  { value: "product", label: "Fotografia de Produto", icon: "📦" },
-  { value: "event", label: "Evento Social", icon: "🎉" },
-  { value: "other", label: "Outro", icon: "📷" },
+  { value: "wedding", label: "Casamento", icon: Heart },
+  { value: "corporate", label: "Evento Corporativo", icon: Briefcase },
+  { value: "portrait", label: "Retrato/Ensaio", icon: Camera },
+  { value: "product", label: "Fotografia de Produto", icon: Package },
+  { value: "event", label: "Evento Social", icon: PartyPopper },
+  { value: "other", label: "Outro", icon: ImageIcon },
 ];
 
 export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) {
@@ -97,7 +97,7 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
         });
       }
 
-      toast.success("Job criado com sucesso!", {
+      toast.success("Trabalho criado com sucesso!", {
         description: "Galeria e checklist foram configurados automaticamente",
       });
 
@@ -105,7 +105,7 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
       onOpenChange(false);
     } catch (error) {
       console.error(error);
-      toast.error("Erro ao criar job");
+      toast.error("Erro ao criar trabalho");
     } finally {
       setLoading(false);
     }
@@ -113,22 +113,27 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl">
-            <Sparkles className="h-6 w-6 text-primary" />
-            Quick Start - Criar Job Completo
+          <DialogTitle className="flex items-center gap-2 text-xl sm:text-2xl">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            </div>
+            Assistente de Criação Rápida
           </DialogTitle>
+          <p className="text-sm text-muted-foreground pt-1">
+            Configure seu trabalho completo em 3 passos simples
+          </p>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 py-4">
           {/* Progress Indicator */}
-          <div className="flex items-center justify-center gap-2 mb-4">
+          <div className="flex items-center justify-center gap-2">
             {[1, 2, 3].map((s) => (
               <div
                 key={s}
-                className={`h-2 flex-1 rounded-full transition-colors ${
-                  s <= step ? "bg-primary" : "bg-muted"
+                className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+                  s < step ? "bg-primary" : s === step ? "bg-primary animate-pulse" : "bg-muted"
                 }`}
               />
             ))}
@@ -136,43 +141,51 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
 
           {/* Step 1: Job Type */}
           {step === 1 && (
-            <div className="space-y-4">
-              <div>
-                <Label>Tipo de Trabalho</Label>
-                <p className="text-sm text-muted-foreground mb-3">
+            <div className="space-y-5 animate-fade-in">
+              <div className="space-y-1">
+                <Label className="text-base font-semibold">Tipo de Trabalho</Label>
+                <p className="text-sm text-muted-foreground">
                   Selecione o tipo para configurar automaticamente templates e checklists
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {JOB_TYPES.map((type) => (
-                  <Button
-                    key={type.value}
-                    variant={jobType === type.value ? "default" : "outline"}
-                    className="h-auto py-4 flex-col gap-2"
-                    onClick={() => setJobType(type.value)}
-                  >
-                    <span className="text-3xl">{type.icon}</span>
-                    <span className="text-sm">{type.label}</span>
-                  </Button>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {JOB_TYPES.map((type) => {
+                  const Icon = type.icon;
+                  const isSelected = jobType === type.value;
+                  return (
+                    <Button
+                      key={type.value}
+                      variant={isSelected ? "default" : "outline"}
+                      className={`h-auto py-5 px-4 flex items-center justify-start gap-4 transition-all duration-200 hover:scale-[1.02] ${
+                        isSelected ? "ring-2 ring-primary shadow-lg" : ""
+                      }`}
+                      onClick={() => setJobType(type.value)}
+                    >
+                      <div className={`p-3 rounded-lg ${isSelected ? "bg-primary-foreground/20" : "bg-primary/10"}`}>
+                        <Icon className={`h-6 w-6 ${isSelected ? "text-primary-foreground" : "text-primary"}`} />
+                      </div>
+                      <span className="text-sm font-medium text-left">{type.label}</span>
+                    </Button>
+                  );
+                })}
               </div>
               <Button
-                className="w-full"
+                className="w-full h-11 text-base font-medium"
                 disabled={!jobType}
                 onClick={() => setStep(2)}
               >
-                Próximo
+                Continuar
               </Button>
             </div>
           )}
 
           {/* Step 2: Client & Date */}
           {step === 2 && (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="client">Cliente *</Label>
+            <div className="space-y-5 animate-fade-in">
+              <div className="space-y-2">
+                <Label htmlFor="client" className="text-base font-semibold">Cliente *</Label>
                 <Select value={clientId} onValueChange={setClientId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue placeholder="Selecione o cliente" />
                   </SelectTrigger>
                   <SelectContent>
@@ -185,39 +198,46 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
                 </Select>
               </div>
 
-              <div>
-                <Label htmlFor="title">Título do Job (opcional)</Label>
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-base font-semibold">Título do Trabalho (opcional)</Label>
                 <Input
                   id="title"
                   placeholder="Ex: Casamento João & Maria"
                   value={jobTitle}
                   onChange={(e) => setJobTitle(e.target.value)}
+                  className="h-11"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground">
                   Deixe em branco para gerar automaticamente
                 </p>
               </div>
 
-              <div>
-                <Label>Data do Job *</Label>
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  className="rounded-md border"
-                />
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Data do Trabalho *</Label>
+                <div className="flex justify-center">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    className="rounded-lg border bg-card shadow-sm"
+                  />
+                </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 h-11" 
+                  onClick={() => setStep(1)}
+                >
                   Voltar
                 </Button>
                 <Button
-                  className="flex-1"
+                  className="flex-1 h-11 font-medium"
                   disabled={!clientId || !date}
                   onClick={() => setStep(3)}
                 >
-                  Próximo
+                  Continuar
                 </Button>
               </div>
             </div>
@@ -225,47 +245,84 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
 
           {/* Step 3: Confirmation */}
           {step === 3 && (
-            <div className="space-y-4">
-              <div className="p-4 bg-muted rounded-lg space-y-3">
-                <h4 className="font-semibold">Resumo</h4>
-                <div className="space-y-2 text-sm">
-                  <p>
-                    <span className="text-muted-foreground">Tipo:</span>{" "}
-                    <span className="font-medium">
-                      {JOB_TYPES.find(t => t.value === jobType)?.label}
-                    </span>
-                  </p>
-                  <p>
-                    <span className="text-muted-foreground">Cliente:</span>{" "}
-                    <span className="font-medium">
-                      {clients?.find(c => c.id === clientId)?.name}
-                    </span>
-                  </p>
-                  <p>
-                    <span className="text-muted-foreground">Data:</span>{" "}
-                    <span className="font-medium">
-                      {date && format(date, "dd/MM/yyyy")}
-                    </span>
-                  </p>
+            <div className="space-y-5 animate-fade-in">
+              <div className="p-5 bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl border space-y-4">
+                <h4 className="font-semibold text-base flex items-center gap-2">
+                  <Check className="h-5 w-5 text-primary" />
+                  Resumo do Trabalho
+                </h4>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-start gap-3 p-3 bg-background rounded-lg">
+                    <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                      {JOB_TYPES.find(t => t.value === jobType)?.icon && 
+                        (() => {
+                          const Icon = JOB_TYPES.find(t => t.value === jobType)!.icon;
+                          return <Icon className="h-5 w-5 text-primary" />;
+                        })()
+                      }
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Tipo</p>
+                      <p className="font-medium">{JOB_TYPES.find(t => t.value === jobType)?.label}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-background rounded-lg">
+                    <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                      <Briefcase className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Cliente</p>
+                      <p className="font-medium">{clients?.find(c => c.id === clientId)?.name}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-background rounded-lg">
+                    <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                      <Calendar className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Data</p>
+                      <p className="font-medium">{date && format(date, "dd/MM/yyyy")}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-4 bg-primary/10 rounded-lg">
-                <h4 className="font-semibold mb-2 text-sm">✨ Será criado automaticamente:</h4>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>✓ Job completo com informações do cliente</li>
-                  <li>✓ Galeria de cliente configurada</li>
-                  <li>✓ Checklist baseada no tipo de trabalho</li>
-                  <li>✓ Status inicial: Agendado</li>
+              <div className="p-5 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border border-primary/20">
+                <div className="flex items-start gap-3 mb-3">
+                  <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <h4 className="font-semibold text-sm">Será criado automaticamente:</h4>
+                </div>
+                <ul className="text-sm space-y-2 ml-8">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary shrink-0" />
+                    <span>Trabalho completo com todas as informações</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary shrink-0" />
+                    <span>Galeria de cliente pré-configurada</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary shrink-0" />
+                    <span>Checklist baseada no tipo selecionado</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary shrink-0" />
+                    <span>Status inicial: Agendado</span>
+                  </li>
                 </ul>
               </div>
 
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 h-11" 
+                  onClick={() => setStep(2)}
+                  disabled={loading}
+                >
                   Voltar
                 </Button>
                 <Button
-                  className="flex-1"
+                  className="flex-1 h-11 font-medium"
                   onClick={handleComplete}
                   disabled={loading}
                 >
@@ -275,7 +332,10 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
                       Criando...
                     </>
                   ) : (
-                    "Criar Job Completo"
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Criar Trabalho
+                    </>
                   )}
                 </Button>
               </div>
