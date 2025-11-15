@@ -123,7 +123,7 @@ export default function Jobs() {
               onClick={() => setQuickStartOpen(true)}
             >
               <Sparkles className="h-4 w-4" />
-              Início Rápido
+              Assistente Rápido
             </Button>
             <JobDialog>
               <Button 
@@ -185,7 +185,7 @@ export default function Jobs() {
                 onClick={() => setQuickStartOpen(true)}
               >
                 <Sparkles className="h-5 w-5" />
-                Quick Start
+                Assistente Rápido
               </Button>
               <JobDialog>
                 <Button size="lg" variant="outline" className="gap-2">
