@@ -296,6 +296,7 @@ export type Database = {
           name: string
           password_hash: string | null
           password_protected: boolean | null
+          sent_to_client_at: string | null
           share_token: string | null
           status: string | null
           updated_at: string | null
@@ -312,6 +313,7 @@ export type Database = {
           name: string
           password_hash?: string | null
           password_protected?: boolean | null
+          sent_to_client_at?: string | null
           share_token?: string | null
           status?: string | null
           updated_at?: string | null
@@ -328,6 +330,7 @@ export type Database = {
           name?: string
           password_hash?: string | null
           password_protected?: boolean | null
+          sent_to_client_at?: string | null
           share_token?: string | null
           status?: string | null
           updated_at?: string | null
@@ -1386,6 +1389,7 @@ export type Database = {
       }
       team_members: {
         Row: {
+          archived: boolean | null
           created_at: string
           created_by: string | null
           email: string
@@ -1397,6 +1401,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived?: boolean | null
           created_at?: string
           created_by?: string | null
           email: string
@@ -1408,6 +1413,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived?: boolean | null
           created_at?: string
           created_by?: string | null
           email?: string
