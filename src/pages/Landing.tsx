@@ -831,14 +831,14 @@ const Landing = () => {
 
       {/* Payment Modal */}
       <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
-        <DialogContent className="w-full h-full max-w-none p-0 m-0 sm:max-w-[95vw] sm:h-[95vh] sm:rounded-lg">
-          <DialogHeader className="p-4 sm:p-6 pb-3 sm:pb-4 border-b">
+        <DialogContent className="fixed inset-0 w-screen h-screen max-w-none p-0 m-0 data-[state=open]:animate-none data-[state=closed]:animate-none sm:relative sm:inset-auto sm:w-[95vw] sm:h-[90vh] sm:max-w-6xl sm:rounded-2xl sm:data-[state=open]:animate-in sm:data-[state=closed]:animate-out">
+          <DialogHeader className="flex-shrink-0 p-4 sm:p-6 pb-3 sm:pb-4 border-b bg-background">
             <DialogTitle className="text-lg sm:text-xl font-semibold">Finalizar Pagamento</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 w-full h-[calc(100%-60px)] sm:h-[calc(95vh-80px)] p-0 sm:px-6 sm:pb-6">
+          <div className="w-full h-[calc(100vh-56px)] sm:h-[calc(90vh-72px)]">
             <iframe
               src={selectedPaymentUrl}
-              className="w-full h-full border-0 sm:rounded-lg sm:border-2 sm:border-border"
+              className="w-full h-full border-0 sm:rounded-b-2xl"
               title="Pagamento Kuenha"
               allowFullScreen
             />
