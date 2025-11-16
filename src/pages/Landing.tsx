@@ -835,7 +835,7 @@ const Landing = () => {
           <DialogHeader className="p-4 sm:p-6 border-b flex-shrink-0">
             <DialogTitle className="text-lg sm:text-xl font-semibold">Finalizar Pagamento</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 w-full h-full min-h-0">
+          <div className="flex-1 w-full">
             <iframe
               src={selectedPaymentUrl}
               className="w-full h-full border-0"
