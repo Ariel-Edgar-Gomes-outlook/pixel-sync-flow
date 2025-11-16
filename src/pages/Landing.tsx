@@ -830,33 +830,42 @@ const Landing = () => {
         </div>
       </footer>
 
-      {/* Fullscreen Payment View */}
+      {/* Payment Modal View */}
       {paymentModalOpen && (
-        <div className="fixed inset-0 z-50 bg-background flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b shrink-0 bg-background">
-            <h2 className="text-lg sm:text-xl font-semibold">Finalizar Pagamento</h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setPaymentModalOpen(false)}
-              className="shrink-0"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            onClick={() => setPaymentModalOpen(false)}
+          />
           
-          {/* Iframe Container */}
-          <div className="flex-1 w-full overflow-auto">
-            <iframe
-              src={selectedPaymentUrl}
-              className="w-full h-full border-0 min-h-screen"
-              title="Pagamento Kuenha"
-              onError={handleIframeError}
-              sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
-            />
+          {/* Modal Container */}
+          <div className="fixed inset-4 sm:inset-8 md:inset-12 lg:inset-16 z-50 bg-background rounded-lg shadow-2xl flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b shrink-0 bg-background">
+              <h2 className="text-lg sm:text-xl font-semibold">Finalizar Pagamento</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setPaymentModalOpen(false)}
+                className="shrink-0"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            {/* Iframe Container */}
+            <div className="flex-1 w-full overflow-auto">
+              <iframe
+                src={selectedPaymentUrl}
+                className="w-full h-full border-0"
+                title="Pagamento Kuenha"
+                onError={handleIframeError}
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+              />
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
