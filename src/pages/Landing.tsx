@@ -7,12 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+// Dialog imports removed - using fullscreen payment view instead
 import { useNavigate, Link } from "react-router-dom";
 import {
   Camera,
@@ -52,6 +47,12 @@ const Landing = () => {
   const openPaymentModal = (url: string) => {
     setSelectedPaymentUrl(url);
     setPaymentModalOpen(true);
+  };
+
+  const handleIframeError = () => {
+    // Fallback: open in new tab if iframe fails
+    window.open(selectedPaymentUrl, "_blank");
+    setPaymentModalOpen(false);
   };
 
   const features = [
@@ -829,23 +830,34 @@ const Landing = () => {
         </div>
       </footer>
 
-      {/* Payment Modal */}
-      <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
-        <DialogContent className="max-w-[90vw] w-full sm:max-w-4xl h-[95vh] p-0 gap-0 grid grid-rows-[auto_1fr] overflow-hidden">
-          <DialogHeader className="p-4 sm:p-6 border-b shrink-0">
-            <DialogTitle className="text-lg sm:text-xl font-semibold">Finalizar Pagamento</DialogTitle>
-          </DialogHeader>
-          <div className="w-full h-full min-h-0 overflow-hidden">
+      {/* Fullscreen Payment View */}
+      {paymentModalOpen && (
+        <div className="fixed inset-0 z-50 bg-background flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b shrink-0 bg-background">
+            <h2 className="text-lg sm:text-xl font-semibold">Finalizar Pagamento</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setPaymentModalOpen(false)}
+              className="shrink-0"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          
+          {/* Iframe Container */}
+          <div className="flex-1 w-full overflow-auto">
             <iframe
               src={selectedPaymentUrl}
-              className="w-full h-full border-0"
+              className="w-full h-full border-0 min-h-screen"
               title="Pagamento Kuenha"
-              allowFullScreen
-              scrolling="yes"
+              onError={handleIframeError}
+              sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
             />
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 };
