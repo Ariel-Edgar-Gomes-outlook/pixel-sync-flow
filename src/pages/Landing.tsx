@@ -479,8 +479,11 @@ const Landing = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="mt-4 w-full"
-                      onClick={() => openPaymentModal(paymentLinks.mensal)}
+                      className="mt-4 w-full relative z-20 pointer-events-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openPaymentModal(paymentLinks.mensal);
+                      }}
                     >
                       <CreditCard className="mr-2 h-4 w-4" />
                       Pagar Agora
@@ -501,8 +504,11 @@ const Landing = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="mt-4 w-full"
-                      onClick={() => openPaymentModal(paymentLinks.trimestral)}
+                      className="mt-4 w-full relative z-20 pointer-events-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openPaymentModal(paymentLinks.trimestral);
+                      }}
                     >
                       <CreditCard className="mr-2 h-4 w-4" />
                       Pagar Agora
@@ -523,8 +529,11 @@ const Landing = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="mt-4 w-full"
-                      onClick={() => openPaymentModal(paymentLinks.semestral)}
+                      className="mt-4 w-full relative z-20 pointer-events-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openPaymentModal(paymentLinks.semestral);
+                      }}
                     >
                       <CreditCard className="mr-2 h-4 w-4" />
                       Pagar Agora
@@ -548,8 +557,11 @@ const Landing = () => {
                     <Button
                       variant="default"
                       size="sm"
-                      className="mt-4 w-full"
-                      onClick={() => openPaymentModal(paymentLinks.anual)}
+                      className="mt-4 w-full relative z-20 pointer-events-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openPaymentModal(paymentLinks.anual);
+                      }}
                     >
                       <CreditCard className="mr-2 h-4 w-4" />
                       Pagar Agora
@@ -819,14 +831,14 @@ const Landing = () => {
 
       {/* Payment Modal */}
       <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
-        <DialogContent className="max-w-4xl w-[95vw] h-[90vh] p-0">
-          <DialogHeader className="p-6 pb-4">
-            <DialogTitle className="text-xl font-semibold">Finalizar Pagamento</DialogTitle>
+        <DialogContent className="w-full h-full max-w-none p-0 m-0 sm:max-w-[95vw] sm:h-[95vh] sm:rounded-lg">
+          <DialogHeader className="p-4 sm:p-6 pb-3 sm:pb-4 border-b">
+            <DialogTitle className="text-lg sm:text-xl font-semibold">Finalizar Pagamento</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 w-full h-[calc(90vh-80px)] px-6 pb-6">
+          <div className="flex-1 w-full h-[calc(100%-60px)] sm:h-[calc(95vh-80px)] p-0 sm:px-6 sm:pb-6">
             <iframe
               src={selectedPaymentUrl}
-              className="w-full h-full rounded-lg border-2 border-border"
+              className="w-full h-full border-0 sm:rounded-lg sm:border-2 sm:border-border"
               title="Pagamento Kuenha"
               allowFullScreen
             />
