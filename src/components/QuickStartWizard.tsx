@@ -113,26 +113,26 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl sm:text-2xl">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primary" />
             </div>
             Assistente de Criação Rápida
           </DialogTitle>
-          <p className="text-sm text-muted-foreground pt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground pt-1">
             Configure seu trabalho completo em 3 passos simples
           </p>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-4 sm:space-y-6 py-3 sm:py-4">
           {/* Progress Indicator */}
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
             {[1, 2, 3].map((s) => (
               <div
                 key={s}
-                className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+                className={`h-1.5 sm:h-2 flex-1 rounded-full transition-all duration-300 ${
                   s < step ? "bg-primary" : s === step ? "bg-primary animate-pulse" : "bg-muted"
                 }`}
               />
@@ -141,14 +141,14 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
 
           {/* Step 1: Job Type */}
           {step === 1 && (
-            <div className="space-y-5 animate-fade-in">
+            <div className="space-y-4 sm:space-y-5 animate-fade-in">
               <div className="space-y-1">
-                <Label className="text-base font-semibold">Tipo de Trabalho</Label>
-                <p className="text-sm text-muted-foreground">
+                <Label className="text-sm sm:text-base font-semibold">Tipo de Trabalho</Label>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Selecione o tipo para configurar automaticamente templates e checklists
                 </p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {JOB_TYPES.map((type) => {
                   const Icon = type.icon;
                   const isSelected = jobType === type.value;
@@ -156,21 +156,21 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
                     <Button
                       key={type.value}
                       variant={isSelected ? "default" : "outline"}
-                      className={`h-auto py-5 px-4 flex items-center justify-start gap-4 transition-all duration-200 hover:scale-[1.02] ${
+                      className={`h-auto py-3 sm:py-5 px-3 sm:px-4 flex items-center justify-start gap-3 sm:gap-4 transition-all duration-200 hover:scale-[1.02] ${
                         isSelected ? "ring-2 ring-primary shadow-lg" : ""
                       }`}
                       onClick={() => setJobType(type.value)}
                     >
-                      <div className={`p-3 rounded-lg ${isSelected ? "bg-primary-foreground/20" : "bg-primary/10"}`}>
-                        <Icon className={`h-6 w-6 ${isSelected ? "text-primary-foreground" : "text-primary"}`} />
+                      <div className={`p-2 sm:p-3 rounded-lg ${isSelected ? "bg-primary-foreground/20" : "bg-primary/10"}`}>
+                        <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${isSelected ? "text-primary-foreground" : "text-primary"}`} />
                       </div>
-                      <span className="text-sm font-medium text-left">{type.label}</span>
+                      <span className="text-xs sm:text-sm font-medium text-left">{type.label}</span>
                     </Button>
                   );
                 })}
               </div>
               <Button
-                className="w-full h-11 text-base font-medium"
+                className="w-full h-10 sm:h-11 text-sm sm:text-base font-medium"
                 disabled={!jobType}
                 onClick={() => setStep(2)}
               >
@@ -181,11 +181,11 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
 
           {/* Step 2: Client & Date */}
           {step === 2 && (
-            <div className="space-y-5 animate-fade-in">
+            <div className="space-y-4 sm:space-y-5 animate-fade-in">
               <div className="space-y-2">
-                <Label htmlFor="client" className="text-base font-semibold">Cliente *</Label>
+                <Label htmlFor="client" className="text-sm sm:text-base font-semibold">Cliente *</Label>
                 <Select value={clientId} onValueChange={setClientId}>
-                  <SelectTrigger className="h-11">
+                  <SelectTrigger className="h-10 sm:h-11">
                     <SelectValue placeholder="Selecione o cliente" />
                   </SelectTrigger>
                   <SelectContent>
@@ -199,13 +199,13 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-base font-semibold">Título do Trabalho (opcional)</Label>
+                <Label htmlFor="title" className="text-sm sm:text-base font-semibold">Título do Trabalho (opcional)</Label>
                 <Input
                   id="title"
                   placeholder="Ex: Casamento João & Maria"
                   value={jobTitle}
                   onChange={(e) => setJobTitle(e.target.value)}
-                  className="h-11"
+                  className="h-10 sm:h-11 text-sm sm:text-base"
                 />
                 <p className="text-xs text-muted-foreground">
                   Deixe em branco para gerar automaticamente
@@ -213,27 +213,27 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
               </div>
 
               <div className="space-y-2">
-                <Label className="text-base font-semibold">Data do Trabalho *</Label>
+                <Label className="text-sm sm:text-base font-semibold">Data do Trabalho *</Label>
                 <div className="flex justify-center">
                   <Calendar
                     mode="single"
                     selected={date}
                     onSelect={setDate}
-                    className="rounded-lg border bg-card shadow-sm"
+                    className="rounded-lg border bg-card shadow-sm scale-90 sm:scale-100"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2 sm:gap-3 pt-2">
                 <Button 
                   variant="outline" 
-                  className="flex-1 h-11" 
+                  className="flex-1 h-10 sm:h-11 text-sm sm:text-base" 
                   onClick={() => setStep(1)}
                 >
                   Voltar
                 </Button>
                 <Button
-                  className="flex-1 h-11 font-medium"
+                  className="flex-1 h-10 sm:h-11 text-sm sm:text-base font-medium"
                   disabled={!clientId || !date}
                   onClick={() => setStep(3)}
                 >
@@ -245,41 +245,41 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
 
           {/* Step 3: Confirmation */}
           {step === 3 && (
-            <div className="space-y-5 animate-fade-in">
-              <div className="p-5 bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl border space-y-4">
-                <h4 className="font-semibold text-base flex items-center gap-2">
-                  <Check className="h-5 w-5 text-primary" />
+            <div className="space-y-4 sm:space-y-5 animate-fade-in">
+              <div className="p-3 sm:p-5 bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl border space-y-3 sm:space-y-4">
+                <h4 className="font-semibold text-sm sm:text-base flex items-center gap-2">
+                  <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   Resumo do Trabalho
                 </h4>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-start gap-3 p-3 bg-background rounded-lg">
-                    <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
+                  <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-background rounded-lg">
+                    <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 shrink-0">
                       {JOB_TYPES.find(t => t.value === jobType)?.icon && 
                         (() => {
                           const Icon = JOB_TYPES.find(t => t.value === jobType)!.icon;
-                          return <Icon className="h-5 w-5 text-primary" />;
+                          return <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />;
                         })()
                       }
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5 sm:space-y-1 min-w-0">
                       <p className="text-xs text-muted-foreground">Tipo</p>
-                      <p className="font-medium">{JOB_TYPES.find(t => t.value === jobType)?.label}</p>
+                      <p className="font-medium truncate">{JOB_TYPES.find(t => t.value === jobType)?.label}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 bg-background rounded-lg">
-                    <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                      <Briefcase className="h-5 w-5 text-primary" />
+                  <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-background rounded-lg">
+                    <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 shrink-0">
+                      <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5 sm:space-y-1 min-w-0">
                       <p className="text-xs text-muted-foreground">Cliente</p>
-                      <p className="font-medium">{clients?.find(c => c.id === clientId)?.name}</p>
+                      <p className="font-medium truncate">{clients?.find(c => c.id === clientId)?.name}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 bg-background rounded-lg">
-                    <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                      <Calendar className="h-5 w-5 text-primary" />
+                  <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-background rounded-lg">
+                    <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 shrink-0">
+                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5 sm:space-y-1 min-w-0">
                       <p className="text-xs text-muted-foreground">Data</p>
                       <p className="font-medium">{date && format(date, "dd/MM/yyyy")}</p>
                     </div>
@@ -287,53 +287,53 @@ export function QuickStartWizard({ open, onOpenChange }: QuickStartWizardProps) 
                 </div>
               </div>
 
-              <div className="p-5 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border border-primary/20">
-                <div className="flex items-start gap-3 mb-3">
-                  <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                  <h4 className="font-semibold text-sm">Será criado automaticamente:</h4>
+              <div className="p-3 sm:p-5 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border border-primary/20">
+                <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0 mt-0.5" />
+                  <h4 className="font-semibold text-xs sm:text-sm">Será criado automaticamente:</h4>
                 </div>
-                <ul className="text-sm space-y-2 ml-8">
+                <ul className="text-xs sm:text-sm space-y-1.5 sm:space-y-2 ml-6 sm:ml-8">
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary shrink-0" />
+                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
                     <span>Trabalho completo com todas as informações</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary shrink-0" />
+                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
                     <span>Galeria de cliente pré-configurada</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary shrink-0" />
+                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
                     <span>Checklist baseada no tipo selecionado</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary shrink-0" />
+                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
                     <span>Status inicial: Agendado</span>
                   </li>
                 </ul>
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2 sm:gap-3 pt-2">
                 <Button 
                   variant="outline" 
-                  className="flex-1 h-11" 
+                  className="flex-1 h-10 sm:h-11 text-sm sm:text-base" 
                   onClick={() => setStep(2)}
                   disabled={loading}
                 >
                   Voltar
                 </Button>
                 <Button
-                  className="flex-1 h-11 font-medium"
+                  className="flex-1 h-10 sm:h-11 text-sm sm:text-base font-medium"
                   onClick={handleComplete}
                   disabled={loading}
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                       Criando...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="mr-2 h-4 w-4" />
+                      <Sparkles className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       Criar Trabalho
                     </>
                   )}
