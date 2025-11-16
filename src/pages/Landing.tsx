@@ -831,11 +831,11 @@ const Landing = () => {
 
       {/* Payment Modal */}
       <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
-        <DialogContent className="w-full h-[95vh] max-w-full p-0 sm:max-w-[95vw] sm:h-[90vh] sm:max-w-6xl">
-          <DialogHeader className="p-4 sm:p-6 pb-3 sm:pb-4 border-b">
+        <DialogContent className="max-w-[90vw] w-full sm:max-w-4xl h-[85vh] p-0 gap-0">
+          <DialogHeader className="p-4 sm:p-6 border-b flex-shrink-0">
             <DialogTitle className="text-lg sm:text-xl font-semibold">Finalizar Pagamento</DialogTitle>
           </DialogHeader>
-          <div className="w-full h-[calc(95vh-64px)] sm:h-[calc(90vh-88px)]">
+          <div className="flex-1 overflow-hidden">
             <iframe
               src={selectedPaymentUrl}
               className="w-full h-full border-0"
