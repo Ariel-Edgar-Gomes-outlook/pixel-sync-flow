@@ -7,6 +7,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useNavigate, Link } from "react-router-dom";
 import {
   Camera,
@@ -22,6 +28,7 @@ import {
   Menu,
   X,
   Monitor,
+  CreditCard,
 } from "lucide-react";
 import { useState } from "react";
 import dashboardImg from "@/assets/dashboard-interface.png";
@@ -32,6 +39,20 @@ import galleryImg from "@/assets/gallery-screenshot.jpg";
 const Landing = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedPaymentUrl, setSelectedPaymentUrl] = useState("");
+
+  const paymentLinks = {
+    mensal: "https://pay.kuenha.com/9e7ff119-5bba-49e3-b687-8611f7d5a071",
+    trimestral: "https://pay.kuenha.com/f9d43b5b-c7b5-4c9b-805c-5cc2a1021e9a",
+    semestral: "https://pay.kuenha.com/c91201b9-fca7-4129-aebb-fdae6a754fc7",
+    anual: "https://pay.kuenha.com/3f8726f4-cca9-4e46-b321-49c1eadd821d",
+  };
+
+  const openPaymentModal = (url: string) => {
+    setSelectedPaymentUrl(url);
+    setPaymentModalOpen(true);
+  };
 
   const features = [
     {
@@ -455,6 +476,15 @@ const Landing = () => {
                       <span className="text-4xl font-bold text-primary">6.300</span>
                       <span className="text-lg text-muted-foreground">Kz/mês</span>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-4 w-full"
+                      onClick={() => openPaymentModal(paymentLinks.mensal)}
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Pagar Agora
+                    </Button>
                   </div>
                 </div>
 
@@ -468,6 +498,15 @@ const Landing = () => {
                       <span className="text-lg text-muted-foreground">Kz</span>
                     </div>
                     <p className="text-xs text-muted-foreground">6.300 Kz/mês</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-4 w-full"
+                      onClick={() => openPaymentModal(paymentLinks.trimestral)}
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Pagar Agora
+                    </Button>
                   </div>
                 </div>
 
@@ -481,6 +520,15 @@ const Landing = () => {
                       <span className="text-lg text-muted-foreground">Kz</span>
                     </div>
                     <p className="text-xs text-muted-foreground">6.300 Kz/mês</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-4 w-full"
+                      onClick={() => openPaymentModal(paymentLinks.semestral)}
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Pagar Agora
+                    </Button>
                   </div>
                 </div>
 
@@ -497,6 +545,15 @@ const Landing = () => {
                       <span className="text-lg text-muted-foreground">Kz</span>
                     </div>
                     <p className="text-xs text-muted-foreground">6.300 Kz/mês</p>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="mt-4 w-full"
+                      onClick={() => openPaymentModal(paymentLinks.anual)}
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Pagar Agora
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -759,6 +816,23 @@ const Landing = () => {
           </div>
         </div>
       </footer>
+
+      {/* Payment Modal */}
+      <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+        <DialogContent className="max-w-4xl w-[95vw] h-[90vh] p-0">
+          <DialogHeader className="p-6 pb-4">
+            <DialogTitle className="text-xl font-semibold">Finalizar Pagamento</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 w-full h-[calc(90vh-80px)] px-6 pb-6">
+            <iframe
+              src={selectedPaymentUrl}
+              className="w-full h-full rounded-lg border-2 border-border"
+              title="Pagamento Kuenha"
+              allowFullScreen
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
