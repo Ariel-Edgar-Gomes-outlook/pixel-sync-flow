@@ -10,6 +10,23 @@ interface MapEmbedInputProps {
   onChange: (embedUrl: string) => void;
 }
 
+const ALLOWED_IFRAME_DOMAINS = [
+  'https://maps.google.com',
+  'https://www.google.com/maps',
+  'https://maps.googleapis.com',
+];
+
+function isValidMapUrl(url: string): boolean {
+  if (!url) return true;
+  
+  try {
+    const parsedUrl = new URL(url);
+    return ALLOWED_IFRAME_DOMAINS.some(domain => url.startsWith(domain));
+  } catch {
+    return false;
+  }
+}
+
 export function MapEmbedInput({ value, onChange }: MapEmbedInputProps) {
   const [address, setAddress] = useState("");
 
@@ -49,17 +66,23 @@ export function MapEmbedInput({ value, onChange }: MapEmbedInputProps) {
         </div>
       </div>
       
-      {value && (
+      {value && isValidMapUrl(value) && (
         <div className="rounded-lg overflow-hidden border">
           <iframe
             src={value}
             width="100%"
             height="300"
             style={{ border: 0 }}
+            sandbox="allow-scripts allow-same-origin"
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
           />
+        </div>
+      )}
+      {value && !isValidMapUrl(value) && (
+        <div className="rounded-lg border border-destructive p-4 text-sm text-destructive">
+          URL de mapa inválido. Por favor, use apenas URLs do Google Maps.
         </div>
       )}
     </div>
