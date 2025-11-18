@@ -33,7 +33,20 @@ serve(async (req) => {
       });
     }
 
-    console.log("Populating test data for user:", user.id);
+    // Check if user has admin role
+    const { data: isAdmin } = await supabaseClient.rpc('has_role', {
+      _user_id: user.id,
+      _role: 'admin'
+    });
+
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Admin access required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log("Populating test data for admin user:", user.id);
 
     // 1. CLIENTES (30 clientes angolanos)
     const clientsData = [

@@ -66,9 +66,9 @@ serve(async (req) => {
       throw new Error('Client email not found');
     }
 
-    // Generate review URL (use quote ID directly for simplicity)
+    // Generate review URL using review_token for security
     const origin = req.headers.get('origin') || 'https://vcrsuvzsqivcamzlvluz.supabase.co';
-    const reviewUrl = `${origin}/quote/review/${quote.id}`;
+    const reviewUrl = `${origin}/quote/review/${quote.review_token}`;
 
     let subject = '';
     let htmlContent = '';
