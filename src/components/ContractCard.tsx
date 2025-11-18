@@ -1,4 +1,29 @@
 import { useState } from "react";
+
+// Component for displaying signature with error handling
+function SignatureDisplay({ signatureUrl }: { signatureUrl: string }) {
+  const [imageError, setImageError] = useState(false);
+
+  if (imageError) {
+    return (
+      <span className="text-xs text-muted-foreground flex items-center justify-center h-full">
+        Erro ao carregar
+      </span>
+    );
+  }
+
+  return (
+    <img 
+      src={signatureUrl} 
+      alt="Assinatura do cliente" 
+      className="w-full h-full object-contain"
+      onError={() => {
+        console.error('Failed to load signature:', signatureUrl);
+        setImageError(true);
+      }}
+    />
+  );
+}
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -189,16 +214,7 @@ export function ContractCard({
                   onClick={() => window.open(contract.signature_url, '_blank')}
                   title="Clique para ampliar assinatura"
                 >
-                  <img 
-                    src={contract.signature_url} 
-                    alt="Assinatura do cliente" 
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      console.error('Failed to load signature:', contract.signature_url);
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.parentElement!.innerHTML = '<span class="text-xs text-muted-foreground flex items-center justify-center h-full">Erro ao carregar</span>';
-                    }}
-                  />
+                  <SignatureDisplay signatureUrl={contract.signature_url} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">{contract.clients?.name}</p>
