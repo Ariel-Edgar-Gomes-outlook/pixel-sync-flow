@@ -1,19 +1,17 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import bcrypt from "bcryptjs";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Lock } from "lucide-react";
+import { Lock, Loader2 } from "lucide-react";
 import { GalleryLinksDisplay } from "@/components/GalleryLinksDisplay";
 
 interface GalleryData {
   id: string;
   name: string;
   password_protected: boolean;
-  password_hash: string | null;
   status: string;
   gallery_links: any[];
   access_instructions: string | null;
@@ -29,6 +27,7 @@ export default function ClientGallery() {
   const [password, setPassword] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [validating, setValidating] = useState(false);
 
   useEffect(() => {
     loadGallery();
@@ -38,7 +37,7 @@ export default function ClientGallery() {
     try {
       const { data: galleryData, error } = await supabase
         .from('client_galleries')
-        .select('*')
+        .select('id, name, password_protected, status, gallery_links, access_instructions')
         .eq('share_token', token)
         .single();
 
@@ -76,13 +75,25 @@ export default function ClientGallery() {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!gallery || !gallery.password_hash) return;
+    if (!token || !password) return;
 
+    setValidating(true);
     try {
-      // Verificar senha usando bcrypt
-      const isValidPassword = await bcrypt.compare(password, gallery.password_hash);
-      
-      if (isValidPassword) {
+      const { data, error } = await supabase.functions.invoke('validate-gallery-password', {
+        body: { shareToken: token, password }
+      });
+
+      if (error) {
+        console.error('Error validating password:', error);
+        toast({
+          variant: "destructive",
+          title: "Erro de Autenticação",
+          description: "Ocorreu um erro ao verificar a senha",
+        });
+        return;
+      }
+
+      if (data?.valid) {
         setAuthenticated(true);
         toast({
           title: "Acesso Concedido",
@@ -96,11 +107,14 @@ export default function ClientGallery() {
         });
       }
     } catch (error) {
+      console.error('Error validating password:', error);
       toast({
         variant: "destructive",
         title: "Erro de Autenticação",
         description: "Ocorreu um erro ao verificar a senha",
       });
+    } finally {
+      setValidating(false);
     }
   };
 
@@ -140,10 +154,18 @@ export default function ClientGallery() {
               placeholder="Digite a senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={validating}
               required
             />
-            <Button type="submit" className="w-full">
-              Acessar Galeria
+            <Button type="submit" className="w-full" disabled={validating}>
+              {validating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Validando...
+                </>
+              ) : (
+                'Acessar Galeria'
+              )}
             </Button>
           </form>
         </Card>

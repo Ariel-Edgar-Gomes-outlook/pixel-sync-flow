@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export default function QuoteReview() {
-  const { quoteId } = useParams();
+  const { token } = useParams();
   const navigate = useNavigate();
   const [quote, setQuote] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -22,7 +22,7 @@ export default function QuoteReview() {
 
   useEffect(() => {
     fetchQuote();
-  }, [quoteId]);
+  }, [token]);
 
   const fetchQuote = async () => {
     try {
@@ -38,7 +38,7 @@ export default function QuoteReview() {
             phone
           )
         `)
-        .eq('id', quoteId)
+        .eq('review_token', token)
         .single();
 
       if (error) throw error;
@@ -73,13 +73,13 @@ export default function QuoteReview() {
           status: 'accepted',
           accepted_at: new Date().toISOString(),
         })
-        .eq('id', quoteId);
+        .eq('review_token', token);
 
       if (updateError) throw updateError;
 
       // Call edge function to send confirmation email
       const { error: emailError } = await supabase.functions.invoke('send-quote-email', {
-        body: { quoteId, type: 'accepted' },
+        body: { quoteId: quote?.id, type: 'accepted' },
       });
 
       if (emailError) {
@@ -111,13 +111,13 @@ export default function QuoteReview() {
         .update({
           status: 'rejected',
         })
-        .eq('id', quoteId);
+        .eq('review_token', token);
 
       if (updateError) throw updateError;
 
       // Call edge function to notify rejection
       const { error: emailError } = await supabase.functions.invoke('send-quote-email', {
-        body: { quoteId, type: 'rejected' },
+        body: { quoteId: quote?.id, type: 'rejected' },
       });
 
       if (emailError) {
