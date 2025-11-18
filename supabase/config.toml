@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.check-notifications]
 verify_jwt = true
+
+[functions.validate-gallery-password]
+verify_jwt = false
