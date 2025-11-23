@@ -26,6 +26,8 @@ import {
   CreditCard,
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import dashboardImg from "@/assets/dashboard-interface.png";
 import clientsImg from "@/assets/reports-screenshot.jpg";
 import calendarImg from "@/assets/calendar-screenshot.jpg";
@@ -33,6 +35,7 @@ import galleryImg from "@/assets/gallery-screenshot.jpg";
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [selectedPaymentUrl, setSelectedPaymentUrl] = useState("");
@@ -45,6 +48,13 @@ const Landing = () => {
   };
 
   const openPaymentModal = (url: string) => {
+    if (!user) {
+      toast.error("Autenticação necessária", {
+        description: "Por favor, faça login ou crie uma conta para continuar com o pagamento.",
+      });
+      navigate("/auth?signup=true");
+      return;
+    }
     setSelectedPaymentUrl(url);
     setPaymentModalOpen(true);
   };
