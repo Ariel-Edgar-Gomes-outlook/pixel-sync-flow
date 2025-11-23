@@ -37,6 +37,7 @@ import Landing from "./pages/Landing";
 import AdminSubscribers from "./pages/AdminSubscribers";
 import AdminLogin from "./pages/AdminLogin";
 import TeamMembers from "./pages/TeamMembers";
+import Subscription from "./pages/Subscription";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ function AppContent() {
           <Route path="team" element={<TeamMembers />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="subscription" element={<Subscription />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
