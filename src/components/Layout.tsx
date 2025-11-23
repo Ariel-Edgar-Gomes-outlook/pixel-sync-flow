@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { LayoutDashboard, Users, Briefcase, Calendar, UserPlus, FileText, CreditCard, Wrench, Settings, Menu, X, Camera, LogOut, Bell, BarChart3, Layers, Receipt, FileCheck, ChevronLeft, ChevronRight, UsersRound } from "lucide-react";
+import { LayoutDashboard, Users, Briefcase, Calendar, UserPlus, FileText, CreditCard, Wrench, Settings, Menu, X, Camera, LogOut, Bell, BarChart3, Layers, Receipt, FileCheck, ChevronLeft, ChevronRight, UsersRound, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -68,6 +68,10 @@ const navigation = [{
   name: "Notificações",
   href: "/dashboard/notifications",
   icon: Bell
+}, {
+  name: "Assinatura",
+  href: "/dashboard/subscription",
+  icon: Crown
 }, {
   name: "Configurações",
   href: "/dashboard/settings",
