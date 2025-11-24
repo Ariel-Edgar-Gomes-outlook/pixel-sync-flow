@@ -22,20 +22,26 @@ export interface CreateSuggestionData {
   priority?: string;
 }
 
-export function useImprovementSuggestions() {
+export function useImprovementSuggestions(adminMode = false) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: suggestions, isLoading } = useQuery({
-    queryKey: ["improvement-suggestions", user?.id],
+    queryKey: adminMode ? ["improvement-suggestions", "all"] : ["improvement-suggestions", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const { data, error } = await supabase
+      const query = supabase
         .from("improvement_suggestions")
         .select("*")
-        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
+
+      // If not admin mode, filter by user_id
+      if (!adminMode) {
+        query.eq("user_id", user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       return data as ImprovementSuggestion[];

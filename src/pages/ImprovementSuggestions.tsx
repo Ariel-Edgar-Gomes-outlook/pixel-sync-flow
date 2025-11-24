@@ -139,18 +139,16 @@ export default function ImprovementSuggestions() {
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Lightbulb className="w-8 h-8 text-primary" />
-            </div>
-            Sugestões de Melhorias
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Gerencie e acompanhe todas as sugestões dos usuários
-          </p>
-        </div>
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Lightbulb className="w-8 h-8 text-primary" />
+          </div>
+          Sugestões de Melhorias
+        </h1>
+        <p className="text-muted-foreground">
+          Visualize e gerencie todas as sugestões de melhorias dos usuários do sistema.
+        </p>
       </div>
 
       {/* Stats Cards */}
