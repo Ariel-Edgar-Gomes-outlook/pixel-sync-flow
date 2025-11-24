@@ -135,15 +135,21 @@ export default function Layout() {
           <nav className="space-y-1 px-3 pt-6 pb-6">
             {navigation.map(item => {
               const isActive = location.pathname === item.href;
+              const isSubscription = item.name === "Assinatura";
               return <Link 
                 key={item.name} 
                 to={item.href} 
                 onClick={() => setSidebarOpen(false)} 
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all min-h-[44px] group relative overflow-hidden",
+                  isSubscription && "animate-pulse",
                   isActive 
-                    ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25" 
-                    : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 active:bg-sidebar-accent"
+                    ? isSubscription 
+                      ? "bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg shadow-yellow-500/50" 
+                      : "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25"
+                    : isSubscription
+                      ? "text-yellow-600 hover:text-yellow-500 hover:bg-yellow-500/10"
+                      : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 active:bg-sidebar-accent"
                 )}
               >
                 {isActive && (
@@ -151,11 +157,14 @@ export default function Layout() {
                 )}
                 <div className={cn(
                   "p-1.5 rounded-lg transition-all",
-                  isActive ? "bg-white/20" : "bg-sidebar-accent/50 group-hover:bg-sidebar-accent"
+                  isSubscription && !isActive && "bg-yellow-500/20",
+                  isActive ? isSubscription ? "bg-white/30" : "bg-white/20" : "bg-sidebar-accent/50 group-hover:bg-sidebar-accent"
                 )}>
                   <item.icon className={cn(
                     "h-4 w-4 shrink-0 transition-all group-hover:scale-110",
-                    isActive && "drop-shadow-sm"
+                    isSubscription && "text-yellow-500",
+                    isActive && isSubscription && "text-white drop-shadow-lg",
+                    isActive && !isSubscription && "drop-shadow-sm"
                   )} />
                 </div>
                 <span className="font-medium relative">{item.name}</span>
@@ -233,6 +242,7 @@ export default function Layout() {
           )}>
             {navigation.map(item => {
               const isActive = location.pathname === item.href;
+              const isSubscription = item.name === "Assinatura";
               
               if (sidebarCollapsed) {
                 return (
@@ -242,9 +252,14 @@ export default function Layout() {
                         to={item.href} 
                         className={cn(
                           "flex items-center justify-center rounded-xl p-3 transition-all group relative overflow-hidden",
+                          isSubscription && "animate-pulse",
                           isActive 
-                            ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25" 
-                            : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                            ? isSubscription 
+                              ? "bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg shadow-yellow-500/50" 
+                              : "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25"
+                            : isSubscription
+                              ? "text-yellow-600 hover:text-yellow-500 hover:bg-yellow-500/10"
+                              : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
                         )}
                       >
                         {isActive && (
@@ -252,7 +267,9 @@ export default function Layout() {
                         )}
                         <item.icon className={cn(
                           "h-5 w-5 shrink-0 transition-all group-hover:scale-110",
-                          isActive && "drop-shadow-sm"
+                          isSubscription && "text-yellow-500",
+                          isActive && isSubscription && "text-white drop-shadow-lg",
+                          isActive && !isSubscription && "drop-shadow-sm"
                         )} />
                       </Link>
                     </TooltipTrigger>
@@ -269,9 +286,14 @@ export default function Layout() {
                   to={item.href} 
                   className={cn(
                     "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all group relative overflow-hidden",
+                    isSubscription && "animate-pulse",
                     isActive 
-                      ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25" 
-                      : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                      ? isSubscription 
+                        ? "bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-lg shadow-yellow-500/50" 
+                        : "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25"
+                      : isSubscription
+                        ? "text-yellow-600 hover:text-yellow-500 hover:bg-yellow-500/10"
+                        : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
                   )}
                 >
                   {isActive && (
@@ -279,11 +301,14 @@ export default function Layout() {
                   )}
                   <div className={cn(
                     "p-1.5 rounded-lg transition-all",
-                    isActive ? "bg-white/20" : "bg-sidebar-accent/50 group-hover:bg-sidebar-accent"
+                    isSubscription && !isActive && "bg-yellow-500/20",
+                    isActive ? isSubscription ? "bg-white/30" : "bg-white/20" : "bg-sidebar-accent/50 group-hover:bg-sidebar-accent"
                   )}>
                     <item.icon className={cn(
                       "h-4 w-4 shrink-0 transition-all group-hover:scale-110",
-                      isActive && "drop-shadow-sm"
+                      isSubscription && "text-yellow-500",
+                      isActive && isSubscription && "text-white drop-shadow-lg",
+                      isActive && !isSubscription && "drop-shadow-sm"
                     )} />
                   </div>
                   <span className="font-medium relative">{item.name}</span>
