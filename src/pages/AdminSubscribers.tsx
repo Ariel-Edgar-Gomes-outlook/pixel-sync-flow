@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, UserCheck, UserX, LogOut, Settings, Search, TrendingUp, Clock, Download, Ban, Eye } from "lucide-react";
+import { ArrowLeft, Users, UserCheck, UserX, LogOut, Settings, Search, TrendingUp, Clock, Download, Ban, Eye, BarChart3 } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -173,15 +173,26 @@ const AdminSubscribers = () => {
       <div className="border-b bg-muted/50">
         <div className="container mx-auto px-4 py-4 md:py-6">
           <div className="flex items-center justify-between gap-2 mb-3 md:mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/")}
-              className="gap-2 shrink-0"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Voltar</span>
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/")}
+                className="gap-2 shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Voltar</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/admin/metrics")}
+                className="gap-2 shrink-0"
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Métricas</span>
+              </Button>
+            </div>
             <Button
               variant="outline"
               size="sm"
