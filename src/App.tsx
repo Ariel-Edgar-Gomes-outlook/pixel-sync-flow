@@ -38,6 +38,7 @@ import AdminSubscribers from "./pages/AdminSubscribers";
 import AdminLogin from "./pages/AdminLogin";
 import TeamMembers from "./pages/TeamMembers";
 import Subscription from "./pages/Subscription";
+import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,7 @@ function AppContent() {
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+        <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={
@@ -108,6 +110,7 @@ function AppContent() {
           <Route path="notifications" element={<Notifications />} />
           <Route path="settings" element={<Settings />} />
           <Route path="subscription" element={<Subscription />} />
+          <Route path="support" element={<Support />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
