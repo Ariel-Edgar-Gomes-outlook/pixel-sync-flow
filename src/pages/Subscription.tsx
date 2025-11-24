@@ -39,34 +39,71 @@ const Subscription = () => {
 
   const subscriptionPlans = [
     {
-      name: "1 Mês",
-      price: "5.000 AOA",
+      name: "Mensal",
+      price: "6.300 Kz/mês",
+      oldPrice: "12.000 Kz/mês",
       months: 1,
-      paymentUrl: "https://payrails.com/payment/9b4da62a-3c02-48de-a1fd-6fad7d17a05b?currency=AOA&amount=5000",
-      features: ["Acesso completo", "Todas as funcionalidades", "Suporte por email"]
+      paymentUrl: "https://pay.kuenha.com/9e7ff119-5bba-49e3-b687-8611f7d5a071",
+      features: [
+        "Clientes e leads ilimitados",
+        "Jobs e projetos sem limites",
+        "Faturas e orçamentos profissionais",
+        "Galerias privadas para clientes",
+        "Suporte por email"
+      ]
     },
     {
-      name: "3 Meses",
-      price: "13.500 AOA",
+      name: "Trimestral",
+      price: "18.900 Kz",
+      pricePerMonth: "6.300 Kz/mês",
+      oldPrice: "36.000 Kz",
       months: 3,
-      paymentUrl: "https://payrails.com/payment/9b4da62a-3c02-48de-a1fd-6fad7d17a05b?currency=AOA&amount=13500",
-      features: ["Acesso completo", "Todas as funcionalidades", "Suporte prioritário", "10% de desconto"],
-      popular: true
+      paymentUrl: "https://pay.kuenha.com/f9d43b5b-c7b5-4c9b-805c-5cc2a1021e9a",
+      features: [
+        "Clientes e leads ilimitados",
+        "Jobs e projetos sem limites",
+        "Faturas e orçamentos profissionais",
+        "Galerias privadas para clientes",
+        "Gestão de equipa e equipamentos",
+        "Suporte por email"
+      ]
     },
     {
-      name: "6 Meses",
-      price: "24.000 AOA",
+      name: "Semestral",
+      price: "37.800 Kz",
+      pricePerMonth: "6.300 Kz/mês",
+      oldPrice: "72.000 Kz",
       months: 6,
-      paymentUrl: "https://payrails.com/payment/9b4da62a-3c02-48de-a1fd-6fad7d17a05b?currency=AOA&amount=24000",
-      features: ["Acesso completo", "Todas as funcionalidades", "Suporte prioritário", "20% de desconto"]
+      paymentUrl: "https://pay.kuenha.com/c91201b9-fca7-4129-aebb-fdae6a754fc7",
+      features: [
+        "Clientes e leads ilimitados",
+        "Jobs e projetos sem limites",
+        "Faturas e orçamentos profissionais",
+        "Galerias privadas para clientes",
+        "Gestão de equipa e equipamentos",
+        "Contratos com assinatura digital",
+        "Suporte por email"
+      ]
     },
     {
-      name: "12 Meses",
-      price: "42.000 AOA",
+      name: "Anual",
+      price: "75.600 Kz",
+      pricePerMonth: "6.300 Kz/mês",
+      oldPrice: "144.000 Kz",
       months: 12,
-      paymentUrl: "https://payrails.com/payment/9b4da62a-3c02-48de-a1fd-6fad7d17a05b?currency=AOA&amount=42000",
-      features: ["Acesso completo", "Todas as funcionalidades", "Suporte prioritário", "30% de desconto"],
-      bestValue: true
+      paymentUrl: "https://pay.kuenha.com/3f8726f4-cca9-4e46-b321-49c1eadd821d",
+      features: [
+        "Clientes e leads ilimitados",
+        "Jobs e projetos sem limites",
+        "Faturas e orçamentos profissionais",
+        "Galerias privadas para clientes",
+        "Gestão de equipa e equipamentos",
+        "Contratos com assinatura digital",
+        "Notificações automáticas",
+        "Relatórios financeiros completos",
+        "Suporte por email"
+      ],
+      popular: true
     }
   ];
 
@@ -157,7 +194,7 @@ const Subscription = () => {
             <Card
               key={plan.name}
               className={`relative ${
-                plan.popular || plan.bestValue ? 'border-primary shadow-lg' : ''
+                plan.popular ? 'border-primary shadow-lg' : ''
               }`}
             >
               {plan.popular && (
@@ -165,17 +202,24 @@ const Subscription = () => {
                   <Badge className="bg-primary">Mais Popular</Badge>
                 </div>
               )}
-              {plan.bestValue && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-green-500">Melhor Valor</Badge>
-                </div>
-              )}
               <CardHeader>
                 <CardTitle>{plan.name}</CardTitle>
-                <CardDescription>
-                  <span className="text-3xl font-bold text-foreground">
-                    {plan.price}
-                  </span>
+                <CardDescription className="space-y-1">
+                  {plan.oldPrice && (
+                    <p className="text-muted-foreground line-through text-sm">
+                      {plan.oldPrice}
+                    </p>
+                  )}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-3xl font-bold text-foreground">
+                      {plan.price}
+                    </span>
+                    {plan.pricePerMonth && (
+                      <span className="text-xs text-muted-foreground">
+                        {plan.pricePerMonth}
+                      </span>
+                    )}
+                  </div>
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -189,7 +233,7 @@ const Subscription = () => {
                 </ul>
                 <Button
                   className="w-full"
-                  variant={plan.popular || plan.bestValue ? "default" : "outline"}
+                  variant={plan.popular ? "default" : "outline"}
                   onClick={() => openPaymentModal(plan.paymentUrl)}
                 >
                   Assinar Agora
