@@ -194,15 +194,15 @@ const Subscription = () => {
             <Card
               key={plan.name}
               className={`relative flex flex-col ${
-                plan.popular ? 'border-primary shadow-lg' : ''
+                plan.popular ? 'border-primary shadow-lg pt-8' : ''
               }`}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
                   <Badge className="bg-primary whitespace-nowrap px-3 py-1 text-xs sm:text-sm">Mais Popular</Badge>
                 </div>
               )}
-              <CardHeader className="pb-3">
+              <CardHeader className={`pb-3 ${plan.popular ? 'pt-6' : ''}`}>
                 <CardTitle className="text-lg sm:text-xl">{plan.name}</CardTitle>
                 <CardDescription className="space-y-1">
                   {plan.oldPrice && (
