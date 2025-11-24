@@ -6,11 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, UserCheck, UserX, LogOut, Settings, Search, TrendingUp, Clock, Download, Ban } from "lucide-react";
+import { ArrowLeft, Users, UserCheck, UserX, LogOut, Settings, Search, TrendingUp, Clock, Download, Ban, Eye } from "lucide-react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SubscriptionEditDialog } from "@/components/SubscriptionEditDialog";
+import { SubscriberDetailsDialog } from "@/components/SubscriberDetailsDialog";
 import { toast } from "sonner";
 
 interface Profile {
@@ -43,6 +44,7 @@ const AdminSubscribers = () => {
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "expired">("all");
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchProfiles();
@@ -101,6 +103,11 @@ const AdminSubscribers = () => {
   const handleEditSubscription = (profile: Profile) => {
     setSelectedProfile(profile);
     setEditDialogOpen(true);
+  };
+
+  const handleViewDetails = (profile: Profile) => {
+    setSelectedProfile(profile);
+    setDetailsDialogOpen(true);
   };
 
   const filteredProfiles = profiles.filter(profile => {
@@ -326,14 +333,24 @@ const AdminSubscribers = () => {
                             <h3 className="font-semibold truncate">{profile.name}</h3>
                             <p className="text-sm text-muted-foreground truncate">{profile.email}</p>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditSubscription(profile)}
-                            className="shrink-0"
-                          >
-                            <Settings className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewDetails(profile)}
+                              className="shrink-0"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditSubscription(profile)}
+                              className="shrink-0"
+                            >
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                         
                         <div className="flex items-center gap-2 flex-wrap">
@@ -450,13 +467,24 @@ const AdminSubscribers = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditSubscription(profile)}
-                            >
-                              <Settings className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewDetails(profile)}
+                                title="Ver Detalhes"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditSubscription(profile)}
+                                title="Editar Assinatura"
+                              >
+                                <Settings className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -475,6 +503,16 @@ const AdminSubscribers = () => {
         onOpenChange={setEditDialogOpen}
         onUpdate={fetchProfiles}
       />
+
+      {selectedProfile && (
+        <SubscriberDetailsDialog
+          open={detailsDialogOpen}
+          onOpenChange={setDetailsDialogOpen}
+          userId={selectedProfile.user_id}
+          userName={selectedProfile.name}
+          userEmail={selectedProfile.email}
+        />
+      )}
     </div>
   );
 };
