@@ -116,10 +116,10 @@ const Subscription = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
+    <div className="container mx-auto py-4 sm:py-8 px-4 space-y-6 sm:space-y-8">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Minha Assinatura</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Minha Assinatura</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Gerencie sua assinatura e atualize seu plano
         </p>
       </div>
@@ -143,7 +143,7 @@ const Subscription = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Data de Início</p>
               <p className="font-medium flex items-center gap-2">
@@ -188,30 +188,30 @@ const Subscription = () => {
 
       {/* Planos Disponíveis */}
       <div>
-        <h2 className="text-2xl font-bold mb-4">Planos de Assinatura</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 px-2">Planos de Assinatura</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {subscriptionPlans.map((plan) => (
             <Card
               key={plan.name}
-              className={`relative ${
+              className={`relative flex flex-col ${
                 plan.popular ? 'border-primary shadow-lg' : ''
               }`}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary">Mais Popular</Badge>
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                  <Badge className="bg-primary whitespace-nowrap px-3 py-1 text-xs sm:text-sm">Mais Popular</Badge>
                 </div>
               )}
-              <CardHeader>
-                <CardTitle>{plan.name}</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg sm:text-xl">{plan.name}</CardTitle>
                 <CardDescription className="space-y-1">
                   {plan.oldPrice && (
-                    <p className="text-muted-foreground line-through text-sm">
+                    <p className="text-muted-foreground line-through text-xs sm:text-sm">
                       {plan.oldPrice}
                     </p>
                   )}
                   <div className="flex flex-col gap-1">
-                    <span className="text-3xl font-bold text-foreground">
+                    <span className="text-2xl sm:text-3xl font-bold text-foreground">
                       {plan.price}
                     </span>
                     {plan.pricePerMonth && (
@@ -222,9 +222,9 @@ const Subscription = () => {
                   </div>
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-0 mt-auto">
                 <Button
-                  className="w-full"
+                  className="w-full text-sm sm:text-base"
                   variant={plan.popular ? "default" : "outline"}
                   onClick={() => openPaymentModal(plan.paymentUrl)}
                 >
@@ -239,9 +239,9 @@ const Subscription = () => {
       {/* Informações Adicionais */}
       <Card>
         <CardHeader>
-          <CardTitle>Informações Importantes</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Informações Importantes</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
+        <CardContent className="space-y-2 text-xs sm:text-sm text-muted-foreground">
           <p>• Todas as assinaturas incluem acesso completo a todas as funcionalidades do sistema.</p>
           <p>• O pagamento é processado de forma segura através do PayRails.</p>
           <p>• Após o pagamento, sua assinatura será ativada automaticamente.</p>
