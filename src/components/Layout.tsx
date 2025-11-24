@@ -77,10 +77,6 @@ const navigation = [{
   href: "/dashboard/support",
   icon: Headphones
 }, {
-  name: "Sugestões",
-  href: "/dashboard/improvement-suggestions",
-  icon: Lightbulb
-}, {
   name: "Configurações",
   href: "/dashboard/settings",
   icon: Settings

@@ -36,6 +36,7 @@ import Notifications from "./pages/Notifications";
 import Landing from "./pages/Landing";
 import AdminSubscribers from "./pages/AdminSubscribers";
 import AdminLogin from "./pages/AdminLogin";
+import { AdminLayout } from "./components/AdminLayout";
 import TeamMembers from "./pages/TeamMembers";
 import Subscription from "./pages/Subscription";
 import Support from "./pages/Support";
@@ -78,7 +79,6 @@ function AppContent() {
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
         <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
-        <Route path="/improvement-suggestions" element={<ProtectedRoute><ImprovementSuggestions /></ProtectedRoute>} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={
@@ -86,13 +86,16 @@ function AppContent() {
             <AdminLogin />
           </AdminAuthProvider>
         } />
-        <Route path="/admin/subscribers" element={
+        <Route path="/admin" element={
           <AdminAuthProvider>
             <AdminProtectedRoute>
-              <AdminSubscribers />
+              <AdminLayout />
             </AdminProtectedRoute>
           </AdminAuthProvider>
-        } />
+        }>
+          <Route path="subscribers" element={<AdminSubscribers />} />
+          <Route path="suggestions" element={<ImprovementSuggestions />} />
+        </Route>
         
         {/* Protected Routes */}
         <Route path="/dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
@@ -113,7 +116,7 @@ function AppContent() {
           <Route path="settings" element={<Settings />} />
           <Route path="subscription" element={<Subscription />} />
           <Route path="support" element={<Support />} />
-          <Route path="improvement-suggestions" element={<ImprovementSuggestions />} />
+          <Route path="team-members" element={<TeamMembers />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
