@@ -35,6 +35,7 @@ import QuoteReview from "./pages/QuoteReview";
 import Notifications from "./pages/Notifications";
 import Landing from "./pages/Landing";
 import AdminSubscribers from "./pages/AdminSubscribers";
+import AdminMetrics from "./pages/AdminMetrics";
 import AdminLogin from "./pages/AdminLogin";
 import { AdminLayout } from "./components/AdminLayout";
 import TeamMembers from "./pages/TeamMembers";
@@ -94,6 +95,7 @@ function AppContent() {
           </AdminAuthProvider>
         }>
           <Route path="subscribers" element={<AdminSubscribers />} />
+          <Route path="metrics" element={<AdminMetrics />} />
           <Route path="suggestions" element={<ImprovementSuggestions />} />
         </Route>
         
