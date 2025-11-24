@@ -625,6 +625,42 @@ export type Database = {
           },
         ]
       }
+      improvement_suggestions: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          priority: string | null
+          status: string | null
+          system_area: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          priority?: string | null
+          status?: string | null
+          system_area: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          priority?: string | null
+          status?: string | null
+          system_area?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount_paid: number | null

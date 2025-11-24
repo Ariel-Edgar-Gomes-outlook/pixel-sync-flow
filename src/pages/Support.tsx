@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Mail, Phone, MapPin, MessageSquare, AlertCircle, Sparkles, Headphones, Clock, Shield, CreditCard, HelpCircle, ChevronDown } from "lucide-react";
+import { Mail, Phone, MapPin, MessageSquare, AlertCircle, Sparkles, Headphones, Clock, Shield, CreditCard, HelpCircle, Send, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,14 +9,70 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { useImprovementSuggestions } from "@/hooks/useImprovementSuggestions";
+
+const systemAreas = [
+  { value: "dashboard", label: "Dashboard / Página Inicial" },
+  { value: "clients", label: "Gestão de Clientes" },
+  { value: "jobs", label: "Gestão de Trabalhos" },
+  { value: "calendar", label: "Agenda / Calendário" },
+  { value: "leads", label: "Potenciais Clientes" },
+  { value: "quotes", label: "Orçamentos" },
+  { value: "invoices", label: "Faturas" },
+  { value: "contracts", label: "Contratos" },
+  { value: "payments", label: "Financeiro / Pagamentos" },
+  { value: "galleries", label: "Galerias de Clientes" },
+  { value: "reports", label: "Relatórios" },
+  { value: "resources", label: "Recursos / Equipamentos" },
+  { value: "team", label: "Gestão de Equipe" },
+  { value: "notifications", label: "Notificações" },
+  { value: "settings", label: "Configurações" },
+  { value: "other", label: "Outra Área" },
+];
 
 export default function Support() {
+  const { createSuggestion, isCreating } = useImprovementSuggestions();
+  const [suggestionForm, setSuggestionForm] = useState({
+    system_area: "",
+    title: "",
+    description: "",
+    priority: "medium",
+  });
+
   const handleEmailClick = () => {
     window.location.href = "mailto:geral@argomteck.com";
   };
 
   const handlePhoneClick = () => {
     window.location.href = "tel:+244951720655";
+  };
+
+  const handleSuggestionSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!suggestionForm.system_area || !suggestionForm.title || !suggestionForm.description) {
+      return;
+    }
+
+    createSuggestion(suggestionForm);
+    
+    // Reset form
+    setSuggestionForm({
+      system_area: "",
+      title: "",
+      description: "",
+      priority: "medium",
+    });
   };
 
   return (
@@ -399,8 +456,183 @@ export default function Support() {
         </div>
       </div>
 
+      {/* Improvement Suggestions Form */}
+      <div className="space-y-6 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+        <div className="text-center space-y-2">
+          <Badge className="bg-gradient-to-r from-primary/10 to-accent/10 text-primary border-primary/20 mb-2">
+            <Lightbulb className="w-3 h-3 mr-1" />
+            Sugestões de Melhorias
+          </Badge>
+          <h3 className="font-bold text-3xl">Contribua com Ideias</h3>
+          <p className="text-muted-foreground">Ajude-nos a melhorar o sistema com suas sugestões</p>
+        </div>
+
+        <Card className="relative overflow-hidden p-8 bg-gradient-to-br from-card via-primary/5 to-accent/5 border-2 border-primary/20 shadow-xl">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+          
+          <form onSubmit={handleSuggestionSubmit} className="relative space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* System Area Select */}
+              <div className="space-y-2">
+                <Label htmlFor="system_area" className="text-base font-semibold">
+                  Área do Sistema *
+                </Label>
+                <Select
+                  value={suggestionForm.system_area}
+                  onValueChange={(value) =>
+                    setSuggestionForm({ ...suggestionForm, system_area: value })
+                  }
+                  required
+                >
+                  <SelectTrigger className="h-12 bg-background/50 border-2 hover:border-primary/50 transition-colors">
+                    <SelectValue placeholder="Selecione a área" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {systemAreas.map((area) => (
+                      <SelectItem key={area.value} value={area.value}>
+                        {area.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Escolha em qual parte do sistema você sugere melhorias
+                </p>
+              </div>
+
+              {/* Priority Select */}
+              <div className="space-y-2">
+                <Label htmlFor="priority" className="text-base font-semibold">
+                  Prioridade
+                </Label>
+                <Select
+                  value={suggestionForm.priority}
+                  onValueChange={(value) =>
+                    setSuggestionForm({ ...suggestionForm, priority: value })
+                  }
+                >
+                  <SelectTrigger className="h-12 bg-background/50 border-2 hover:border-primary/50 transition-colors">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                        Baixa
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="medium">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                        Média
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="high">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-orange-500" />
+                        Alta
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="critical">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-red-500" />
+                        Crítica
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Quão importante é esta melhoria para você?
+                </p>
+              </div>
+            </div>
+
+            {/* Title Input */}
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-base font-semibold">
+                Título da Sugestão *
+              </Label>
+              <Input
+                id="title"
+                type="text"
+                placeholder="Ex: Adicionar filtro avançado de clientes"
+                value={suggestionForm.title}
+                onChange={(e) =>
+                  setSuggestionForm({ ...suggestionForm, title: e.target.value })
+                }
+                required
+                maxLength={200}
+                className="h-12 bg-background/50 border-2 hover:border-primary/50 focus:border-primary transition-colors"
+              />
+              <p className="text-xs text-muted-foreground">
+                Resuma sua sugestão em poucas palavras ({suggestionForm.title.length}/200)
+              </p>
+            </div>
+
+            {/* Description Textarea */}
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-base font-semibold">
+                Descrição Detalhada *
+              </Label>
+              <Textarea
+                id="description"
+                placeholder="Descreva em detalhes qual melhoria você gostaria de ver no sistema e por quê seria útil..."
+                value={suggestionForm.description}
+                onChange={(e) =>
+                  setSuggestionForm({ ...suggestionForm, description: e.target.value })
+                }
+                required
+                rows={6}
+                className="bg-background/50 border-2 hover:border-primary/50 focus:border-primary transition-colors resize-none"
+              />
+              <p className="text-xs text-muted-foreground">
+                Explique o problema atual e como sua sugestão pode melhorar o sistema
+              </p>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex items-center justify-end gap-4 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  setSuggestionForm({
+                    system_area: "",
+                    title: "",
+                    description: "",
+                    priority: "medium",
+                  })
+                }
+                disabled={isCreating}
+                className="min-w-[120px]"
+              >
+                Limpar
+              </Button>
+              <Button
+                type="submit"
+                disabled={isCreating}
+                className="min-w-[180px] bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 hover:scale-105"
+                size="lg"
+              >
+                {isCreating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5 mr-2" />
+                    Enviar Sugestão
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </Card>
+      </div>
+
       {/* Footer Note */}
-      <div className="text-center py-8 space-y-4 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+      <div className="text-center py-8 space-y-4 animate-fade-in" style={{ animationDelay: "0.6s" }}>
         <div className="flex items-center justify-center gap-2 text-muted-foreground">
           <Clock className="w-5 h-5" />
           <p className="text-sm font-medium">Tempo médio de resposta: 24-48 horas úteis</p>
