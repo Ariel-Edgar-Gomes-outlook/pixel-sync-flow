@@ -59,6 +59,23 @@ function AppContent() {
         <Route path="/contract/sign/:token" element={<ContractSign />} />
         <Route path="/quote/review/:quoteId" element={<QuoteReview />} />
         
+        {/* Redirect old routes to dashboard routes */}
+        <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
+        <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+        <Route path="/jobs" element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
+        <Route path="/calendar" element={<ProtectedRoute><CalendarView /></ProtectedRoute>} />
+        <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
+        <Route path="/quotes" element={<ProtectedRoute><Quotes /></ProtectedRoute>} />
+        <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
+        <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
+        <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+        <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
+        <Route path="/team" element={<ProtectedRoute><TeamMembers /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+        
         {/* Admin Routes */}
         <Route path="/admin/login" element={
           <AdminAuthProvider>
