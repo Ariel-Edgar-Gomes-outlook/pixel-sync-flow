@@ -1,7 +1,13 @@
 import { Card } from "@/components/ui/card";
-import { Mail, Phone, MapPin, MessageSquare, AlertCircle, Sparkles, Headphones, Clock, Shield, CreditCard } from "lucide-react";
+import { Mail, Phone, MapPin, MessageSquare, AlertCircle, Sparkles, Headphones, Clock, Shield, CreditCard, HelpCircle, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function Support() {
   const handleEmailClick = () => {
@@ -235,8 +241,166 @@ export default function Support() {
         </div>
       </div>
 
+      {/* FAQ Section */}
+      <div className="space-y-6 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+        <div className="text-center space-y-2">
+          <Badge className="bg-gradient-to-r from-accent/10 to-primary/10 text-accent border-accent/20 mb-2">
+            <HelpCircle className="w-3 h-3 mr-1" />
+            Perguntas Frequentes
+          </Badge>
+          <h3 className="font-bold text-3xl">FAQ</h3>
+          <p className="text-muted-foreground">Respostas para as dúvidas mais comuns</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Pagamentos e Assinatura */}
+          <Card className="p-6 bg-gradient-to-br from-card to-primary/5 border-2 hover:shadow-lg transition-all">
+            <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/50">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <CreditCard className="w-5 h-5 text-primary" />
+              </div>
+              <h4 className="font-bold text-lg">Pagamentos e Assinatura</h4>
+            </div>
+            <Accordion type="single" collapsible className="w-full space-y-2">
+              <AccordionItem value="item-1" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline text-left">
+                  Como faço para renovar minha assinatura?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Acesse a página de Assinatura no menu lateral e escolha o plano desejado. O pagamento pode ser feito através dos métodos disponíveis na plataforma.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-2" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline text-left">
+                  Quais métodos de pagamento são aceitos?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Aceitamos transferência bancária, pagamento via referência MB e outros métodos locais. Entre em contato para mais opções específicas para Angola.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-3" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline text-left">
+                  O que acontece se meu pagamento não for processado?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Entre em contato imediatamente através do email ou telefone listados acima. Nossa equipe verificará o status do pagamento e ajudará a resolver qualquer problema.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </Card>
+
+          {/* Funcionalidades do Sistema */}
+          <Card className="p-6 bg-gradient-to-br from-card to-accent/5 border-2 hover:shadow-lg transition-all">
+            <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/50">
+              <div className="p-2 rounded-lg bg-accent/10">
+                <MessageSquare className="w-5 h-5 text-accent" />
+              </div>
+              <h4 className="font-bold text-lg">Funcionalidades</h4>
+            </div>
+            <Accordion type="single" collapsible className="w-full space-y-2">
+              <AccordionItem value="item-4" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline text-left">
+                  Como adicionar um novo cliente?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Navegue até a página "Clientes" e clique no botão "Novo Cliente". Preencha as informações necessárias e salve. O cliente estará disponível para associar a trabalhos e orçamentos.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-5" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline text-left">
+                  Como criar e enviar orçamentos?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Acesse "Orçamentos", crie um novo orçamento, adicione os itens e valores. Após finalizar, você pode enviar diretamente para o email do cliente através do sistema.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-6" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline text-left">
+                  Posso compartilhar galerias com meus clientes?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Sim! Na página de trabalhos, você pode criar galerias protegidas por senha e compartilhar o link com seus clientes. Eles poderão visualizar e selecionar fotos.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </Card>
+
+          {/* Conta e Segurança */}
+          <Card className="p-6 bg-gradient-to-br from-card to-primary/5 border-2 hover:shadow-lg transition-all">
+            <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/50">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Shield className="w-5 h-5 text-primary" />
+              </div>
+              <h4 className="font-bold text-lg">Conta e Segurança</h4>
+            </div>
+            <Accordion type="single" collapsible className="w-full space-y-2">
+              <AccordionItem value="item-7" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline text-left">
+                  Como alterar minha senha?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Vá em "Configurações" → "Segurança" e clique em "Alterar Senha". Digite sua senha atual e a nova senha duas vezes para confirmar.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-8" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline text-left">
+                  Meus dados estão seguros?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Sim! Utilizamos criptografia de ponta a ponta e seguimos as melhores práticas de segurança. Seus dados e os dados de seus clientes estão protegidos.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-9" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline text-left">
+                  Posso exportar meus dados?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Sim! Na maioria das páginas você encontrará opções de exportação em Excel ou PDF. Entre em contato caso precise de uma exportação completa de todos os dados.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </Card>
+
+          {/* Suporte Técnico */}
+          <Card className="p-6 bg-gradient-to-br from-card to-accent/5 border-2 hover:shadow-lg transition-all">
+            <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/50">
+              <div className="p-2 rounded-lg bg-accent/10">
+                <Headphones className="w-5 h-5 text-accent" />
+              </div>
+              <h4 className="font-bold text-lg">Suporte Técnico</h4>
+            </div>
+            <Accordion type="single" collapsible className="w-full space-y-2">
+              <AccordionItem value="item-10" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline text-left">
+                  Qual o horário de atendimento?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Nosso suporte funciona 24/7. Você pode entrar em contato a qualquer momento por email ou telefone. O tempo médio de resposta é de 24-48 horas úteis.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-11" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline text-left">
+                  Como reportar um bug ou problema?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Envie um email para geral@argomteck.com descrevendo o problema em detalhes, incluindo capturas de tela se possível. Nossa equipe investigará e responderá rapidamente.
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="item-12" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline text-left">
+                  Posso sugerir novas funcionalidades?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  Absolutamente! Adoramos feedback dos nossos usuários. Entre em contato conosco com suas ideias e sugestões. Muitas funcionalidades foram implementadas baseadas em feedback de clientes.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </Card>
+        </div>
+      </div>
+
       {/* Footer Note */}
-      <div className="text-center py-8 space-y-4 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+      <div className="text-center py-8 space-y-4 animate-fade-in" style={{ animationDelay: "0.5s" }}>
         <div className="flex items-center justify-center gap-2 text-muted-foreground">
           <Clock className="w-5 h-5" />
           <p className="text-sm font-medium">Tempo médio de resposta: 24-48 horas úteis</p>
