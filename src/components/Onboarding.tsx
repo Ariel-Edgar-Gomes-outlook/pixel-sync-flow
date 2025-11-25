@@ -57,16 +57,22 @@ export function Onboarding() {
   const [currentStep, setCurrentStep] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: preferences } = useUserPreferences(user?.id);
+  const { data: preferences, isLoading } = useUserPreferences(user?.id);
   const updatePreferences = useUpdateUserPreferences();
 
   useEffect(() => {
-    // Check if user has seen onboarding from database
-    if (preferences && !preferences.has_seen_onboarding) {
+    // Check localStorage first to prevent showing tutorial while database loads
+    const hasSeenLocally = localStorage.getItem(`onboarding_seen_${user?.id}`);
+    
+    // Only show if:
+    // 1. Preferences are loaded (not loading)
+    // 2. User hasn't seen onboarding in database
+    // 3. User hasn't seen onboarding in localStorage
+    if (!isLoading && preferences && !preferences.has_seen_onboarding && !hasSeenLocally) {
       // Show onboarding after a short delay
       setTimeout(() => setOpen(true), 1000);
     }
-  }, [preferences]);
+  }, [preferences, isLoading, user?.id]);
 
   const handleNext = () => {
     if (currentStep < ONBOARDING_STEPS.length - 1) {
@@ -81,12 +87,15 @@ export function Onboarding() {
   };
 
   const handleComplete = () => {
-    // Save to database that user has seen onboarding
+    // Save to both database and localStorage
     if (user?.id) {
+      // Save to database
       updatePreferences.mutate({
         userId: user.id,
         has_seen_onboarding: true,
       });
+      // Save to localStorage as immediate backup
+      localStorage.setItem(`onboarding_seen_${user.id}`, 'true');
     }
     setOpen(false);
     setCurrentStep(0);
