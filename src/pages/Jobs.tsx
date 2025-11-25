@@ -95,43 +95,43 @@ export default function Jobs() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Hero Header com Gradiente */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-accent p-8 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-accent p-4 sm:p-8 shadow-2xl">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
         <div className="relative">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-              <Briefcase className="h-8 w-8 text-white" />
+          <div className="flex items-center gap-2 sm:gap-3 mb-3">
+            <div className="p-2 sm:p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+              <Briefcase className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Trabalhos & Projetos</h1>
-              <p className="text-white/90 mt-1">Gerencie eventos, sessões e produções</p>
+              <h1 className="text-xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">Trabalhos & Projetos</h1>
+              <p className="text-xs sm:text-sm text-white/90 mt-0.5 sm:mt-1">Gerencie eventos, sessões e produções</p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2 mt-4">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 mt-3 sm:mt-4">
             <Button 
               variant="secondary" 
               size="sm" 
-              className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm" 
+              className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm w-full sm:w-auto text-xs sm:text-sm" 
               onClick={handleExport}
             >
-              <Download className="h-4 w-4" />
+              <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Exportar
             </Button>
             <Button 
               size="sm"
-              className="gap-2 bg-white text-primary hover:bg-white/90 shadow-lg"
+              className="gap-2 bg-white text-primary hover:bg-white/90 shadow-lg w-full sm:w-auto text-xs sm:text-sm"
               onClick={() => setQuickStartOpen(true)}
             >
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Assistente Rápido
             </Button>
             <JobDialog>
               <Button 
                 variant="secondary" 
                 size="sm" 
-                className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                className="gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm w-full sm:w-auto text-xs sm:text-sm"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Manual
               </Button>
             </JobDialog>
@@ -141,62 +141,62 @@ export default function Jobs() {
 
       {showEmptyState ? (
         <Card className="border-dashed glass hover-lift">
-          <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
-            <div className="rounded-full bg-primary/10 p-6 mb-6">
-              <Briefcase className="h-12 w-12 text-primary" />
+          <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12 px-4 sm:px-6 text-center">
+            <div className="rounded-full bg-primary/10 p-4 sm:p-6 mb-4 sm:mb-6">
+              <Briefcase className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
             </div>
             
-            <h3 className="text-xl font-semibold mb-2">Comece a organizar seus trabalhos</h3>
-            <p className="text-muted-foreground mb-6 max-w-md">
+            <h3 className="text-lg sm:text-xl font-semibold mb-2">Comece a organizar seus trabalhos</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-6 max-w-md px-2">
               Crie jobs para casamentos, eventos, sessões fotográficas e outros projetos. 
               Controle datas, locais, equipamentos e equipe em um só lugar.
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 w-full max-w-2xl">
-              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50">
-                <Camera className="h-8 w-8 text-primary" />
-                <div className="text-sm font-medium">Tipos de Trabalho</div>
-                <div className="text-xs text-muted-foreground text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8 w-full max-w-2xl px-2">
+              <div className="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg bg-muted/50">
+                <Camera className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                <div className="text-xs sm:text-sm font-medium">Tipos de Trabalho</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground text-center">
                   Casamentos, eventos, retratos, produtos
                 </div>
               </div>
               
-              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50">
-                <Calendar className="h-8 w-8 text-primary" />
-                <div className="text-sm font-medium">Agendamento</div>
-                <div className="text-xs text-muted-foreground text-center">
+              <div className="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg bg-muted/50">
+                <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                <div className="text-xs sm:text-sm font-medium">Agendamento</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground text-center">
                   Datas, horários e sincronização
                 </div>
               </div>
               
-              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50">
-                <UsersIcon className="h-8 w-8 text-primary" />
-                <div className="text-sm font-medium">Equipe & Recursos</div>
-                <div className="text-xs text-muted-foreground text-center">
+              <div className="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg bg-muted/50">
+                <UsersIcon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                <div className="text-xs sm:text-sm font-medium">Equipe & Recursos</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground text-center">
                   Atribua fotógrafos e equipamentos
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto px-2 sm:px-0">
               <Button 
                 size="lg" 
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto text-sm sm:text-base h-11 sm:h-12"
                 onClick={() => setQuickStartOpen(true)}
               >
-                <Sparkles className="h-5 w-5" />
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
                 Assistente Rápido
               </Button>
               <JobDialog>
-                <Button size="lg" variant="outline" className="gap-2">
-                  <Plus className="h-5 w-5" />
+                <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto text-sm sm:text-base h-11 sm:h-12">
+                  <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                   Criar Manualmente
                 </Button>
               </JobDialog>
             </div>
 
-            <div className="mt-8 p-4 bg-muted/30 rounded-lg max-w-2xl">
-              <p className="text-sm text-muted-foreground">
+            <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-muted/30 rounded-lg max-w-2xl w-full mx-2 sm:mx-0">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 <strong>Fluxo completo:</strong> Lead → Orçamento → Job → Produção → Entrega → Pagamento
               </p>
             </div>
@@ -354,6 +354,21 @@ export default function Jobs() {
             </Card>
           </TabsContent>
         </Tabs>
+      )}
+      
+      {/* Botão Flutuante (FAB) - Apenas quando há jobs */}
+      {!showEmptyState && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <JobDialog>
+            <Button 
+              size="lg"
+              className="h-14 w-14 sm:w-auto sm:h-12 rounded-full sm:rounded-lg shadow-2xl hover:shadow-primary/50 hover:scale-110 transition-all duration-300 gap-2"
+            >
+              <Plus className="h-6 w-6 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Novo Job</span>
+            </Button>
+          </JobDialog>
+        </div>
       )}
       
       {detailsJobId && (
