@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, AlertTriangle, Users, Package, Calendar } from "lucide-react";
 import { useJobs } from "@/hooks/useJobs";
 import { useState, useMemo } from "react";
@@ -12,10 +12,12 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CustomCalendar } from "@/components/CustomCalendar";
+import { useCurrency } from "@/hooks/useCurrency";
 
 export default function CalendarView() {
   const { data: jobs, isLoading } = useJobs();
   const isMobile = useIsMobile();
+  const { formatCurrency } = useCurrency();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isJobDialogOpen, setIsJobDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null);
@@ -250,24 +252,24 @@ export default function CalendarView() {
         view={calendarView}
       />
 
-      {/* Job Details Sheet */}
-      <Sheet open={showJobSheet} onOpenChange={setShowJobSheet}>
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+      {/* Job Details Dialog */}
+      <Dialog open={showJobSheet} onOpenChange={setShowJobSheet}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           {selectedJob && (
             <>
-              <SheetHeader className="space-y-4 pb-6 border-b border-border">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-primary/10 rounded-xl">
-                    <Calendar className="h-6 w-6 text-primary" />
+              <DialogHeader className="space-y-3 pb-4 border-b border-border">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Calendar className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <SheetTitle className="text-2xl font-bold leading-tight mb-2">
+                    <DialogTitle className="text-xl font-bold leading-tight mb-2">
                       {selectedJob.title}
-                    </SheetTitle>
+                    </DialogTitle>
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge 
                         variant={selectedJob.status === 'confirmed' ? 'success' : selectedJob.status === 'completed' ? 'default' : 'secondary'}
-                        className="font-medium"
+                        className="text-xs"
                       >
                         {selectedJob.status === 'scheduled' ? 'Agendado' : 
                          selectedJob.status === 'confirmed' ? 'Confirmado' :
@@ -275,51 +277,45 @@ export default function CalendarView() {
                          selectedJob.status === 'completed' ? 'Concluído' : 
                          selectedJob.status === 'cancelled' ? 'Cancelado' : selectedJob.status}
                       </Badge>
-                      <Badge variant="outline" className="font-medium">
+                      <Badge variant="outline" className="text-xs">
                         {selectedJob.type}
                       </Badge>
                     </div>
                   </div>
                 </div>
-              </SheetHeader>
+              </DialogHeader>
 
-              <div className="mt-6 space-y-6">
+              <div className="space-y-4 pt-2">
                 {/* Data e Horário */}
-                <Card className="p-4 bg-accent/50 border-accent">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      <div className="flex-1">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Data</p>
-                        <p className="text-lg font-semibold">
-                          {new Date(selectedJob.start_datetime).toLocaleDateString("pt-PT", {
-                            weekday: 'long',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
+                <Card className="p-3 bg-accent/50 border-accent">
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold">
+                      {new Date(selectedJob.start_datetime).toLocaleDateString("pt-PT", {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </p>
+                    <div className="flex items-center gap-4 text-sm">
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Início</p>
-                        <p className="text-base font-semibold">
+                        <span className="text-muted-foreground">Início: </span>
+                        <span className="font-semibold">
                           {new Date(selectedJob.start_datetime).toLocaleTimeString("pt-PT", {
                             hour: '2-digit',
                             minute: '2-digit'
                           })}
-                        </p>
+                        </span>
                       </div>
                       {selectedJob.end_datetime && (
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Fim</p>
-                          <p className="text-base font-semibold">
+                          <span className="text-muted-foreground">Fim: </span>
+                          <span className="font-semibold">
                             {new Date(selectedJob.end_datetime).toLocaleTimeString("pt-PT", {
                               hour: '2-digit',
                               minute: '2-digit'
                             })}
-                          </p>
+                          </span>
                         </div>
                       )}
                     </div>
@@ -327,44 +323,41 @@ export default function CalendarView() {
                 </Card>
 
                 {/* Cliente e Local */}
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="p-4 rounded-lg border border-border bg-card">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Cliente</p>
-                    <p className="text-base font-semibold">{selectedJob.clients?.name || 'Não especificado'}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg border border-border bg-card">
+                    <p className="text-xs text-muted-foreground mb-1">Cliente</p>
+                    <p className="text-sm font-semibold">{selectedJob.clients?.name || 'Não especificado'}</p>
                   </div>
                   {selectedJob.location && (
-                    <div className="p-4 rounded-lg border border-border bg-card">
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Local</p>
-                      <p className="text-base font-medium">{selectedJob.location}</p>
+                    <div className="p-3 rounded-lg border border-border bg-card">
+                      <p className="text-xs text-muted-foreground mb-1">Local</p>
+                      <p className="text-sm font-medium">{selectedJob.location}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Descrição */}
                 {selectedJob.description && (
-                  <div className="p-4 rounded-lg border border-border bg-card">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Descrição</p>
+                  <div className="p-3 rounded-lg border border-border bg-card">
+                    <p className="text-xs text-muted-foreground mb-1">Descrição</p>
                     <p className="text-sm leading-relaxed">{selectedJob.description}</p>
                   </div>
                 )}
 
                 {/* Estimativas */}
                 {(selectedJob.estimated_hours || selectedJob.estimated_revenue) && (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     {selectedJob.estimated_hours && (
-                      <div className="p-4 rounded-lg border border-border bg-card">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Horas Estimadas</p>
-                        <p className="text-2xl font-bold text-primary">{selectedJob.estimated_hours}h</p>
+                      <div className="p-3 rounded-lg border border-border bg-card">
+                        <p className="text-xs text-muted-foreground mb-1">Horas Estimadas</p>
+                        <p className="text-lg font-bold text-primary">{selectedJob.estimated_hours}h</p>
                       </div>
                     )}
                     {selectedJob.estimated_revenue && (
-                      <div className="p-4 rounded-lg border border-border bg-card">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Receita Estimada</p>
-                        <p className="text-2xl font-bold text-primary">
-                          {new Intl.NumberFormat('pt-PT', {
-                            style: 'currency',
-                            currency: 'EUR'
-                          }).format(selectedJob.estimated_revenue)}
+                      <div className="p-3 rounded-lg border border-border bg-card">
+                        <p className="text-xs text-muted-foreground mb-1">Receita Estimada</p>
+                        <p className="text-lg font-bold text-primary">
+                          {formatCurrency(selectedJob.estimated_revenue)}
                         </p>
                       </div>
                     )}
@@ -377,14 +370,12 @@ export default function CalendarView() {
                   new Date(selectedJob.start_datetime),
                   new Date(selectedJob.end_datetime || selectedJob.start_datetime)
                 ).hasResourceConflict && (
-                  <div className="bg-destructive/10 border-2 border-destructive/30 rounded-lg p-4 animate-pulse">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-destructive/20 rounded-lg">
-                        <Package className="h-5 w-5 text-destructive" />
-                      </div>
+                  <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <Package className="h-4 w-4 text-destructive mt-0.5" />
                       <div className="flex-1">
-                        <p className="font-semibold text-destructive mb-1">Conflito de Recursos</p>
-                        <p className="text-sm text-destructive/80">Equipamentos já alocados para outro trabalho neste horário</p>
+                        <p className="text-sm font-semibold text-destructive">Conflito de Recursos</p>
+                        <p className="text-xs text-destructive/80">Equipamentos já alocados neste horário</p>
                       </div>
                     </div>
                   </div>
@@ -394,14 +385,12 @@ export default function CalendarView() {
                   new Date(selectedJob.start_datetime),
                   new Date(selectedJob.end_datetime || selectedJob.start_datetime)
                 ).hasTeamConflict && (
-                  <div className="bg-destructive/10 border-2 border-destructive/30 rounded-lg p-4 animate-pulse">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-destructive/20 rounded-lg">
-                        <Users className="h-5 w-5 text-destructive" />
-                      </div>
+                  <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <Users className="h-4 w-4 text-destructive mt-0.5" />
                       <div className="flex-1">
-                        <p className="font-semibold text-destructive mb-1">Conflito de Equipe</p>
-                        <p className="text-sm text-destructive/80">Membros da equipe já alocados em outro trabalho</p>
+                        <p className="text-sm font-semibold text-destructive">Conflito de Equipe</p>
+                        <p className="text-xs text-destructive/80">Membros da equipe já alocados em outro trabalho</p>
                       </div>
                     </div>
                   </div>
@@ -409,8 +398,8 @@ export default function CalendarView() {
               </div>
             </>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       <JobDialog
         open={isJobDialogOpen}
