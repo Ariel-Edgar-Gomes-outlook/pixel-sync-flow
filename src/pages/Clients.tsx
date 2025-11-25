@@ -274,16 +274,6 @@ export default function Clients() {
                 </div>
               </div>)}
           </div>
-
-          {/* Botão Novo Cliente após a lista */}
-          <div className="mt-6 flex justify-start">
-            <ClientDialog>
-              <Button size="lg" className="gap-2">
-                <Plus className="h-5 w-5" />
-                Novo Cliente
-              </Button>
-            </ClientDialog>
-          </div>
         </Card>}
 
       <ClientDialog client={selectedClient} open={isDialogOpen} onOpenChange={handleCloseDialog} />
