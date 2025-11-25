@@ -10,7 +10,6 @@ import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminProtectedRoute } from "./components/AdminProtectedRoute";
 import Layout from "./components/Layout";
-import { Onboarding } from "./components/Onboarding";
 import { SubscriptionBanner } from "./components/SubscriptionBanner";
 import { useRealtimePushNotifications } from "./hooks/useRealtimePushNotifications";
 import Dashboard from "./pages/Dashboard";
@@ -54,7 +53,6 @@ function AppContent() {
   return (
     <>
       <SubscriptionBanner />
-      <Onboarding />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
