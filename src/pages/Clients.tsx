@@ -286,6 +286,21 @@ export default function Clients() {
           </div>
         </Card>}
 
+      {/* Botão Flutuante (FAB) - Responsivo */}
+      {!showEmptyState && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <ClientDialog>
+            <Button 
+              size="lg"
+              className="h-14 w-14 sm:w-auto sm:h-12 rounded-full sm:rounded-lg shadow-2xl hover:shadow-primary/50 hover:scale-110 transition-all duration-300 gap-2"
+            >
+              <Plus className="h-6 w-6 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Novo Cliente</span>
+            </Button>
+          </ClientDialog>
+        </div>
+      )}
+
       <ClientDialog client={selectedClient} open={isDialogOpen} onOpenChange={handleCloseDialog} />
 
       <ClientDetailsDialog client={selectedClient} open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} />
