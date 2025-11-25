@@ -133,7 +133,12 @@ export default function Clients() {
               <Download className="h-4 w-4" />
               Exportar
             </Button>
-            <ClientDialog />
+            <ClientDialog>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Cliente
+              </Button>
+            </ClientDialog>
           </div>
         </div>
       </div>
@@ -177,7 +182,12 @@ export default function Clients() {
               </div>
             </div>
 
-            <ClientDialog />
+            <ClientDialog>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Cliente
+              </Button>
+            </ClientDialog>
 
             <div className="mt-8 p-4 bg-muted/30 rounded-lg max-w-2xl">
               <p className="text-sm text-muted-foreground">

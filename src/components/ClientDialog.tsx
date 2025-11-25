@@ -109,14 +109,6 @@ export function ClientDialog({ children, client, open: controlledOpen, onOpenCha
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      {!children && !client && (
-        <DialogTrigger asChild>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Novo Cliente
-          </Button>
-        </DialogTrigger>
-      )}
       <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">
