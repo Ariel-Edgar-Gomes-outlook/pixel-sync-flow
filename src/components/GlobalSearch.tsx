@@ -16,11 +16,13 @@ import { useQuotes } from '@/hooks/useQuotes';
 import { usePayments } from '@/hooks/usePayments';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useContracts } from '@/hooks/useContracts';
+import { useCurrency } from '@/hooks/useCurrency';
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
+  const { formatCurrency } = useCurrency();
 
   const { data: clients } = useClients();
   const { data: jobs } = useJobs();
@@ -175,7 +177,7 @@ export function GlobalSearch() {
                     <span className="text-xs text-muted-foreground ml-2">• {quote.status}</span>
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    Kz {Number(quote.total).toFixed(2)}
+                    {formatCurrency(Number(quote.total))}
                   </span>
                 </CommandItem>
               ))}
@@ -196,7 +198,7 @@ export function GlobalSearch() {
                     <span className="text-xs text-muted-foreground ml-2">• {payment.type} • {payment.status}</span>
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    Kz {Number(payment.amount).toFixed(2)}
+                    {formatCurrency(Number(payment.amount))}
                   </span>
                 </CommandItem>
               ))}
@@ -217,7 +219,7 @@ export function GlobalSearch() {
                     <span className="text-xs text-muted-foreground ml-2">• {invoice.clients?.name} • {invoice.status}</span>
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    Kz {Number(invoice.total).toFixed(2)}
+                    {formatCurrency(Number(invoice.total))}
                   </span>
                 </CommandItem>
               ))}

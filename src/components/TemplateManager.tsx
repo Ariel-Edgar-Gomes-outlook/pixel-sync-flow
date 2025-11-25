@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Edit, AlertTriangle } from 'lucide-react';
+import { useCurrency } from '@/hooks/useCurrency';
 import {
   useQuoteTemplates,
   useCreateQuoteTemplate,
@@ -34,6 +35,7 @@ export function TemplateManager({ type }: TemplateManagerProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<{ id: string; name: string } | null>(null);
+  const { currencyInfo } = useCurrency();
   const [formData, setFormData] = useState<any>({
     name: '',
     job_type: 'Casamento',
@@ -384,7 +386,7 @@ export function TemplateManager({ type }: TemplateManagerProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="cancellation_fee">Taxa de Cancelamento (Kz)</Label>
+                    <Label htmlFor="cancellation_fee">Taxa de Cancelamento ({currencyInfo.symbol})</Label>
                     <Input
                       id="cancellation_fee"
                       type="number"

@@ -21,6 +21,7 @@ import { PaymentPlanViewer } from "@/components/PaymentPlanViewer";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, User, Calendar, MapPin, DollarSign, Clock, FileText, Tag } from "lucide-react";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface JobDialogProps {
   children?: React.ReactNode;
@@ -233,8 +234,11 @@ interface JobFormProps {
   updateJob: any;
 }
 
-const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob, updateJob }: JobFormProps) => (
-  <>
+const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob, updateJob }: JobFormProps) => {
+  const { formatCurrency, currencyInfo } = useCurrency();
+  
+  return (
+    <>
     {/* Seção: Informações Básicas */}
     <Card className="p-3 sm:p-4 bg-muted/50">
       <div className="flex items-center gap-2 mb-4">
@@ -432,7 +436,7 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
         <div className="space-y-2">
           <Label htmlFor="estimated_cost" className="text-sm font-medium flex items-center gap-2">
             <DollarSign className="h-3.5 w-3.5" />
-            Custo Estimado (Kz)
+            Custo Estimado ({currencyInfo.symbol})
           </Label>
           <Input
             id="estimated_cost"
@@ -449,7 +453,7 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
         <div className="space-y-2">
           <Label htmlFor="estimated_revenue" className="text-sm font-medium flex items-center gap-2">
             <DollarSign className="h-3.5 w-3.5" />
-            Receita Estimada (Kz)
+            Receita Estimada ({currencyInfo.symbol})
           </Label>
           <Input
             id="estimated_revenue"
@@ -473,7 +477,7 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
                 ? 'text-green-600' 
                 : 'text-red-600'
             }`}>
-              {(Number(formData.estimated_revenue) - Number(formData.estimated_cost)).toFixed(2)} Kz
+              {formatCurrency(Number(formData.estimated_revenue) - Number(formData.estimated_cost))}
             </span>
           </div>
         </div>
@@ -519,4 +523,6 @@ const JobForm = memo(({ formData, setFormData, clients, job, setOpen, createJob,
       </Button>
     </div>
   </>
-));
+  );
+});
+JobForm.displayName = 'JobForm';
