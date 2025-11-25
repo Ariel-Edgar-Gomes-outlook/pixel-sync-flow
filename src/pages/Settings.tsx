@@ -330,12 +330,12 @@ export default function Settings() {
                 </SelectTrigger>
                 <SelectContent className="bg-popover">
                   <SelectItem value="AOA">AOA - Kwanza Angolano (Kz)</SelectItem>
-                  <SelectItem value="USD">USD - Dólar Americano ($)</SelectItem>
                   <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
-                  <SelectItem value="GBP">GBP - Libra Esterlina (£)</SelectItem>
+                  <SelectItem value="USD">USD - Dólar Americano ($)</SelectItem>
+                  <SelectItem value="BRL">BRL - Real Brasileiro (R$)</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">Moeda utilizada em faturas e relatórios</p>
+              <p className="text-xs text-muted-foreground">Moeda utilizada em faturas, orçamentos, pagamentos e relatórios em todo o sistema</p>
             </div>
 
             <div className="grid gap-2">
