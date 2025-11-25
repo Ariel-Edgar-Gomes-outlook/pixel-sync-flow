@@ -315,5 +315,20 @@ export default function Clients() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Botão flutuante fixo no fundo - funcional */}
+      {!showEmptyState && (
+        <div className="fixed bottom-6 left-6 z-50">
+          <ClientDialog>
+            <Button 
+              size="lg"
+              className="gap-2 shadow-2xl hover:shadow-primary/50 hover:scale-105 transition-all duration-300"
+            >
+              <Plus className="h-5 w-5" />
+              Novo Cliente
+            </Button>
+          </ClientDialog>
+        </div>
+      )}
     </div>;
 }

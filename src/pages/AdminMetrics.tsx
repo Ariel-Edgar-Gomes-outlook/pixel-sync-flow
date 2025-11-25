@@ -127,6 +127,15 @@ const AdminMetrics = () => {
               <ArrowLeft className="h-4 w-4" />
               Voltar
             </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => navigate("/admin/ranking")}
+              className="gap-2"
+            >
+              <TrendingUp className="h-4 w-4" />
+              Ver Ranking
+            </Button>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold">Métricas Globais</h1>
           <p className="text-sm md:text-base text-muted-foreground mt-2">

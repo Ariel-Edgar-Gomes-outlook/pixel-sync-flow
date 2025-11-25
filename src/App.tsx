@@ -36,6 +36,7 @@ import Notifications from "./pages/Notifications";
 import Landing from "./pages/Landing";
 import AdminSubscribers from "./pages/AdminSubscribers";
 import AdminMetrics from "./pages/AdminMetrics";
+import AdminRanking from "./pages/AdminRanking";
 import AdminLogin from "./pages/AdminLogin";
 import { AdminLayout } from "./components/AdminLayout";
 import TeamMembers from "./pages/TeamMembers";
@@ -96,6 +97,7 @@ function AppContent() {
         }>
           <Route path="subscribers" element={<AdminSubscribers />} />
           <Route path="metrics" element={<AdminMetrics />} />
+          <Route path="ranking" element={<AdminRanking />} />
           <Route path="suggestions" element={<ImprovementSuggestions />} />
         </Route>
         
