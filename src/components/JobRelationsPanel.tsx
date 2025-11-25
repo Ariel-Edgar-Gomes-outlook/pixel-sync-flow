@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Users, FileText, CreditCard, Receipt, FileCheck, Package, Wrench, ExternalLink } from "lucide-react";
 import { useJobQuote, useJobContract, useJobInvoices, useJobPayments, useJobDeliverables, useJobResources } from "@/hooks/useJobRelations";
 import { useNavigate } from "react-router-dom";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface JobRelationsPanelProps {
   jobId: string;
@@ -12,6 +13,7 @@ interface JobRelationsPanelProps {
 
 export function JobRelationsPanel({ jobId, clientName }: JobRelationsPanelProps) {
   const navigate = useNavigate();
+  const { formatCurrency } = useCurrency();
   const { data: quote } = useJobQuote(jobId);
   const { data: contract } = useJobContract(jobId);
   const { data: invoices } = useJobInvoices(jobId);
@@ -55,7 +57,7 @@ export function JobRelationsPanel({ jobId, clientName }: JobRelationsPanelProps)
           {quote ? (
             <div className="flex items-center gap-2">
               <Badge variant="outline">{quote.status}</Badge>
-              <span className="text-sm font-bold">Kz {Number(quote.total).toFixed(2)}</span>
+              <span className="text-sm font-bold">{formatCurrency(Number(quote.total))}</span>
               <Button size="sm" variant="ghost" onClick={() => navigate('/dashboard/quotes')}>
                 <ExternalLink className="h-3 w-3" />
               </Button>
@@ -117,7 +119,7 @@ export function JobRelationsPanel({ jobId, clientName }: JobRelationsPanelProps)
           </div>
           <div className="flex flex-col items-end gap-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-success">Pago: Kz {totalPaid.toFixed(2)}</span>
+              <span className="text-xs text-success">Pago: {formatCurrency(totalPaid)}</span>
               {payments && payments.length > 0 && (
                 <Button size="sm" variant="ghost" onClick={() => navigate('/dashboard/payments')}>
                   <ExternalLink className="h-3 w-3" />
@@ -125,7 +127,7 @@ export function JobRelationsPanel({ jobId, clientName }: JobRelationsPanelProps)
               )}
             </div>
             {totalPending > 0 && (
-              <span className="text-xs text-warning">Pendente: Kz {totalPending.toFixed(2)}</span>
+              <span className="text-xs text-warning">Pendente: {formatCurrency(totalPending)}</span>
             )}
           </div>
         </div>

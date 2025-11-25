@@ -6,12 +6,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Briefcase, DollarSign, Calendar, TrendingUp, FileText, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface ClientHistoryProps {
   clientId: string;
 }
 
 export function ClientHistory({ clientId }: ClientHistoryProps) {
+  const { formatCurrency } = useCurrency();
+  
   // Fetch jobs
   const { data: jobs } = useQuery({
     queryKey: ['client_jobs', clientId],
@@ -117,7 +120,7 @@ export function ClientHistory({ clientId }: ClientHistoryProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Receita Total</p>
-              <p className="text-2xl font-bold text-green-600">{totalRevenue.toFixed(0)} Kz</p>
+              <p className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenue)}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 Pagamentos confirmados
               </p>
@@ -130,7 +133,7 @@ export function ClientHistory({ clientId }: ClientHistoryProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Valor Pendente</p>
-              <p className="text-2xl font-bold text-orange-600">{pendingPayments.toFixed(0)} Kz</p>
+              <p className="text-2xl font-bold text-orange-600">{formatCurrency(pendingPayments)}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 Aguardando pagamento
               </p>
@@ -236,7 +239,7 @@ export function ClientHistory({ clientId }: ClientHistoryProps) {
                 <div className="text-right">
                   {job.estimated_revenue && (
                     <p className="text-sm font-medium text-foreground">
-                      {Number(job.estimated_revenue).toFixed(0)} Kz
+                      {formatCurrency(Number(job.estimated_revenue))}
                     </p>
                   )}
                   <Badge variant={

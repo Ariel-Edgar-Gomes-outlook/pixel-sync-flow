@@ -16,6 +16,7 @@ import { usePayments } from "@/hooks/usePayments";
 import { useUpdateProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useCurrency } from "@/hooks/useCurrency";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -30,6 +31,7 @@ const defaultLayout: Layout[] = [
 
 export function CustomizableDashboard() {
   const { user } = useAuth();
+  const { formatCurrency } = useCurrency();
   const { data: jobs } = useJobs();
   const { data: leads } = useLeads();
   const { data: clients } = useClients();
@@ -98,7 +100,7 @@ export function CustomizableDashboard() {
         </div>
         <div className="mt-4">
           <p className="text-sm font-medium text-muted-foreground">Receita Total</p>
-          <p className="text-2xl font-bold text-foreground mt-1">Kz {totalRevenue.toFixed(0)}</p>
+          <p className="text-2xl font-bold text-foreground mt-1">{formatCurrency(totalRevenue)}</p>
         </div>
       </Card>
     ),
