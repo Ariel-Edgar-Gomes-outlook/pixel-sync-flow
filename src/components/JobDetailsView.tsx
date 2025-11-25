@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface Job {
   id: string;
@@ -38,6 +39,7 @@ interface JobDetailsViewProps {
 }
 
 export function JobDetailsView({ job }: JobDetailsViewProps) {
+  const { formatCurrency } = useCurrency();
   const statusConfig = {
     scheduled: { label: "Agendado", variant: "secondary" as const },
     in_progress: { label: "Em Progresso", variant: "default" as const },
@@ -107,10 +109,7 @@ export function JobDetailsView({ job }: JobDetailsViewProps) {
               <div className="flex-1">
                 <p className="font-medium mb-1">Receita Estimada</p>
                 <p className="text-sm text-muted-foreground">
-                  {new Intl.NumberFormat('pt-AO', {
-                    style: 'currency',
-                    currency: 'AOA'
-                  }).format(Number(job.estimated_revenue))}
+                  {formatCurrency(Number(job.estimated_revenue))}
                 </p>
               </div>
             </div>
@@ -125,10 +124,7 @@ export function JobDetailsView({ job }: JobDetailsViewProps) {
               <div className="flex-1">
                 <p className="font-medium mb-1">Custo Estimado</p>
                 <p className="text-sm text-muted-foreground">
-                  {new Intl.NumberFormat('pt-AO', {
-                    style: 'currency',
-                    currency: 'AOA'
-                  }).format(Number(job.estimated_cost))}
+                  {formatCurrency(Number(job.estimated_cost))}
                 </p>
               </div>
             </div>

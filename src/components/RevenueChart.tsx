@@ -2,12 +2,14 @@ import { Card } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface RevenueChartProps {
   payments: any[];
 }
 
 export function RevenueChart({ payments }: RevenueChartProps) {
+  const { formatCurrency } = useCurrency();
   const last6Months = eachMonthOfInterval({
     start: subMonths(new Date(), 5),
     end: new Date(),
@@ -62,7 +64,7 @@ export function RevenueChart({ payments }: RevenueChartProps) {
               border: '1px solid hsl(var(--border))',
               borderRadius: '6px',
             }}
-            formatter={(value: number) => `${value.toFixed(2)} AOA`}
+            formatter={(value: number) => formatCurrency(value)}
           />
           <Legend />
           <Bar dataKey="recebido" fill="hsl(var(--primary))" name="Recebido" />

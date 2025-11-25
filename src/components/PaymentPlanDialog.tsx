@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface PaymentPlanDialogProps {
   jobId?: string;
@@ -31,6 +32,7 @@ export function PaymentPlanDialog({
 
   const createPaymentPlan = useCreatePaymentPlan();
   const { toast } = useToast();
+  const { formatCurrency } = useCurrency();
 
   const calculateAmount = (percentage: number) => {
     return (totalAmount * percentage) / 100;
@@ -152,10 +154,7 @@ export function PaymentPlanDialog({
           <div className="bg-muted p-4 rounded-lg">
             <p className="text-sm text-muted-foreground">Valor Total</p>
             <p className="text-2xl font-bold">
-              {new Intl.NumberFormat('pt-AO', { 
-                style: 'currency', 
-                currency: 'AOA' 
-              }).format(totalAmount)}
+              {formatCurrency(totalAmount)}
             </p>
           </div>
 
@@ -201,10 +200,7 @@ export function PaymentPlanDialog({
                   <div>
                     <Label>Valor Calculado</Label>
                     <Input
-                      value={new Intl.NumberFormat('pt-AO', { 
-                        style: 'currency', 
-                        currency: 'AOA' 
-                      }).format(calculateAmount(inst.percentage || 0))}
+                      value={formatCurrency(calculateAmount(inst.percentage || 0))}
                       disabled
                     />
                   </div>
