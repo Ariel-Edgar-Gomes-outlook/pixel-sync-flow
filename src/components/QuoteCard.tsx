@@ -15,6 +15,7 @@ import {
 import { FileText, Eye, Edit, FileDown, CreditCard, Banknote, ChevronRight, Trash2 } from "lucide-react";
 import { useSmartBadges } from "@/hooks/useSmartBadges";
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface QuoteCardProps {
   quote: any;
@@ -39,6 +40,7 @@ export function QuoteCard({
 }: QuoteCardProps) {
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const smartBadges = useSmartBadges({ entityType: 'quote', entity: quote });
+  const { formatCurrency } = useCurrency();
 
   return (
     <Card className="p-4 sm:p-5 hover:shadow-md transition-all">
@@ -73,10 +75,7 @@ export function QuoteCard({
 
           <div className="flex flex-col sm:items-end gap-1 shrink-0">
             <div className="text-xl sm:text-2xl font-bold text-foreground">
-              {quote.total?.toLocaleString('pt-PT', { 
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2 
-              })} {quote.currency || 'AOA'}
+              {formatCurrency(quote.total)}
             </div>
             {quote.validity_date && (
               <p className="text-xs text-muted-foreground">
