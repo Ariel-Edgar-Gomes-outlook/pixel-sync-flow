@@ -12,6 +12,8 @@ import { useNotificationAutomation } from "@/hooks/useNotificationAutomation";
 import { usePaymentReminders } from "@/hooks/usePaymentReminders";
 import { useWorkflowAutomation } from "@/hooks/useWorkflowAutomation";
 import { SubscriptionBanner, SubscriptionWarning } from "@/components/SubscriptionBanner";
+import { Badge } from "@/components/ui/badge";
+import { useCurrency } from "@/hooks/useCurrency";
 const navigation = [{
   name: "Dashboard",
   href: "/dashboard",
@@ -90,6 +92,7 @@ export default function Layout() {
     user
   } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { currencyInfo } = useCurrency();
 
   // Load sidebar state from localStorage
   useEffect(() => {
@@ -382,6 +385,13 @@ export default function Layout() {
           </button>
           <div className="flex-1" />
           <GlobalSearch />
+          <Badge 
+            variant="outline" 
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-primary/5 border-primary/20 text-primary hover:bg-primary/10 transition-colors"
+          >
+            <span className="text-xs font-semibold">{currencyInfo.symbol}</span>
+            <span className="text-xs font-medium opacity-80">{currencyInfo.code}</span>
+          </Badge>
           <NotificationBell />
         </header>
         <main className="p-4 lg:p-8 bg-gradient-to-br from-background via-background to-muted/20 min-h-[calc(100vh-4rem)]">
