@@ -8,6 +8,7 @@ import { Briefcase, FileText, CreditCard, Receipt, FileCheck, ExternalLink, Doll
 import { useClientJobs, useClientQuotes, useClientInvoices, useClientPayments, useClientContracts } from "@/hooks/useClientRelations";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface Client {
   id: string;
@@ -26,6 +27,7 @@ interface ClientDetailsDialogProps {
 export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetailsDialogProps) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("jobs");
+  const { formatCurrency } = useCurrency();
   const { data: jobs } = useClientJobs(client?.id);
   const { data: quotes } = useClientQuotes(client?.id);
   const { data: invoices } = useClientInvoices(client?.id);
@@ -53,21 +55,21 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
               <DollarSign className="h-4 w-4 text-success" />
               <span className="text-sm font-medium">Total Pago</span>
             </div>
-            <p className="text-2xl font-bold text-success">Kz {totalPaid.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-success">{formatCurrency(totalPaid)}</p>
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="h-4 w-4 text-warning" />
               <span className="text-sm font-medium">Pendente</span>
             </div>
-            <p className="text-2xl font-bold text-warning">Kz {totalPending.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-warning">{formatCurrency(totalPending)}</p>
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="h-4 w-4 text-destructive" />
               <span className="text-sm font-medium">Vencido</span>
             </div>
-            <p className="text-2xl font-bold text-destructive">Kz {totalOverdue.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-destructive">{formatCurrency(totalOverdue)}</p>
           </Card>
         </div>
 
@@ -173,7 +175,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
                         <FileText className="h-4 w-4 text-primary" />
                         <Badge>{quote.status}</Badge>
                       </div>
-                      <p className="text-lg font-bold mt-2">Kz {Number(quote.total).toFixed(2)}</p>
+                      <p className="text-lg font-bold mt-2">{formatCurrency(Number(quote.total))}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {new Date(quote.created_at).toLocaleDateString('pt-PT')}
                       </p>
@@ -200,7 +202,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
                         <span className="font-medium">{invoice.invoice_number}</span>
                         <Badge>{invoice.status}</Badge>
                       </div>
-                      <p className="text-lg font-bold mt-2">Kz {Number(invoice.total).toFixed(2)}</p>
+                      <p className="text-lg font-bold mt-2">{formatCurrency(Number(invoice.total))}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         Emitida: {new Date(invoice.issue_date).toLocaleDateString('pt-PT')}
                       </p>
@@ -226,7 +228,7 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
                         <Receipt className="h-4 w-4 text-primary" />
                         <Badge>{payment.status}</Badge>
                       </div>
-                      <p className="text-lg font-bold mt-2">Kz {Number(payment.amount).toFixed(2)}</p>
+                      <p className="text-lg font-bold mt-2">{formatCurrency(Number(payment.amount))}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {payment.type} • {new Date(payment.created_at).toLocaleDateString('pt-PT')}
                       </p>

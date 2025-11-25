@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileText, Sparkles, Send, Copy, FileSignature, FileDown, Save, Trash2 } from "lucide-react";
 import { z } from "zod";
+import { useCurrency } from "@/hooks/useCurrency";
 
 const contractSchema = z.object({
   client_id: z.string().min(1, "Cliente é obrigatório"),
@@ -74,6 +75,7 @@ export function ContractDialog({ children, contract, open, onOpenChange }: Contr
   const [isOpen, setIsOpen] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { currencyInfo } = useCurrency();
   const [formData, setFormData] = useState({
     client_id: "",
     job_id: null as string | null,
@@ -540,7 +542,7 @@ Valor total: [Valor acordado]`,
                   </div>
 
                   <div>
-                    <Label>Taxa de Cancelamento (AOA)</Label>
+                    <Label>Taxa de Cancelamento ({currencyInfo.symbol})</Label>
                     <Input
                       type="number"
                       value={formData.cancellation_fee || ''}
