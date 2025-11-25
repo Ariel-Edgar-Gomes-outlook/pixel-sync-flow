@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { EntityQuickLinks } from '@/components/EntityQuickLinks';
 import { useSmartBadges } from '@/hooks/useSmartBadges';
+import { useCurrency } from '@/hooks/useCurrency';
 import {
   FileText,
   Edit,
@@ -51,6 +52,7 @@ export function InvoiceCard({
 }: InvoiceCardProps) {
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const smartBadges = useSmartBadges({ entityType: 'invoice', entity: invoice });
+  const { formatCurrency } = useCurrency();
   const status = statusConfig[invoice.status as keyof typeof statusConfig];
   const StatusIcon = status.icon;
 
@@ -89,9 +91,7 @@ export function InvoiceCard({
             <div>
               <p className="text-sm text-muted-foreground">Total</p>
               <p className="text-lg font-bold text-primary">
-                {invoice.total?.toLocaleString('pt-PT', {
-                  minimumFractionDigits: 2,
-                })} {invoice.currency || 'AOA'}
+                {formatCurrency(invoice.total)}
               </p>
             </div>
             <div>
@@ -115,17 +115,13 @@ export function InvoiceCard({
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">Valor Pago:</span>
                 <span className="font-semibold text-success">
-                  {invoice.amount_paid?.toLocaleString('pt-PT', {
-                    minimumFractionDigits: 2,
-                  })} {invoice.currency || 'AOA'}
+                  {formatCurrency(invoice.amount_paid)}
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm mt-1">
                 <span className="text-muted-foreground">Valor Pendente:</span>
                 <span className="font-semibold text-destructive">
-                  {(invoice.total - invoice.amount_paid)?.toLocaleString('pt-PT', {
-                    minimumFractionDigits: 2,
-                  })} {invoice.currency || 'AOA'}
+                  {formatCurrency(invoice.total - invoice.amount_paid)}
                 </span>
               </div>
             </div>

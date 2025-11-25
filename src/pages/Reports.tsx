@@ -22,6 +22,7 @@ import {
   formatQuotesForExport
 } from "@/lib/exportUtils";
 import { toast } from "sonner";
+import { useCurrency } from "@/hooks/useCurrency";
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c', '#d0ed57'];
 
@@ -32,6 +33,7 @@ export default function Reports() {
   const { data: leads } = useLeads();
   const { data: clients } = useClients();
   const { data: quotes } = useQuotes();
+  const { formatCurrency } = useCurrency();
 
   const handleExportAll = () => {
     if (!clients || !jobs || !payments || !leads || !quotes) {
@@ -183,7 +185,7 @@ export default function Reports() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Receita Total</p>
-              <p className="text-2xl font-bold text-success mt-1">{totalRevenue.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
+              <p className="text-2xl font-bold text-success mt-1">{formatCurrency(totalRevenue)}</p>
               <p className="text-xs text-muted-foreground mt-1">De {completedJobs} jobs concluídos</p>
             </div>
             <div className="p-3 rounded-lg bg-success/10">
@@ -196,7 +198,7 @@ export default function Reports() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Receita Pendente</p>
-              <p className="text-2xl font-bold text-warning mt-1">{pendingRevenue.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
+              <p className="text-2xl font-bold text-warning mt-1">{formatCurrency(pendingRevenue)}</p>
               <p className="text-xs text-muted-foreground mt-1">Aguardando pagamento</p>
             </div>
             <div className="p-3 rounded-lg bg-warning/10">
@@ -209,7 +211,7 @@ export default function Reports() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Ticket Médio</p>
-              <p className="text-2xl font-bold text-info mt-1">{Number(avgJobValue).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
+              <p className="text-2xl font-bold text-info mt-1">{formatCurrency(Number(avgJobValue))}</p>
               <p className="text-xs text-muted-foreground mt-1">Por job concluído</p>
             </div>
             <div className="p-3 rounded-lg bg-info/10">
@@ -274,9 +276,9 @@ export default function Reports() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value) => `${Number(value).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`} />
+              <Tooltip formatter={(value) => formatCurrency(Number(value))} />
               <Legend />
-              <Line type="monotone" dataKey="revenue" name="Receita (Kz)" stroke="#10b981" strokeWidth={2} />
+              <Line type="monotone" dataKey="revenue" name="Receita" stroke="#10b981" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
           </div>
@@ -307,7 +309,7 @@ export default function Reports() {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => `${Number(value).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`} />
+              <Tooltip formatter={(value) => formatCurrency(Number(value))} />
             </PieChart>
           </ResponsiveContainer>
           </div>
@@ -358,7 +360,7 @@ export default function Reports() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-sm">{client.revenue.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz</p>
+                  <p className="font-semibold text-sm">{formatCurrency(client.revenue)}</p>
                 </div>
               </div>
             ))}

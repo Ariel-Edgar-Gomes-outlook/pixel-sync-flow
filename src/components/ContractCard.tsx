@@ -42,6 +42,7 @@ import { EntityQuickLinks } from "@/components/EntityQuickLinks";
 import { useSmartBadges } from "@/hooks/useSmartBadges";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrency } from "@/hooks/useCurrency";
 
 const statusConfig = {
   draft: { label: "Rascunho", variant: "secondary" as const },
@@ -74,6 +75,7 @@ export function ContractCard({
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const smartBadges = useSmartBadges({ entityType: 'contract', entity: contract });
   const { toast } = useToast();
+  const { formatCurrency } = useCurrency();
 
   const handleMarkAsSigned = async () => {
     try {
@@ -195,7 +197,7 @@ export function ContractCard({
             {contract.cancellation_fee && (
               <div>
                 <span className="text-muted-foreground">Taxa Cancelamento:</span>
-                <p className="font-medium">Kz {Number(contract.cancellation_fee).toFixed(2)}</p>
+                <p className="font-medium">{formatCurrency(contract.cancellation_fee)}</p>
               </div>
             )}
           </div>

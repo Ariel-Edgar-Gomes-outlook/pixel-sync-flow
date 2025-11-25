@@ -16,6 +16,7 @@ import { PDFViewerDialog } from '@/components/PDFViewerDialog';
 import { InvoiceCard } from '@/components/InvoiceCard';
 import { EntityQuickLinks } from '@/components/EntityQuickLinks';
 import { useInvoices, useInvoiceStats, useUpdateInvoice, useDeleteInvoice } from '@/hooks/useInvoices';
+import { useCurrency } from '@/hooks/useCurrency';
 import {
   Plus,
   Search,
@@ -53,6 +54,7 @@ export default function Invoices() {
   const { data: stats } = useInvoiceStats();
   const updateInvoice = useUpdateInvoice();
   const deleteInvoice = useDeleteInvoice();
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
     const handleOpenPDFViewer = (event: any) => {
@@ -157,7 +159,7 @@ export default function Invoices() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-success">
-                {stats.totalInvoiced.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} AOA
+                {formatCurrency(stats.totalInvoiced)}
               </div>
               <p className="text-xs text-muted-foreground">{stats.invoiceCount} faturas</p>
             </CardContent>
@@ -172,7 +174,7 @@ export default function Invoices() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-warning">
-                {stats.totalPending.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} AOA
+                {formatCurrency(stats.totalPending)}
               </div>
               <p className="text-xs text-muted-foreground">{stats.pendingCount} faturas</p>
             </CardContent>
@@ -187,7 +189,7 @@ export default function Invoices() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-destructive">
-                {stats.totalOverdue.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} AOA
+                {formatCurrency(stats.totalOverdue)}
               </div>
               <p className="text-xs text-muted-foreground">{stats.overdueCount} faturas</p>
             </CardContent>
@@ -202,7 +204,7 @@ export default function Invoices() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">
-                {stats.totalPaid.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} AOA
+                {formatCurrency(stats.totalPaid)}
               </div>
               <p className="text-xs text-muted-foreground">{stats.paidCount} faturas</p>
             </CardContent>
