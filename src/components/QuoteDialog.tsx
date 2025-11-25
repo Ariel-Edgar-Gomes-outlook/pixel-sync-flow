@@ -17,6 +17,7 @@ import { useQuoteTemplates } from "@/hooks/useTemplates";
 import { useUpdateQuote as useUpdateQuoteMutation } from "@/hooks/useQuotes";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface QuoteDialogProps {
   children?: React.ReactNode;
@@ -34,6 +35,7 @@ interface QuoteItem {
 export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { formatCurrency } = useCurrency();
   const [formData, setFormData] = useState({
     client_id: "",
     job_id: null as string | null,
@@ -548,20 +550,20 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal dos Items:</span>
-                <span className="font-medium">{subtotal.toFixed(2)} {formData.currency}</span>
+                <span className="font-medium">{formatCurrency(subtotal)}</span>
               </div>
               
               {formData.tax > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Taxa ({formData.tax}%):</span>
-                  <span className="font-medium text-orange-600">+ {taxAmount.toFixed(2)} {formData.currency}</span>
+                  <span className="font-medium text-orange-600">+ {formatCurrency(taxAmount)}</span>
                 </div>
               )}
               
               {formData.discount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Desconto:</span>
-                  <span className="font-medium text-green-600">- {formData.discount.toFixed(2)} {formData.currency}</span>
+                  <span className="font-medium text-green-600">- {formatCurrency(formData.discount)}</span>
                 </div>
               )}
               
@@ -570,7 +572,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
               <div className="flex justify-between items-center pt-2">
                 <span className="text-lg font-semibold text-foreground">Total Final:</span>
                 <span className="text-2xl font-bold text-primary">
-                  {finalTotal.toFixed(2)} {formData.currency}
+                  {formatCurrency(finalTotal)}
                 </span>
               </div>
             </div>

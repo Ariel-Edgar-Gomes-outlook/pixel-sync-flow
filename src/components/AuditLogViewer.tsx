@@ -10,6 +10,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface AuditLog {
   id: string;
@@ -91,32 +92,8 @@ const fieldLabels: Record<string, string> = {
   paid_date: "Data de Pagamento",
 };
 
-const formatValue = (key: string, value: any): string => {
-  if (value === null || value === undefined) return "-";
-  if (typeof value === "boolean") return value ? "Sim" : "Não";
-  if (key.includes("date") || key.includes("_at")) {
-    try {
-      return new Date(value).toLocaleDateString('pt-PT', { 
-        day: '2-digit', 
-        month: 'short', 
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return String(value);
-    }
-  }
-  if (typeof value === "number" && (key.includes("total") || key.includes("amount") || key.includes("price"))) {
-    return new Intl.NumberFormat('pt-PT', { 
-      style: 'currency', 
-      currency: 'AOA' 
-    }).format(value);
-  }
-  if (typeof value === "object") return "-";
-  return String(value);
-};
-
+// Note: formatValue is a standalone function, not a hook, but it needs access to formatCurrency
+// We'll need to move it inside the component to use the hook
 const shouldShowField = (key: string): boolean => {
   const excludeFields = [
     'id', 'user_id', 'created_at', 'updated_at', 
@@ -128,6 +105,30 @@ const shouldShowField = (key: string): boolean => {
 export function AuditLogViewer() {
   const [filterAction, setFilterAction] = useState<string>("all");
   const [filterEntity, setFilterEntity] = useState<string>("all");
+  const { formatCurrency } = useCurrency();
+
+  const formatValue = (key: string, value: any): string => {
+    if (value === null || value === undefined) return "-";
+    if (typeof value === "boolean") return value ? "Sim" : "Não";
+    if (key.includes("date") || key.includes("_at")) {
+      try {
+        return new Date(value).toLocaleDateString('pt-PT', { 
+          day: '2-digit', 
+          month: 'short', 
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch {
+        return String(value);
+      }
+    }
+    if (typeof value === "number" && (key.includes("total") || key.includes("amount") || key.includes("price"))) {
+      return formatCurrency(value);
+    }
+    if (typeof value === "object") return "-";
+    return String(value);
+  };
 
   const { data: logs, isLoading } = useQuery({
     queryKey: ['audit_logs'],

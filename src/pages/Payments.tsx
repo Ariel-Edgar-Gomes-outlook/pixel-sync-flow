@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/hooks/useCurrency";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,6 +60,7 @@ export default function Payments() {
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const { data: payments, isLoading } = usePayments();
   const deletePayment = useDeletePayment();
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
     const handleOpenPDFViewer = (event: any) => {
@@ -294,7 +296,7 @@ export default function Payments() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Receita Total</p>
-              <p className="text-2xl font-bold text-foreground">Kz {totalRevenue.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(totalRevenue)}</p>
             </div>
           </div>
         </Card>
@@ -306,7 +308,7 @@ export default function Payments() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Pendente</p>
-              <p className="text-2xl font-bold text-foreground">Kz {pendingAmount.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(pendingAmount)}</p>
             </div>
           </div>
         </Card>
@@ -472,10 +474,7 @@ export default function Payments() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-xl sm:text-2xl font-bold">
-                        Kz {Number(payment.amount).toFixed(2)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {payment.currency || 'AOA'}
+                        {formatCurrency(Number(payment.amount))}
                       </div>
                     </div>
                   </div>
@@ -579,7 +578,7 @@ export default function Payments() {
                 </span>
               ) : (
                 <>
-                  Tem certeza que deseja eliminar este pagamento no valor de <strong>Kz {Number(paymentToDelete?.amount || 0).toFixed(2)}</strong>?
+                  Tem certeza que deseja eliminar este pagamento no valor de <strong>{formatCurrency(Number(paymentToDelete?.amount || 0))}</strong>?
                   <br /><br />
                   Esta ação não pode ser desfeita.
                 </>

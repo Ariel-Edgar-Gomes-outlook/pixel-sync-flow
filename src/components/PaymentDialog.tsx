@@ -15,6 +15,7 @@ import { useInvoices } from "@/hooks/useInvoices";
 import { FileUpload } from "@/components/FileUpload";
 import { toast } from "sonner";
 import { Wallet, DollarSign, FileText, CreditCard, User, Receipt, Trash2 } from "lucide-react";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface PaymentDialogProps {
   payment?: Payment | null;
@@ -25,6 +26,7 @@ interface PaymentDialogProps {
 
 export default function PaymentDialog({ payment, open, onOpenChange, children }: PaymentDialogProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { formatCurrency } = useCurrency();
   const [formData, setFormData] = useState<{
     client_id: string;
     quote_id: string;
@@ -270,7 +272,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                     <SelectItem value="none">Nenhuma</SelectItem>
                     {invoices?.map((invoice) => (
                       <SelectItem key={invoice.id} value={invoice.id}>
-                        {invoice.invoice_number} - {Number(invoice.total).toFixed(2)} {invoice.currency}
+                        {invoice.invoice_number} - {formatCurrency(Number(invoice.total))}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -296,17 +298,17 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                     <div className="text-sm space-y-1">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Valor Total:</span>
-                        <span className="font-medium">{Number(selectedInvoice.total).toFixed(2)} {selectedInvoice.currency}</span>
+                        <span className="font-medium">{formatCurrency(Number(selectedInvoice.total))}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Já Pago:</span>
-                        <span className="font-medium text-green-600">{Number(selectedInvoice.amount_paid).toFixed(2)} {selectedInvoice.currency}</span>
+                        <span className="font-medium text-green-600">{formatCurrency(Number(selectedInvoice.amount_paid))}</span>
                       </div>
                       <Separator className="my-2" />
                       <div className="flex justify-between">
                         <span className="font-semibold text-foreground">Valor Pendente:</span>
                         <span className={`font-bold text-base ${invoicePendingAmount > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                          {invoicePendingAmount.toFixed(2)} {selectedInvoice.currency}
+                          {formatCurrency(invoicePendingAmount)}
                         </span>
                       </div>
                     </div>

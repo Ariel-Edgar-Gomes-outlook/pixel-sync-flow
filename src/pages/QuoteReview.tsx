@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { CheckCircle, XCircle, FileText, Download, Calendar, MessageSquare, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useCurrency } from '@/hooks/useCurrency';
 
 export default function QuoteReview() {
   const { token } = useParams();
@@ -19,6 +20,7 @@ export default function QuoteReview() {
   const [showAcceptDialog, setShowAcceptDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
     fetchQuote();
@@ -251,15 +253,15 @@ export default function QuoteReview() {
             <div className="space-y-3">
               {quote.items?.map((item: any, index: number) => (
                 <div key={index} className="flex justify-between items-start p-3 bg-muted/50 rounded-lg">
-                  <div className="flex-1">
-                    <p className="font-medium">{item.description || item.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Quantidade: {item.quantity || 1} × {Number(item.price || 0).toFixed(2)} {quote.currency}
+                    <div className="flex-1">
+                      <p className="font-medium">{item.description || item.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Quantidade: {item.quantity || 1} × {formatCurrency(Number(item.price || 0))}
+                      </p>
+                    </div>
+                    <p className="font-semibold">
+                      {formatCurrency((item.quantity || 1) * (item.price || 0))}
                     </p>
-                  </div>
-                  <p className="font-semibold">
-                    {((item.quantity || 1) * (item.price || 0)).toFixed(2)} {quote.currency}
-                  </p>
                 </div>
               ))}
             </div>
@@ -270,24 +272,24 @@ export default function QuoteReview() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Subtotal:</span>
-                <span>{subtotal.toFixed(2)} {quote.currency}</span>
+                <span>{formatCurrency(subtotal)}</span>
               </div>
               {quote.tax > 0 && (
                 <div className="flex justify-between text-sm">
                   <span>IVA ({quote.tax}%):</span>
-                  <span>{taxAmount.toFixed(2)} {quote.currency}</span>
+                  <span>{formatCurrency(taxAmount)}</span>
                 </div>
               )}
               {quote.discount > 0 && (
                 <div className="flex justify-between text-sm text-success">
                   <span>Desconto:</span>
-                  <span>-{discountAmount.toFixed(2)} {quote.currency}</span>
+                  <span>-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
               <Separator />
               <div className="flex justify-between text-xl font-bold">
                 <span>TOTAL:</span>
-                <span>{Number(quote.total).toFixed(2)} {quote.currency}</span>
+                <span>{formatCurrency(Number(quote.total))}</span>
               </div>
             </div>
           </CardContent>
@@ -358,7 +360,7 @@ export default function QuoteReview() {
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmar Aceitação</AlertDialogTitle>
               <AlertDialogDescription>
-                Tem a certeza que deseja aceitar este orçamento de {Number(quote.total).toFixed(2)} {quote.currency}?
+                Tem a certeza que deseja aceitar este orçamento de {formatCurrency(Number(quote.total))}?
                 <br /><br />
                 Entraremos em contacto em breve para os próximos passos.
               </AlertDialogDescription>

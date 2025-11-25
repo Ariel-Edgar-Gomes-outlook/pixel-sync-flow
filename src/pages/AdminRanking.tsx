@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Trophy, TrendingUp, DollarSign, Briefcase, Users, Crown, Medal, Award } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface RankingData {
   user_id: string;
@@ -17,6 +18,7 @@ interface RankingData {
 export default function AdminRanking() {
   const [rankings, setRankings] = useState<RankingData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
     fetchRankings();
@@ -237,7 +239,7 @@ export default function AdminRanking() {
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </div>
                   <Badge variant={getRankBadgeVariant(index + 1)} className="shrink-0">
-                    €{user.total_revenue.toFixed(2)}
+                    {formatCurrency(user.total_revenue)}
                   </Badge>
                 </div>
               ))}
@@ -297,7 +299,7 @@ export default function AdminRanking() {
                   </AvatarFallback>
                 </Avatar>
                 <p className="font-semibold text-center">{revenueRanking[0].name}</p>
-                <p className="text-2xl font-bold text-primary mt-2">€{revenueRanking[0].total_revenue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-primary mt-2">{formatCurrency(revenueRanking[0].total_revenue)}</p>
               </div>
             )}
           </div>

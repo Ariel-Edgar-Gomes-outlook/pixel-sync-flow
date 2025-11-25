@@ -30,6 +30,7 @@ import { useCreatePayment, useUpdatePayment } from '@/hooks/usePayments';
 import { useInvoices, useUpdateInvoice } from '@/hooks/useInvoices';
 import { toast } from 'sonner';
 import { Receipt } from 'lucide-react';
+import { useCurrency } from '@/hooks/useCurrency';
 
 const paymentSchema = z.object({
   invoice_id: z.string().min(1, 'Fatura é obrigatória'),
@@ -55,6 +56,7 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
   const updatePayment = useUpdatePayment();
   const updateInvoice = useUpdateInvoice();
   const [isGeneratingReceipt, setIsGeneratingReceipt] = useState(false);
+  const { formatCurrency } = useCurrency();
 
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
@@ -169,7 +171,7 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
                     <SelectContent>
                       {pendingInvoices?.map((invoice) => (
                         <SelectItem key={invoice.id} value={invoice.id}>
-                          {invoice.invoice_number} - {invoice.clients?.name} - {Number(invoice.total - (invoice.amount_paid || 0)).toFixed(2)} AOA pendente
+                          {invoice.invoice_number} - {invoice.clients?.name} - {formatCurrency(Number(invoice.total - (invoice.amount_paid || 0)))} pendente
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -183,16 +185,16 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
               <div className="p-3 sm:p-4 bg-muted rounded-lg text-sm space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total da Fatura:</span>
-                  <span className="font-semibold">{Number(selectedInvoice.total).toFixed(2)} AOA</span>
+                  <span className="font-semibold">{formatCurrency(Number(selectedInvoice.total))}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Já Pago:</span>
-                  <span>{Number(selectedInvoice.amount_paid || 0).toFixed(2)} AOA</span>
+                  <span>{formatCurrency(Number(selectedInvoice.amount_paid || 0))}</span>
                 </div>
                 <div className="flex justify-between border-t pt-1">
                   <span className="text-muted-foreground">Valor Restante:</span>
                   <span className="font-bold text-primary">
-                    {Number(selectedInvoice.total - (selectedInvoice.amount_paid || 0)).toFixed(2)} AOA
+                    {formatCurrency(Number(selectedInvoice.total - (selectedInvoice.amount_paid || 0)))}
                   </span>
                 </div>
               </div>
@@ -203,9 +205,9 @@ export function PaymentReceiptDialog({ payment, open, onOpenChange }: PaymentRec
                 control={form.control}
                 name="amount"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor Pago (AOA) *</FormLabel>
-                    <FormControl>
+                <FormItem>
+                  <FormLabel>Valor Pago *</FormLabel>
+                  <FormControl>
                       <Input
                         type="number"
                         step="0.01"

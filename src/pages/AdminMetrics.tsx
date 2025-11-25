@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Users, Briefcase, FileText, DollarSign, FileCheck, CalendarDays, TrendingUp, BarChart3 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface AggregateMetrics {
   totalUsers: number;
@@ -28,6 +29,7 @@ const AdminMetrics = () => {
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState<AggregateMetrics | null>(null);
   const [loading, setLoading] = useState(true);
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
     fetchMetrics();
@@ -237,11 +239,7 @@ const AdminMetrics = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-yellow-600">
-                  {new Intl.NumberFormat('pt-AO', {
-                    style: 'currency',
-                    currency: 'AOA',
-                    minimumFractionDigits: 0,
-                  }).format(metrics.totalPaymentAmount)}
+                  {formatCurrency(metrics.totalPaymentAmount)}
                 </div>
                 <p className="text-xs text-muted-foreground">Valor total de pagamentos</p>
               </CardContent>
@@ -287,11 +285,7 @@ const AdminMetrics = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-4xl font-bold text-yellow-600">
-                  {new Intl.NumberFormat('pt-AO', {
-                    style: 'currency',
-                    currency: 'AOA',
-                    minimumFractionDigits: 0,
-                  }).format(metrics.averageRevenuePerUser)}
+                  {formatCurrency(metrics.averageRevenuePerUser)}
                 </div>
               </CardContent>
             </Card>

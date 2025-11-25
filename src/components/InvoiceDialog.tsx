@@ -44,6 +44,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Trash2, FileText, FileCheck } from 'lucide-react';
+import { useCurrency } from '@/hooks/useCurrency';
 
 const invoiceSchema = z.object({
   client_id: z.string().min(1, 'Cliente é obrigatório'),
@@ -75,6 +76,7 @@ interface InvoiceDialogProps {
 
 export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProps) {
   const { user } = useAuth();
+  const { formatCurrency } = useCurrency();
   const { data: clients } = useClients();
   const { data: quotes } = useQuotes();
   const { data: businessSettings } = useBusinessSettings(user?.id);
@@ -551,7 +553,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                 name="discount_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Desconto (AOA)</FormLabel>
+                    <FormLabel>Desconto</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -588,21 +590,21 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
             <div className="space-y-2 p-4 bg-muted rounded-lg">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
-                <span className="font-semibold">{subtotal.toFixed(2)} AOA</span>
+                <span className="font-semibold">{formatCurrency(subtotal)}</span>
               </div>
               {discountAmount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span>Desconto:</span>
-                  <span>-{discountAmount.toFixed(2)} AOA</span>
+                  <span>-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
                 <span>IVA ({taxRate}%):</span>
-                <span>{taxAmount.toFixed(2)} AOA</span>
+                <span>{formatCurrency(taxAmount)}</span>
               </div>
               <div className="flex justify-between text-lg font-bold pt-2 border-t">
                 <span>Total:</span>
-                <span>{total.toFixed(2)} AOA</span>
+                <span>{formatCurrency(total)}</span>
               </div>
             </div>
 
