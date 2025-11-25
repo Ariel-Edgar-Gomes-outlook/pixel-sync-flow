@@ -27,6 +27,7 @@ import { JobResources } from "./JobResources";
 import { ChecklistManager } from "./ChecklistManager";
 import { JobGalleryTab } from "./JobGalleryTab";
 import { PaymentPlanViewer } from "./PaymentPlanViewer";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface JobDetailsDialogProps {
   jobId: string;
@@ -47,6 +48,7 @@ const statusConfig = {
 export function JobDetailsDialog({ jobId, open, onOpenChange }: JobDetailsDialogProps) {
   const { data: job, isLoading } = useJob(jobId);
   const [activeTab, setActiveTab] = useState("details");
+  const { formatCurrency } = useCurrency();
 
   if (isLoading || !job) {
     return null;
@@ -157,10 +159,7 @@ export function JobDetailsDialog({ jobId, open, onOpenChange }: JobDetailsDialog
                     <div className="flex-1">
                       <p className="font-medium mb-1">Receita Estimada</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Intl.NumberFormat('pt-AO', {
-                          style: 'currency',
-                          currency: 'AOA'
-                        }).format(Number(job.estimated_revenue))}
+                        {formatCurrency(Number(job.estimated_revenue))}
                       </p>
                     </div>
                   </div>
@@ -175,10 +174,7 @@ export function JobDetailsDialog({ jobId, open, onOpenChange }: JobDetailsDialog
                     <div className="flex-1">
                       <p className="font-medium mb-1">Custo Estimado</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Intl.NumberFormat('pt-AO', {
-                          style: 'currency',
-                          currency: 'AOA'
-                        }).format(Number(job.estimated_cost))}
+                        {formatCurrency(Number(job.estimated_cost))}
                       </p>
                     </div>
                   </div>

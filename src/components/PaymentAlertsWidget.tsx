@@ -5,10 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Clock, ArrowRight } from 'lucide-react';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useNavigate } from 'react-router-dom';
+import { useCurrency } from '@/hooks/useCurrency';
 
 export function PaymentAlertsWidget() {
   const { data: invoices } = useInvoices();
   const navigate = useNavigate();
+  const { formatCurrency } = useCurrency();
 
   const { overdueInvoices, upcomingInvoices, totalOverdue, totalUpcoming } = useMemo(() => {
     if (!invoices) return { overdueInvoices: [], upcomingInvoices: [], totalOverdue: 0, totalUpcoming: 0 };
@@ -65,7 +67,7 @@ export function PaymentAlertsWidget() {
                 Faturas Vencidas ({overdueInvoices.length})
               </h4>
               <span className="text-sm font-bold text-destructive">
-                {totalOverdue.toFixed(2)} AOA
+                {formatCurrency(totalOverdue)}
               </span>
             </div>
             <div className="space-y-2">
@@ -85,7 +87,7 @@ export function PaymentAlertsWidget() {
                       </p>
                     </div>
                     <Badge variant="destructive" className="ml-2">
-                      {Number(invoice.total - (invoice.amount_paid || 0)).toFixed(2)} AOA
+                      {formatCurrency(invoice.total - (invoice.amount_paid || 0))}
                     </Badge>
                   </div>
                 );
@@ -102,7 +104,7 @@ export function PaymentAlertsWidget() {
                 Vencimento Próximo ({upcomingInvoices.length})
               </h4>
               <span className="text-sm font-bold text-warning">
-                {totalUpcoming.toFixed(2)} AOA
+                {formatCurrency(totalUpcoming)}
               </span>
             </div>
             <div className="space-y-2">
@@ -122,7 +124,7 @@ export function PaymentAlertsWidget() {
                       </p>
                     </div>
                     <Badge variant="outline" className="ml-2 border-warning text-warning">
-                      {Number(invoice.total - (invoice.amount_paid || 0)).toFixed(2)} AOA
+                      {formatCurrency(invoice.total - (invoice.amount_paid || 0))}
                     </Badge>
                   </div>
                 );

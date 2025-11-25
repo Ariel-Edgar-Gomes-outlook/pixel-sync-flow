@@ -23,6 +23,7 @@ import { useActionableAlerts } from "@/hooks/useActionableAlerts";
 import { useQuotes } from "@/hooks/useQuotes";
 import { useContracts } from "@/hooks/useContracts";
 import { useInvoices } from "@/hooks/useInvoices";
+import { useCurrency } from "@/hooks/useCurrency";
 
 const statusColors = {
   confirmed: "success",
@@ -61,6 +62,8 @@ export default function Dashboard() {
     data: invoices,
     isLoading: invoicesLoading
   } = useInvoices();
+  
+  const { formatCurrency } = useCurrency();
 
   // FASE 4: Automations removed from Dashboard (centralized in Layout)
 
@@ -142,7 +145,7 @@ export default function Dashboard() {
   
   const stats = [{
     name: "Receita Total",
-    value: `Kz ${totalRevenue.toFixed(0)}`,
+    value: formatCurrency(totalRevenue),
     change: `${Number(revenueChange) >= 0 ? '+' : ''}${revenueChange}%`,
     trend: Number(revenueChange) >= 0 ? "up" : "down",
     icon: DollarSign

@@ -5,6 +5,7 @@ import { CheckCircle2, Clock, XCircle, Calendar } from "lucide-react";
 import { usePaymentPlans } from "@/hooks/usePaymentPlans";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface PaymentPlanViewerProps {
   jobId?: string;
@@ -13,6 +14,7 @@ interface PaymentPlanViewerProps {
 
 export function PaymentPlanViewer({ jobId, quoteId }: PaymentPlanViewerProps) {
   const { data: plans, isLoading } = usePaymentPlans(jobId, quoteId);
+  const { formatCurrency } = useCurrency();
 
   const { data: payments } = useQuery({
     queryKey: ['plan-payments', plans?.[0]?.id],
@@ -81,10 +83,10 @@ export function PaymentPlanViewer({ jobId, quoteId }: PaymentPlanViewerProps) {
         <h3 className="text-lg font-semibold mb-2">Plano de Pagamento Fracionado</h3>
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-muted-foreground">
-            Pago: {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(totalPaid)}
+            Pago: {formatCurrency(totalPaid)}
           </span>
           <span className="text-sm font-medium">
-            Total: {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(Number(plan.total_amount))}
+            Total: {formatCurrency(Number(plan.total_amount))}
           </span>
         </div>
         <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
@@ -133,7 +135,7 @@ export function PaymentPlanViewer({ jobId, quoteId }: PaymentPlanViewerProps) {
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-semibold">
-                  {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(Number(payment.amount))}
+                  {formatCurrency(Number(payment.amount))}
                 </span>
                 <Badge variant={config.variant}>
                   <StatusIcon className="h-3 w-3 mr-1" />
