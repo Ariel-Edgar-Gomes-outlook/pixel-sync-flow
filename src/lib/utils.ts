@@ -41,3 +41,30 @@ export function formatCurrency(
     })}`;
   }
 }
+
+/**
+ * Formata um valor monetário para uso em PDFs (sem Intl API)
+ * @param amount - Valor a ser formatado
+ * @param currency - Código da moeda (AOA, EUR, USD, BRL)
+ */
+export function formatCurrencyForPDF(
+  amount: number | null | undefined,
+  currency: string = 'AOA'
+): string {
+  if (amount === null || amount === undefined) return '-';
+  
+  const currencySymbols: Record<string, string> = {
+    AOA: 'Kz',
+    EUR: '€',
+    USD: '$',
+    BRL: 'R$',
+  };
+  
+  const symbol = currencySymbols[currency] || currency;
+  const formattedNumber = amount.toLocaleString('pt-PT', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  
+  return `${symbol} ${formattedNumber}`;
+}
