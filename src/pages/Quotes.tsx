@@ -18,6 +18,7 @@ import { QuoteDialog } from "@/components/QuoteDialog";
 import { QuoteCard } from "@/components/QuoteCard";
 import { PaymentPlanDialog } from "@/components/PaymentPlanDialog";
 import { PDFViewerDialog } from '@/components/PDFViewerDialog';
+import { formatCurrency } from "@/lib/utils";
 import { EntityQuickLinks } from "@/components/EntityQuickLinks";
 import { WorkflowWizard } from "@/components/WorkflowWizard";
 import { exportToExcel, formatQuotesForExport } from "@/lib/exportUtils";
@@ -150,7 +151,7 @@ export default function Quotes() {
       if (quote.items && Array.isArray(quote.items)) {
         itemsDescription = '\n\nItens do Orçamento:\n' + 
           quote.items.map((item: any, idx: number) => 
-            `${idx + 1}. ${item.description || item.name} - ${item.quantity || 1}x ${Number(item.price || 0).toFixed(2)} ${quote.currency || 'AOA'}`
+            `${idx + 1}. ${item.description || item.name} - ${item.quantity || 1}x ${formatCurrency(item.price || 0, quote.currency || 'AOA')}`
           ).join('\n');
       }
 
@@ -162,7 +163,7 @@ export default function Quotes() {
         start_datetime: new Date().toISOString(),
         estimated_revenue: quote.total,
         estimated_cost: quote.total * 0.3,
-        description: `Orçamento #${quote.id.substring(0, 8)} aceito em ${new Date(quote.accepted_at).toLocaleDateString('pt-PT')}\n\nValor Total: ${Number(quote.total).toFixed(2)} ${quote.currency || 'AOA'}${itemsDescription}`,
+        description: `Orçamento #${quote.id.substring(0, 8)} aceito em ${new Date(quote.accepted_at).toLocaleDateString('pt-PT')}\n\nValor Total: ${formatCurrency(quote.total, quote.currency || 'AOA')}${itemsDescription}`,
         tags: ['orçamento-convertido'],
       };
 

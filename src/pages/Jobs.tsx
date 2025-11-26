@@ -15,6 +15,7 @@ import { QuickStartWizard } from "@/components/QuickStartWizard";
 import { JobRelationsPanel } from "@/components/JobRelationsPanel";
 import { exportToExcel, formatJobsForExport } from "@/lib/exportUtils";
 import { toast } from "sonner";
+import { useCurrency } from "@/hooks/useCurrency";
 
 const statusConfig = {
   confirmed: { label: "Confirmado", variant: "success" as const },
@@ -39,6 +40,7 @@ export default function Jobs() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { data: jobs, isLoading } = useJobs();
   const deleteJob = useDeleteJob();
+  const { formatCurrency } = useCurrency();
 
   const handleDeleteJob = async () => {
     if (!deleteJobId) return;
@@ -299,7 +301,7 @@ export default function Jobs() {
                       
                       <div className="flex items-center justify-between pt-2 border-t">
                         {job.estimated_revenue && (
-                          <div className="text-lg sm:text-xl font-bold text-foreground">Kz {Number(job.estimated_revenue).toFixed(0)}</div>
+                          <div className="text-lg sm:text-xl font-bold text-foreground">{formatCurrency(job.estimated_revenue)}</div>
                         )}
                         <div className="flex flex-wrap gap-1.5">
                           <Button 
