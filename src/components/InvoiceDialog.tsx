@@ -423,7 +423,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="issue_date"
@@ -447,6 +447,30 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Moeda</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-background">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-popover z-50">
+                        <SelectItem value="AOA">🇦🇴 Kwanza (Kz)</SelectItem>
+                        <SelectItem value="EUR">🇪🇺 Euro (€)</SelectItem>
+                        <SelectItem value="USD">🇺🇸 Dólar ($)</SelectItem>
+                        <SelectItem value="BRL">🇧🇷 Real (R$)</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
