@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreatePaymentPlan, type PaymentInstallment } from "@/hooks/usePaymentPlans";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2 } from "lucide-react";
@@ -151,11 +152,28 @@ export function PaymentPlanDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-muted p-4 rounded-lg">
-            <p className="text-sm text-muted-foreground">Valor Total</p>
-            <p className="text-2xl font-bold">
-              {formatCurrency(totalAmount)}
-            </p>
+          <div className="bg-muted p-4 rounded-lg grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+            <div>
+              <p className="text-sm text-muted-foreground">Valor Total</p>
+              <p className="text-2xl font-bold">
+                {formatCurrency(totalAmount)}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="plan_currency" className="text-xs text-muted-foreground">Moeda do Plano</Label>
+              <Select value={currencyCode} disabled>
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="AOA">🇦🇴 Kwanza (Kz)</SelectItem>
+                  <SelectItem value="EUR">🇪🇺 Euro (€)</SelectItem>
+                  <SelectItem value="USD">🇺🇸 Dólar ($)</SelectItem>
+                  <SelectItem value="BRL">🇧🇷 Real (R$)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Baseado na moeda do documento</p>
+            </div>
           </div>
 
           <div className="space-y-4">

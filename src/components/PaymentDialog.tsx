@@ -203,20 +203,39 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
                 Valor do Pagamento <span className="text-destructive">*</span>
               </Label>
             </div>
-            <div className="relative">
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                className="text-xl sm:text-2xl font-bold h-12 sm:h-14 bg-background pr-16 sm:pr-20"
-                value={formData.amount || ''}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                placeholder="0.00"
-                required
-              />
-              <span className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-lg sm:text-xl font-semibold text-muted-foreground">
-                {formData.currency}
-              </span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-2 relative">
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  className="text-xl sm:text-2xl font-bold h-12 sm:h-14 bg-background pr-16 sm:pr-20"
+                  value={formData.amount || ''}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  placeholder="0.00"
+                  required
+                />
+                <span className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-lg sm:text-xl font-semibold text-muted-foreground">
+                  {formData.currency}
+                </span>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="currency" className="text-xs">Moeda</Label>
+                <Select
+                  value={formData.currency}
+                  onValueChange={(value) => setFormData({ ...formData, currency: value })}
+                >
+                  <SelectTrigger className="bg-background h-12 sm:h-14">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="AOA">🇦🇴 Kwanza (Kz)</SelectItem>
+                    <SelectItem value="EUR">🇪🇺 Euro (€)</SelectItem>
+                    <SelectItem value="USD">🇺🇸 Dólar ($)</SelectItem>
+                    <SelectItem value="BRL">🇧🇷 Real (R$)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
               Digite o valor que está sendo recebido ou pago
