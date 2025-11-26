@@ -46,6 +46,7 @@ import { toast } from 'sonner';
 import { Plus, Trash2, FileText, FileCheck } from 'lucide-react';
 import { useCurrency } from '@/hooks/useCurrency';
 import { formatCurrency } from '@/lib/utils';
+import { useClientPreferredCurrency } from '@/hooks/useClientPreferredCurrency';
 
 const invoiceSchema = z.object({
   client_id: z.string().min(1, 'Cliente é obrigatório'),
@@ -105,6 +106,22 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
       status: 'issued',
     },
   });
+
+  // Sugestão inteligente de moeda baseada no histórico do cliente
+  const selectedClientId = form.watch('client_id');
+  const { data: clientCurrencyData } = useClientPreferredCurrency(selectedClientId);
+
+  useEffect(() => {
+    if (clientCurrencyData?.preferredCurrency && !invoice && selectedClientId) {
+      const currentCurrency = form.getValues('currency');
+      if (currentCurrency !== clientCurrencyData.preferredCurrency) {
+        form.setValue('currency', clientCurrencyData.preferredCurrency);
+        toast.success(`Moeda sugerida: ${clientCurrencyData.preferredCurrency}`, {
+          description: `Baseado em ${clientCurrencyData.totalTransactions} transação(ões) anteriores deste cliente`,
+        });
+      }
+    }
+  }, [clientCurrencyData, selectedClientId, invoice, form]);
 
   useEffect(() => {
     if (invoice) {

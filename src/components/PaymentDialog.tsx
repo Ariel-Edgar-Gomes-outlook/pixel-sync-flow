@@ -16,6 +16,7 @@ import { FileUpload } from "@/components/FileUpload";
 import { toast } from "sonner";
 import { Wallet, DollarSign, FileText, CreditCard, User, Receipt, Trash2 } from "lucide-react";
 import { useCurrency } from "@/hooks/useCurrency";
+import { useClientPreferredCurrency } from "@/hooks/useClientPreferredCurrency";
 
 interface PaymentDialogProps {
   payment?: Payment | null;
@@ -59,6 +60,20 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
   // Calculate invoice pending amount if invoice is selected
   const selectedInvoice = invoices?.find(i => i.id === formData.invoice_id);
   const invoicePendingAmount = selectedInvoice ? Number(selectedInvoice.total) - Number(selectedInvoice.amount_paid) : 0;
+
+  // Sugestão inteligente de moeda baseada no histórico do cliente
+  const { data: clientCurrencyData } = useClientPreferredCurrency(formData.client_id);
+
+  useEffect(() => {
+    if (clientCurrencyData?.preferredCurrency && !payment && formData.client_id) {
+      if (formData.currency !== clientCurrencyData.preferredCurrency) {
+        setFormData(prev => ({ ...prev, currency: clientCurrencyData.preferredCurrency! }));
+        toast.success(`Moeda sugerida: ${clientCurrencyData.preferredCurrency}`, {
+          description: `Baseado em ${clientCurrencyData.totalTransactions} transação(ões) anteriores deste cliente`,
+        });
+      }
+    }
+  }, [clientCurrencyData, formData.client_id, payment]);
 
   useEffect(() => {
     if (payment) {
