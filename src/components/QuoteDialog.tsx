@@ -18,6 +18,7 @@ import { useUpdateQuote as useUpdateQuoteMutation } from "@/hooks/useQuotes";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useCurrency } from "@/hooks/useCurrency";
+import { useClientPreferredCurrency } from "@/hooks/useClientPreferredCurrency";
 
 interface QuoteDialogProps {
   children?: React.ReactNode;
@@ -59,6 +60,20 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
 
   const actualOpen = open !== undefined ? open : isOpen;
   const actualOnOpenChange = onOpenChange || setIsOpen;
+
+  // Sugestão inteligente de moeda baseada no histórico do cliente
+  const { data: clientCurrencyData } = useClientPreferredCurrency(formData.client_id);
+
+  useEffect(() => {
+    if (clientCurrencyData?.preferredCurrency && !quote && formData.client_id) {
+      if (formData.currency !== clientCurrencyData.preferredCurrency) {
+        setFormData(prev => ({ ...prev, currency: clientCurrencyData.preferredCurrency! }));
+        toast.success(`Moeda sugerida: ${clientCurrencyData.preferredCurrency}`, {
+          description: `Baseado em ${clientCurrencyData.totalTransactions} transação(ões) anteriores deste cliente`,
+        });
+      }
+    }
+  }, [clientCurrencyData, formData.client_id, quote]);
 
   useEffect(() => {
     if (quote) {
