@@ -35,7 +35,7 @@ export function TemplateManager({ type }: TemplateManagerProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<{ id: string; name: string } | null>(null);
-  const { currencyInfo } = useCurrency();
+  const { currencyInfo, currencyCode } = useCurrency();
   const [formData, setFormData] = useState<any>({
     name: '',
     job_type: 'Casamento',
@@ -44,7 +44,7 @@ export function TemplateManager({ type }: TemplateManagerProps) {
     cancellation_fee: 0,
     tax: 14,
     discount: 0,
-    currency: 'AOA',
+    currency: currencyCode,
     notes: '',
     estimated_time: null,
     clauses: {
@@ -184,7 +184,7 @@ export function TemplateManager({ type }: TemplateManagerProps) {
       cancellation_fee: template.cancellation_fee || 0,
       tax: template.tax || 14,
       discount: template.discount || 0,
-      currency: template.currency || 'AOA',
+      currency: template.currency || currencyCode,
       notes: template.notes || '',
       estimated_time: template.estimated_time || null,
       clauses: template.clauses || {
@@ -209,7 +209,7 @@ export function TemplateManager({ type }: TemplateManagerProps) {
       cancellation_fee: 0,
       tax: 14,
       discount: 0,
-      currency: 'AOA',
+      currency: currencyCode,
       notes: '',
       estimated_time: null,
       clauses: {

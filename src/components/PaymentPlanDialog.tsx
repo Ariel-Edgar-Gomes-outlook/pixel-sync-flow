@@ -32,7 +32,7 @@ export function PaymentPlanDialog({
 
   const createPaymentPlan = useCreatePaymentPlan();
   const { toast } = useToast();
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency, currencyCode } = useCurrency();
 
   const calculateAmount = (percentage: number) => {
     return (totalAmount * percentage) / 100;
@@ -113,7 +113,7 @@ export function PaymentPlanDialog({
           status: 'pending' as const,
           due_date: inst.due_date,
           notes: inst.description,
-          currency: 'AOA',
+          currency: currencyCode,
           created_by: user?.id,
         }));
 

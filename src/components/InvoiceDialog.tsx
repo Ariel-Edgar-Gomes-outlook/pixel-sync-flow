@@ -61,7 +61,7 @@ const invoiceSchema = z.object({
   })).min(1, 'Adicione pelo menos um item'),
   discount_amount: z.number().min(0).default(0),
   tax_rate: z.number().default(14),
-  currency: z.string().default('AOA'),
+  currency: z.string(),
   notes: z.string().optional().transform(val => val === '' ? undefined : val),
   payment_instructions: z.string().optional().transform(val => val === '' ? undefined : val),
   status: z.enum(['issued', 'paid', 'overdue', 'cancelled', 'partial']).default('issued'),
@@ -77,7 +77,7 @@ interface InvoiceDialogProps {
 
 export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProps) {
   const { user } = useAuth();
-  const { formatCurrency: formatCurrencyHook } = useCurrency();
+  const { formatCurrency: formatCurrencyHook, currencyCode } = useCurrency();
   const { data: clients } = useClients();
   const { data: quotes } = useQuotes();
   const { data: businessSettings } = useBusinessSettings(user?.id);
@@ -99,7 +99,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
       items: [{ description: '', quantity: 1, unit_price: 0, total: 0 }],
       discount_amount: 0,
       tax_rate: 14,
-      currency: 'AOA',
+      currency: currencyCode,
       notes: '',
       payment_instructions: businessSettings?.payment_terms || '',
       status: 'issued',
@@ -151,7 +151,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
         
         // Auto-fill discount and currency
         form.setValue('discount_amount', Number(selectedQuote.discount) || 0);
-        form.setValue('currency', selectedQuote.currency || 'AOA');
+        form.setValue('currency', selectedQuote.currency || currencyCode);
         
         // Calculate tax from quote total
         const quoteSubtotal = Number(selectedQuote.total) - Number(selectedQuote.tax || 0);
