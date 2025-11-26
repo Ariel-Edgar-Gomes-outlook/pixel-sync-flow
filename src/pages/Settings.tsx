@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useUserPreferences, useUpdateUserPreferences } from "@/hooks/useUserPreferences";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { CustomCurrencyManager } from "@/components/CustomCurrencyManager";
 import { Settings as SettingsIcon, User, Bell, Shield, Activity, Moon, Sun, Building2, Globe } from "lucide-react";
 import { AuditLogViewer } from "@/components/AuditLogViewer";
 import { NotificationSettings } from "@/components/NotificationSettings";
@@ -286,6 +287,8 @@ export default function Settings() {
             <PopulateTestDataButton />
             <ClearTestDataButton />
             
+            <CustomCurrencyManager />
+            
             <Card className="border-primary/20 bg-gradient-to-br from-card to-card/50">
               <div className="p-6">
                 <div className="flex items-center gap-3 mb-6">
@@ -328,11 +331,33 @@ export default function Settings() {
                 <SelectTrigger id="currency">
                   <SelectValue placeholder="Selecione a moeda" />
                 </SelectTrigger>
-                <SelectContent className="bg-popover">
+                <SelectContent className="bg-popover max-h-[300px]">
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Moedas Africanas</div>
                   <SelectItem value="AOA">AOA - Kwanza Angolano (Kz)</SelectItem>
-                  <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
+                  <SelectItem value="ZAR">ZAR - Rand Sul-Africano (R)</SelectItem>
+                  <SelectItem value="MZN">MZN - Metical Moçambicano (MT)</SelectItem>
+                  <SelectItem value="NGN">NGN - Naira Nigeriana (₦)</SelectItem>
+                  <SelectItem value="KES">KES - Xelim Queniano (KSh)</SelectItem>
+                  <SelectItem value="GHS">GHS - Cedi Ganês (₵)</SelectItem>
+                  <SelectItem value="EGP">EGP - Libra Egípcia (E£)</SelectItem>
+                  <SelectItem value="MAD">MAD - Dirham Marroquino (د.م.)</SelectItem>
+                  <SelectItem value="XOF">XOF - Franco CFA Ocidental (CFA)</SelectItem>
+                  <SelectItem value="XAF">XAF - Franco CFA Central (FCFA)</SelectItem>
+                  <SelectItem value="TZS">TZS - Xelim Tanzaniano (TSh)</SelectItem>
+                  <SelectItem value="UGX">UGX - Xelim Ugandense (USh)</SelectItem>
+                  <SelectItem value="ZMW">ZMW - Kwacha Zambiano (ZK)</SelectItem>
+                  <SelectItem value="BWP">BWP - Pula Botsuano (P)</SelectItem>
+                  
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Moedas Principais</div>
                   <SelectItem value="USD">USD - Dólar Americano ($)</SelectItem>
+                  <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
+                  <SelectItem value="GBP">GBP - Libra Esterlina (£)</SelectItem>
                   <SelectItem value="BRL">BRL - Real Brasileiro (R$)</SelectItem>
+                  <SelectItem value="JPY">JPY - Iene Japonês (¥)</SelectItem>
+                  <SelectItem value="CNY">CNY - Yuan Chinês (¥)</SelectItem>
+                  <SelectItem value="CHF">CHF - Franco Suíço (CHF)</SelectItem>
+                  <SelectItem value="CAD">CAD - Dólar Canadense (C$)</SelectItem>
+                  <SelectItem value="AUD">AUD - Dólar Australiano (A$)</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">Moeda utilizada em faturas, orçamentos, pagamentos e relatórios em todo o sistema</p>

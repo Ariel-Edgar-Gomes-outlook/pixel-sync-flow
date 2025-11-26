@@ -1510,6 +1510,7 @@ export type Database = {
         Row: {
           created_at: string | null
           currency: string | null
+          custom_currencies: Json | null
           date_format: string | null
           has_seen_onboarding: boolean | null
           id: string
@@ -1521,6 +1522,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           currency?: string | null
+          custom_currencies?: Json | null
           date_format?: string | null
           has_seen_onboarding?: boolean | null
           id?: string
@@ -1532,6 +1534,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           currency?: string | null
+          custom_currencies?: Json | null
           date_format?: string | null
           has_seen_onboarding?: boolean | null
           id?: string
