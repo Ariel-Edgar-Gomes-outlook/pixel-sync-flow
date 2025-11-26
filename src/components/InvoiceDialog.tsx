@@ -45,6 +45,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Trash2, FileText, FileCheck } from 'lucide-react';
 import { useCurrency } from '@/hooks/useCurrency';
+import { formatCurrency } from '@/lib/utils';
 
 const invoiceSchema = z.object({
   client_id: z.string().min(1, 'Cliente é obrigatório'),
@@ -76,7 +77,7 @@ interface InvoiceDialogProps {
 
 export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProps) {
   const { user } = useAuth();
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency: formatCurrencyHook } = useCurrency();
   const { data: clients } = useClients();
   const { data: quotes } = useQuotes();
   const { data: businessSettings } = useBusinessSettings(user?.id);
@@ -348,11 +349,9 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
                                            quote.status === 'rejected' ? 'Rejeitado' : quote.status}
                                         </span>
                                       </div>
-                                      <span className="text-muted-foreground text-sm font-mono">
-                                        {quote.total?.toLocaleString('pt-PT', { 
-                                          minimumFractionDigits: 2 
-                                        })} {quote.currency || 'AOA'}
-                                      </span>
+                                       <span className="text-muted-foreground text-sm font-mono">
+                                         {formatCurrency(quote.total, quote.currency || 'AOA')}
+                                       </span>
                                     </div>
                                   </SelectItem>
                                 ))

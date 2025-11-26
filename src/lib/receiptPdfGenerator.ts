@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { supabase } from '@/integrations/supabase/client';
+import { formatCurrencyForPDF } from '@/lib/utils';
 
 interface Payment {
   id: string;
@@ -277,11 +278,11 @@ export async function generateReceiptPDF(
   doc.setTextColor(40, 40, 40);
   doc.setFont('helvetica', 'normal');
   doc.text('Total da Fatura:', 25, yPos);
-  doc.text(`${Number(invoice.total).toFixed(2)} ${invoice.currency || 'AOA'}`, pageWidth - 25, yPos, { align: 'right' });
+  doc.text(formatCurrencyForPDF(Number(invoice.total), invoice.currency || 'AOA'), pageWidth - 25, yPos, { align: 'right' });
   
   yPos += 7;
   doc.text('Valor já Pago:', 25, yPos);
-  doc.text(`${Number(invoice.amount_paid || 0).toFixed(2)} ${invoice.currency || 'AOA'}`, pageWidth - 25, yPos, { align: 'right' });
+  doc.text(formatCurrencyForPDF(Number(invoice.amount_paid || 0), invoice.currency || 'AOA'), pageWidth - 25, yPos, { align: 'right' });
   
   yPos += 10;
   
@@ -293,7 +294,7 @@ export async function generateReceiptPDF(
   doc.setFontSize(12);
   doc.setTextColor(255, 255, 255);
   doc.text('Valor deste Recibo:', 25, yPos);
-  doc.text(`${Number(payment.amount).toFixed(2)} ${invoice.currency || 'AOA'}`, pageWidth - 25, yPos, { align: 'right' });
+  doc.text(formatCurrencyForPDF(Number(payment.amount), invoice.currency || 'AOA'), pageWidth - 25, yPos, { align: 'right' });
   
   // Footer with signature
   yPos = pageHeight - 50;

@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { supabase } from '@/integrations/supabase/client';
 import type { BusinessSettings } from '@/hooks/useBusinessSettings';
+import { formatCurrencyForPDF } from '@/lib/utils';
 
 // ============================================
 // IMAGE CACHE FOR PERFORMANCE
@@ -279,8 +280,8 @@ export class ProfessionalPDFGenerator {
     const tableData = invoiceData.items.map(item => [
       item.description,
       item.quantity.toString(),
-      `${item.unit_price.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`,
-      `${item.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`
+      formatCurrencyForPDF(item.unit_price, invoiceData.currency),
+      formatCurrencyForPDF(item.total, invoiceData.currency)
     ]);
 
     autoTable(this.doc, {
@@ -322,7 +323,7 @@ export class ProfessionalPDFGenerator {
     // Subtotal
     this.doc.text('Subtotal:', labelX, yPos);
     this.doc.text(
-      `${invoiceData.subtotal.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`,
+      formatCurrencyForPDF(invoiceData.subtotal, invoiceData.currency),
       valueX,
       yPos,
       { align: 'right' }
@@ -333,7 +334,7 @@ export class ProfessionalPDFGenerator {
     if (invoiceData.discount_amount > 0) {
       this.doc.text('Desconto:', labelX, yPos);
       this.doc.text(
-        `-${invoiceData.discount_amount.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`,
+        `-${formatCurrencyForPDF(invoiceData.discount_amount, invoiceData.currency)}`,
         valueX,
         yPos,
         { align: 'right' }
@@ -344,7 +345,7 @@ export class ProfessionalPDFGenerator {
     // Tax
     this.doc.text(`IVA (${invoiceData.tax_rate}%):`, labelX, yPos);
     this.doc.text(
-      `${invoiceData.tax_amount.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`,
+      formatCurrencyForPDF(invoiceData.tax_amount, invoiceData.currency),
       valueX,
       yPos,
       { align: 'right' }
@@ -357,7 +358,7 @@ export class ProfessionalPDFGenerator {
     this.doc.setTextColor(...this.primaryColor);
     this.doc.text('TOTAL:', labelX, yPos);
     this.doc.text(
-      `${invoiceData.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} ${invoiceData.currency}`,
+      formatCurrencyForPDF(invoiceData.total, invoiceData.currency),
       valueX,
       yPos,
       { align: 'right' }
@@ -1045,8 +1046,8 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
   const tableData = items.map((item: any) => [
     item.description || item.name,
     (item.quantity || 1).toString(),
-    `${quote.currency} ${Number(item.price || 0).toLocaleString('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    `${quote.currency} ${((item.quantity || 1) * (item.price || 0)).toLocaleString('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    formatCurrencyForPDF(Number(item.price || 0), quote.currency),
+    formatCurrencyForPDF((item.quantity || 1) * (item.price || 0), quote.currency),
   ]);
 
   autoTable(doc, {
@@ -1101,18 +1102,18 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
 
   // Subtotal
   doc.text('Subtotal:', totalsBoxX + 5, calcY);
-  doc.text(`${currency} ${subtotal.toLocaleString('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, pageWidth - 15, calcY, { align: 'right' });
+  doc.text(formatCurrencyForPDF(subtotal, currency), pageWidth - 15, calcY, { align: 'right' });
 
   if (taxRate > 0) {
     calcY += 7;
     doc.text(`IVA (${taxRate}%):`, totalsBoxX + 5, calcY);
-    doc.text(`${currency} ${taxAmount.toLocaleString('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, pageWidth - 15, calcY, { align: 'right' });
+    doc.text(formatCurrencyForPDF(taxAmount, currency), pageWidth - 15, calcY, { align: 'right' });
   }
 
   if (discountAmount > 0) {
     calcY += 7;
     doc.text(`Desconto:`, totalsBoxX + 5, calcY);
-    doc.text(`-${currency} ${discountAmount.toLocaleString('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, pageWidth - 15, calcY, { align: 'right' });
+    doc.text(`-${formatCurrencyForPDF(discountAmount, currency)}`, pageWidth - 15, calcY, { align: 'right' });
   }
 
   calcY += 10;
@@ -1125,7 +1126,7 @@ export async function generateQuotePDFLocal(quoteId: string): Promise<Blob> {
   doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
   doc.text('TOTAL:', totalsBoxX + 5, calcY + 2);
-  doc.text(`${currency} ${total.toLocaleString('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, pageWidth - 15, calcY + 2, { align: 'right' });
+  doc.text(formatCurrencyForPDF(total, currency), pageWidth - 15, calcY + 2, { align: 'right' });
 
   calcY += 20;
 
@@ -1474,18 +1475,18 @@ export async function generateReceiptPDFLocal(paymentId: string): Promise<Blob> 
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'normal');
   doc.text('Total da Fatura:', 25, yPos);
-  doc.text(`${Number(payment.invoices.total).toFixed(2)} ${payment.invoices.currency || 'AOA'}`, pageWidth - 25, yPos, { align: 'right' });
+  doc.text(formatCurrencyForPDF(Number(payment.invoices.total), payment.invoices.currency || 'AOA'), pageWidth - 25, yPos, { align: 'right' });
   
   yPos += 7;
   doc.text('Valor já Pago:', 25, yPos);
-  doc.text(`${Number(payment.invoices.amount_paid || 0).toFixed(2)} ${payment.invoices.currency || 'AOA'}`, pageWidth - 25, yPos, { align: 'right' });
+  doc.text(formatCurrencyForPDF(Number(payment.invoices.amount_paid || 0), payment.invoices.currency || 'AOA'), pageWidth - 25, yPos, { align: 'right' });
   
   yPos += 7;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   doc.setTextColor(r, g, b);
   doc.text('Valor deste Recibo:', 25, yPos);
-  doc.text(`${Number(payment.amount).toFixed(2)} ${payment.invoices.currency || 'AOA'}`, pageWidth - 25, yPos, { align: 'right' });
+  doc.text(formatCurrencyForPDF(Number(payment.amount), payment.invoices.currency || 'AOA'), pageWidth - 25, yPos, { align: 'right' });
   
   // Watermark for paid receipts
   if (payment.status === 'paid') {

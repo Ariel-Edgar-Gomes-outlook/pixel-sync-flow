@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { supabase } from '@/integrations/supabase/client';
 import type { BusinessSettings } from '@/hooks/useBusinessSettings';
+import { formatCurrencyForPDF } from '@/lib/utils';
 
 interface InvoiceData {
   invoice_number: string;
@@ -207,8 +208,8 @@ export class ProfessionalPDFGenerator {
     const tableData = invoiceData.items.map((item, index) => [
       (index + 1).toString(),
       item.description,
-      `${item.unit_price.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
-      `${item.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`
+      formatCurrencyForPDF(item.unit_price, invoiceData.currency),
+      formatCurrencyForPDF(item.total, invoiceData.currency)
     ]);
 
     autoTable(this.doc, {
@@ -267,7 +268,7 @@ export class ProfessionalPDFGenerator {
     // Subtotal
     this.doc.text('Sub Total:', labelX, yPos);
     this.doc.text(
-      `${invoiceData.currency} ${invoiceData.subtotal.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
+      formatCurrencyForPDF(invoiceData.subtotal, invoiceData.currency),
       rightX,
       yPos,
       { align: 'right' }
@@ -278,7 +279,7 @@ export class ProfessionalPDFGenerator {
     if (invoiceData.discount_amount > 0) {
       this.doc.text('Desconto:', labelX, yPos);
       this.doc.text(
-        `-${invoiceData.currency} ${invoiceData.discount_amount.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
+        `-${formatCurrencyForPDF(invoiceData.discount_amount, invoiceData.currency)}`,
         rightX,
         yPos,
         { align: 'right' }
@@ -290,7 +291,7 @@ export class ProfessionalPDFGenerator {
     if (invoiceData.tax_amount > 0) {
       this.doc.text(`IVA (${invoiceData.tax_rate}%):`, labelX, yPos);
       this.doc.text(
-        `${invoiceData.currency} ${invoiceData.tax_amount.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
+        formatCurrencyForPDF(invoiceData.tax_amount, invoiceData.currency),
         rightX,
         yPos,
         { align: 'right' }
@@ -312,7 +313,7 @@ export class ProfessionalPDFGenerator {
     this.doc.setTextColor(40, 40, 40);
     this.doc.text('TOTAL:', labelX, yPos);
     this.doc.text(
-      `${invoiceData.currency} ${invoiceData.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`,
+      formatCurrencyForPDF(invoiceData.total, invoiceData.currency),
       rightX,
       yPos,
       { align: 'right' }

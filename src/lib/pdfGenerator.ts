@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { supabase } from '@/integrations/supabase/client';
+import { formatCurrencyForPDF } from '@/lib/utils';
 
 export interface QuoteData {
   id: string;
@@ -48,8 +49,8 @@ export async function generateQuotePDF(quote: QuoteData): Promise<string> {
   const tableData = quote.items.map((item: any) => [
     item.description,
     item.quantity.toString(),
-    `${quote.currency} ${Number(item.price).toFixed(2)}`,
-    `${quote.currency} ${(item.quantity * item.price).toFixed(2)}`,
+    formatCurrencyForPDF(Number(item.price), quote.currency),
+    formatCurrencyForPDF(item.quantity * item.price, quote.currency),
   ]);
   
   autoTable(doc, {
@@ -67,22 +68,22 @@ export async function generateQuotePDF(quote: QuoteData): Promise<string> {
   const discountAmount = subtotal * (quote.discount / 100);
   
   doc.text('Subtotal:', 130, finalY + 15);
-  doc.text(`${quote.currency} ${subtotal.toFixed(2)}`, 180, finalY + 15, { align: 'right' });
+  doc.text(formatCurrencyForPDF(subtotal, quote.currency), 180, finalY + 15, { align: 'right' });
   
   if (quote.tax > 0) {
     doc.text(`IVA (${quote.tax}%):`, 130, finalY + 22);
-    doc.text(`${quote.currency} ${taxAmount.toFixed(2)}`, 180, finalY + 22, { align: 'right' });
+    doc.text(formatCurrencyForPDF(taxAmount, quote.currency), 180, finalY + 22, { align: 'right' });
   }
   
   if (quote.discount > 0) {
     doc.text(`Desconto (${quote.discount}%):`, 130, finalY + 29);
-    doc.text(`-${quote.currency} ${discountAmount.toFixed(2)}`, 180, finalY + 29, { align: 'right' });
+    doc.text(`-${formatCurrencyForPDF(discountAmount, quote.currency)}`, 180, finalY + 29, { align: 'right' });
   }
   
   doc.setFontSize(12);
   doc.setFont(undefined, 'bold');
   doc.text('TOTAL:', 130, finalY + 40);
-  doc.text(`${quote.currency} ${quote.total.toFixed(2)}`, 180, finalY + 40, { align: 'right' });
+  doc.text(formatCurrencyForPDF(quote.total, quote.currency), 180, finalY + 40, { align: 'right' });
   
   // Footer
   doc.setFontSize(8);
@@ -340,7 +341,7 @@ export async function generateProfessionalContractPDF(contract: ProfessionalCont
   if (contract.cancellation_fee && contract.cancellation_fee > 0) {
     addSection(
       '8. TAXA DE CANCELAMENTO',
-      `Em caso de cancelamento, será aplicada uma taxa de ${contract.cancellation_fee.toFixed(2)} AOA conforme política de cancelamento.`
+      `Em caso de cancelamento, será aplicada uma taxa de ${formatCurrencyForPDF(contract.cancellation_fee, 'AOA')} conforme política de cancelamento.`
     );
   }
 
@@ -663,8 +664,8 @@ export async function generateProfessionalQuotePDF(quote: ProfessionalQuoteData)
   const tableData = quote.items.map((item: any) => [
     item.description || item.name,
     (item.quantity || 1).toString(),
-    `${Number(item.price || 0).toFixed(2)} ${quote.currency}`,
-    `${((item.quantity || 1) * (item.price || 0)).toFixed(2)} ${quote.currency}`,
+    formatCurrencyForPDF(Number(item.price || 0), quote.currency),
+    formatCurrencyForPDF((item.quantity || 1) * (item.price || 0), quote.currency),
   ]);
 
   autoTable(doc, {
@@ -722,19 +723,19 @@ export async function generateProfessionalQuotePDF(quote: ProfessionalQuoteData)
   const valueX = pageWidth - 25;
 
   doc.text('Subtotal:', labelX, calcY);
-  doc.text(`${subtotal.toFixed(2)} ${quote.currency}`, valueX, calcY, { align: 'right' });
+  doc.text(formatCurrencyForPDF(subtotal, quote.currency), valueX, calcY, { align: 'right' });
 
   if (quote.tax > 0) {
     calcY += 6;
     doc.text(`IVA (${quote.tax}%):`, labelX, calcY);
-    doc.text(`${taxAmount.toFixed(2)} ${quote.currency}`, valueX, calcY, { align: 'right' });
+    doc.text(formatCurrencyForPDF(taxAmount, quote.currency), valueX, calcY, { align: 'right' });
   }
 
   if (quote.discount > 0) {
     calcY += 6;
     doc.setTextColor(220, 38, 38);
     doc.text(`Desconto:`, labelX, calcY);
-    doc.text(`-${discountAmount.toFixed(2)} ${quote.currency}`, valueX, calcY, { align: 'right' });
+    doc.text(`-${formatCurrencyForPDF(discountAmount, quote.currency)}`, valueX, calcY, { align: 'right' });
     doc.setTextColor(70, 70, 70);
   }
 
@@ -748,7 +749,7 @@ export async function generateProfessionalQuotePDF(quote: ProfessionalQuoteData)
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
   doc.text('TOTAL:', labelX, calcY + 2);
-  doc.text(`${Number(quote.total).toFixed(2)} ${quote.currency}`, valueX, calcY + 2, { align: 'right' });
+  doc.text(formatCurrencyForPDF(Number(quote.total), quote.currency), valueX, calcY + 2, { align: 'right' });
 
   // Payment Terms
   if (businessSettings?.payment_terms) {
