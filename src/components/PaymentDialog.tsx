@@ -26,7 +26,7 @@ interface PaymentDialogProps {
 
 export default function PaymentDialog({ payment, open, onOpenChange, children }: PaymentDialogProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency, currencyCode } = useCurrency();
   const [formData, setFormData] = useState<{
     client_id: string;
     quote_id: string;
@@ -45,7 +45,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
     type: "servico",
     status: "pending",
     method: "",
-    currency: "AOA",
+    currency: currencyCode,
     notes: "",
   });
 
@@ -70,7 +70,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
         type: payment.type || "servico",
         status: payment.status || "pending",
         method: payment.method || "",
-        currency: payment.currency || "AOA",
+        currency: payment.currency || currencyCode,
         notes: payment.notes || "",
       });
     } else {
@@ -158,7 +158,7 @@ export default function PaymentDialog({ payment, open, onOpenChange, children }:
       type: "servico",
       status: "pending",
       method: "",
-      currency: "AOA",
+      currency: currencyCode,
       notes: "",
     });
   };

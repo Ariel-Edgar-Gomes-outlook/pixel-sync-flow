@@ -35,7 +35,7 @@ interface QuoteItem {
 export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const { formatCurrency } = useCurrency();
+  const { formatCurrency, currencyCode } = useCurrency();
   const [formData, setFormData] = useState({
     client_id: "",
     job_id: null as string | null,
@@ -45,7 +45,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
     discount: 0,
     validity_date: "",
     status: "draft" as Quote['status'],
-    currency: "AOA",
+    currency: currencyCode,
   });
 
   const createQuote = useCreateQuote();
@@ -71,7 +71,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
         discount: Number(quote.discount) || 0,
         validity_date: quote.validity_date || "",
         status: quote.status,
-        currency: quote.currency || "AOA",
+        currency: quote.currency || currencyCode,
       });
     }
   }, [quote]);
@@ -217,7 +217,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
       discount: 0,
       validity_date: "",
       status: "draft",
-      currency: "AOA",
+      currency: currencyCode,
     });
   };
 
@@ -236,7 +236,7 @@ export function QuoteDialog({ children, quote, open, onOpenChange }: QuoteDialog
       items: template.items || [],
       tax: Number(template.tax) || 0,
       discount: Number(template.discount) || 0,
-      currency: template.currency || "AOA",
+      currency: template.currency || currencyCode,
     }));
     toast.success("Template aplicado!");
   };
