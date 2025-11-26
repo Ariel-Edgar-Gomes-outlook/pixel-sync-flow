@@ -2,6 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+export interface CustomCurrency {
+  code: string;
+  symbol: string;
+  name: string;
+  locale?: string;
+}
+
 export interface UserPreferences {
   id: string;
   user_id: string;
@@ -10,6 +17,7 @@ export interface UserPreferences {
   language: string;
   date_format: string;
   has_seen_onboarding?: boolean;
+  custom_currencies?: CustomCurrency[];
   created_at: string;
   updated_at: string;
 }
@@ -44,10 +52,16 @@ export function useUpdateUserPreferences() {
         .eq('user_id', userId)
         .maybeSingle();
 
+      // Convert custom_currencies to Json type
+      const dbUpdates: any = { ...updates };
+      if (updates.custom_currencies) {
+        dbUpdates.custom_currencies = updates.custom_currencies as any;
+      }
+
       if (existing) {
         const { data, error } = await supabase
           .from('user_preferences')
-          .update(updates)
+          .update(dbUpdates)
           .eq('user_id', userId)
           .select()
           .single();
@@ -57,7 +71,7 @@ export function useUpdateUserPreferences() {
       } else {
         const { data, error } = await supabase
           .from('user_preferences')
-          .insert({ user_id: userId, ...updates })
+          .insert({ user_id: userId, ...dbUpdates })
           .select()
           .single();
 
