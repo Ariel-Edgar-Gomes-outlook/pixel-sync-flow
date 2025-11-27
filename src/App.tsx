@@ -42,6 +42,7 @@ import TeamMembers from "./pages/TeamMembers";
 import Subscription from "./pages/Subscription";
 import Support from "./pages/Support";
 import ImprovementSuggestions from "./pages/ImprovementSuggestions";
+import Documentation from "./pages/Documentation";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ function AppContent() {
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
         <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+        <Route path="/documentation" element={<ProtectedRoute><Documentation /></ProtectedRoute>} />
         
         {/* Admin Routes */}
         <Route path="/admin/login" element={
@@ -118,6 +120,7 @@ function AppContent() {
           <Route path="settings" element={<Settings />} />
           <Route path="subscription" element={<Subscription />} />
           <Route path="support" element={<Support />} />
+          <Route path="documentation" element={<Documentation />} />
           <Route path="team-members" element={<TeamMembers />} />
         </Route>
         <Route path="*" element={<NotFound />} />
