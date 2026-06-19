@@ -290,15 +290,19 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
         
         // Increment invoice number in business_settings
         if (businessSettings) {
-          const field = data.is_proforma ? 'next_proforma_number' : 'next_invoice_number';
           const nextNumber = data.is_proforma 
             ? businessSettings.next_proforma_number + 1 
             : businessSettings.next_invoice_number + 1;
           
+          const updatePayload = data.is_proforma
+            ? { next_proforma_number: nextNumber }
+            : { next_invoice_number: nextNumber };
+
           await supabase
             .from('business_settings')
-            .update({ [field]: nextNumber })
+            .update(updatePayload)
             .eq('user_id', user.id);
+
         }
       }
 
