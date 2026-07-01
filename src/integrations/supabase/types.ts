@@ -931,6 +931,21 @@ export type Database = {
           },
         ]
       }
+      keep_alive: {
+        Row: {
+          id: number
+          pinged_at: string | null
+        }
+        Insert: {
+          id?: number
+          pinged_at?: string | null
+        }
+        Update: {
+          id?: number
+          pinged_at?: string | null
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           client_id: string | null
