@@ -56,19 +56,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, name: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          name: name,
-        }
-      }
+    const normalizedEmail = email.trim().toLowerCase();
+    const { data, error: signUpError } = await supabase.functions.invoke('create-confirmed-user', {
+      body: { email: normalizedEmail, password, name: name.trim() },
     });
-    return { error };
+
+    if (signUpError) {
+      return { error: signUpError };
+    }
+
+    if (data && data.ok === false) {
+      return { error: { message: data.error || 'Não foi possível criar a conta' } };
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
+      password,
+    });
+
+    return { error: signInError };
   };
 
   const signOut = async () => {

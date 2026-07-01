@@ -17,22 +17,28 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      {
-        auth: {
-          persistSession: false,
-        },
-      }
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+      throw new Error("Supabase environment variables are missing");
+    }
+
+    const authClient = createClient(supabaseUrl, anonKey, {
+      auth: { persistSession: false },
+    });
+
+    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       throw new Error("Authorization header missing");
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
+    const { data: { user }, error: authError } = await authClient.auth.getUser(
       authHeader.replace("Bearer ", "")
     );
 
@@ -43,7 +49,7 @@ serve(async (req) => {
     const { quoteId, type }: QuoteEmailRequest = await req.json();
 
     // Fetch quote with client data
-    const { data: quote, error: quoteError } = await supabase
+    const { data: quote, error: quoteError } = await adminClient
       .from('quotes')
       .select(`
         *,
@@ -61,13 +67,17 @@ serve(async (req) => {
       throw new Error('Quote not found');
     }
 
+    if (quote.created_by !== user.id) {
+      throw new Error('Unauthorized');
+    }
+
     const client = quote.clients;
     if (!client?.email) {
       throw new Error('Client email not found');
     }
 
     // Generate review URL using review_token for security
-    const origin = req.headers.get('origin') || 'https://vcrsuvzsqivcamzlvluz.supabase.co';
+    const origin = req.headers.get('origin') || 'https://jspsuwpboewyffxrnzpj.supabase.co';
     const reviewUrl = `${origin}/quote/review/${quote.review_token}`;
 
     let subject = '';
@@ -192,12 +202,16 @@ serve(async (req) => {
                                type === 'accepted' ? `Orçamento aceite por ${client.name}` :
                                `Orçamento rejeitado por ${client.name}`;
 
-    await supabase.from('notifications').insert({
-      user_id: user.id,
+    await adminClient.from('notifications').insert({
+      recipient_id: user.id,
       type: notificationType,
-      title: notificationMessage,
-      message: `Orçamento ORC-${quote.id.substring(0, 8).toUpperCase()} - ${Number(quote.total).toFixed(2)} ${quote.currency || 'AOA'}`,
-      link: `/quotes`,
+      payload: {
+        quote_id: quote.id,
+        client_name: client.name,
+        title: notificationMessage,
+        message: `Orçamento ORC-${quote.id.substring(0, 8).toUpperCase()} - ${Number(quote.total).toFixed(2)} ${quote.currency || 'AOA'}`,
+        link: `/quotes`,
+      },
       read: false,
     });
 

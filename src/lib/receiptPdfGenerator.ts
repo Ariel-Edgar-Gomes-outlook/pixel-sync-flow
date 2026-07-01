@@ -51,10 +51,14 @@ export async function generateReceiptPDF(
   invoice: Invoice,
   client: Client
 ): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
   // Fetch business settings
   const { data: settings } = await supabase
     .from('business_settings')
     .select('*')
+    .eq('user_id', user.id)
     .single();
 
   if (!settings) {
@@ -338,7 +342,7 @@ export async function generateReceiptPDF(
   
   // Upload to Supabase Storage
   const pdfBlob = doc.output('blob');
-  const fileName = `receipts/receipt_${receiptNumber}_${Date.now()}.pdf`;
+  const fileName = `${user.id}/receipts/receipt_${receiptNumber}_${Date.now()}.pdf`;
   
   const { data, error } = await supabase.storage
     .from('receipts')

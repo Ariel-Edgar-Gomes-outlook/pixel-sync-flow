@@ -438,10 +438,13 @@ export class ProfessionalPDFGenerator {
       this.addWatermark('CANCELADA');
     }
 
-    // Upload to Supabase Storage
+    // Upload to Supabase Storage under the authenticated user's folder
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const pdfBlob = this.doc.output('blob');
     const fileName = `${invoiceData.invoice_number.replace(/\//g, '-')}.pdf`;
-    const filePath = `${fileName}`;
+    const filePath = `${user.id}/${fileName}`;
 
     const { data, error } = await supabase.storage
       .from('pdfs')
