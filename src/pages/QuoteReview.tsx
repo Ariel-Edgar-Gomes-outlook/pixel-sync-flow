@@ -12,7 +12,8 @@ import { toast } from 'sonner';
 import { useCurrency } from '@/hooks/useCurrency';
 
 export default function QuoteReview() {
-  const { token } = useParams();
+  const { quoteId } = useParams();
+  const token = quoteId;
   const navigate = useNavigate();
   const [quote, setQuote] = useState<any>(null);
   const [loading, setLoading] = useState(true);

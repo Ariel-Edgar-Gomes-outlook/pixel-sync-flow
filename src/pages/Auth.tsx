@@ -25,6 +25,7 @@ export default function Auth() {
     toast
   } = useToast();
   const navigate = useNavigate();
+  const defaultTab = new URLSearchParams(window.location.search).get('signup') === 'true' ? 'signup' : 'signin';
   useEffect(() => {
     if (user) {
       // Não redirecionar se o usuário estiver na página de reset de senha
@@ -78,11 +79,9 @@ export default function Auth() {
     } else {
       toast({
         title: 'Conta criada com sucesso!',
-        description: 'Verifique o seu email para confirmar a conta'
+        description: 'A sua sessão foi iniciada automaticamente'
       });
-      setEmail('');
-      setPassword('');
-      setName('');
+      navigate('/dashboard');
     }
     setIsLoading(false);
   };
@@ -160,7 +159,7 @@ export default function Auth() {
                 </Button>
               </form>
             ) : (
-              <Tabs defaultValue="signin" className="w-full">
+              <Tabs defaultValue={defaultTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="signin">Entrar</TabsTrigger>
                   <TabsTrigger value="signup">Criar Conta</TabsTrigger>
