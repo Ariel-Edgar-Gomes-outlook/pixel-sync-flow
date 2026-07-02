@@ -30,19 +30,12 @@ import { SignaturePreviewDialog } from './SignaturePreviewDialog';
 const businessSettingsSchema = z.object({
   business_name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').max(100),
   trade_name: z.string().optional().or(z.literal('')),
-  nif: z.string().optional().or(z.literal(''))
-    .refine((val) => !val || /^\d{10}$/.test(val), {
-      message: 'NIF deve ter 10 dígitos numéricos'
-    }),
+  nif: z.string().optional().or(z.literal('')),
   email: z.string().email('Email inválido'),
-  phone: z.string().optional().or(z.literal(''))
-    .refine((val) => !val || /^\+?244\s?\d{9}$/.test(val), {
-      message: 'Formato: +244 923456789 ou 244923456789'
-    }),
+  phone: z.string().optional().or(z.literal('')),
   whatsapp: z.string().optional().or(z.literal('')),
   website: z.string().optional().or(z.literal(''))
     .transform((val) => {
-      // Auto-add https:// if missing and not empty
       if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
         return `https://${val}`;
       }
@@ -55,16 +48,7 @@ const businessSettingsSchema = z.object({
   country: z.string().optional().or(z.literal('')),
   postal_code: z.string().optional().or(z.literal('')),
   bank_name: z.string().optional().or(z.literal('')),
-  iban: z.string().optional().or(z.literal(''))
-    .refine((val) => {
-      if (!val) return true; // Empty is valid
-      // Remove all dots and spaces for validation
-      const cleaned = val.replace(/[\s.]/g, '');
-      // Check if starts with AO and has 25 total characters (AO + 23 digits)
-      return /^AO\d{23}$/.test(cleaned);
-    }, {
-      message: 'IBAN angolano deve começar com AO seguido de 23 dígitos'
-    }),
+  iban: z.string().optional().or(z.literal('')),
   account_holder: z.string().optional().or(z.literal('')),
   primary_color: z.string().optional().or(z.literal('')),
   secondary_color: z.string().optional().or(z.literal('')),
@@ -75,6 +59,7 @@ const businessSettingsSchema = z.object({
   terms_footer: z.string().optional().or(z.literal('')),
   payment_terms: z.string().optional().or(z.literal('')),
 });
+
 
 type FormData = z.infer<typeof businessSettingsSchema>;
 
