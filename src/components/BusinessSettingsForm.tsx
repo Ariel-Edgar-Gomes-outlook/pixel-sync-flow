@@ -233,7 +233,6 @@ export function BusinessSettingsForm() {
       if (settings) {
         await updateSettings.mutateAsync({ userId: user.id, ...data });
       } else {
-        // Type assertion for create since we've validated required fields
         await createSettings.mutateAsync({ 
           user_id: user.id,
           business_name: data.business_name,
@@ -241,6 +240,8 @@ export function BusinessSettingsForm() {
           ...data 
         } as any);
       }
+      // Clear dirty state so future server updates re-populate the form
+      form.reset(data);
     } catch (error) {
       console.error('Error saving business settings:', error);
       toast.error('Erro ao guardar configurações. Tente novamente.');

@@ -132,11 +132,16 @@ export function useUploadBusinessFile() {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      // Buckets are private — create a long-lived signed URL (10 years)
+      const { data: signed, error: signedError } = await supabase.storage
         .from(bucket)
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24 * 365 * 10);
 
-      return publicUrl;
+      if (signedError || !signed?.signedUrl) {
+        throw signedError || new Error('Erro ao gerar URL da imagem');
+      }
+
+      return signed.signedUrl;
     },
     onError: (error: any) => {
       toast.error(error.message || 'Erro ao fazer upload do ficheiro');
