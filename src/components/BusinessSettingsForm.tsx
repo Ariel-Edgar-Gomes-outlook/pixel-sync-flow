@@ -206,7 +206,6 @@ export function BusinessSettingsForm() {
       return;
     }
     
-    // Ensure required fields are present
     if (!data.business_name || !data.email) {
       toast.error('Nome comercial e email são obrigatórios');
       return;
@@ -225,13 +224,31 @@ export function BusinessSettingsForm() {
           ...data 
         } as any);
       }
-      // Clear dirty state so future server updates re-populate the form
       form.reset(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving business settings:', error);
-      toast.error('Erro ao guardar configurações. Tente novamente.');
+      toast.error(error?.message || 'Erro ao guardar configurações. Tente novamente.');
     }
   };
+
+  const onInvalid = (errors: any) => {
+    const fieldLabels: Record<string, string> = {
+      business_name: 'Nome Comercial',
+      email: 'Email Empresarial',
+      nif: 'NIF',
+      phone: 'Telefone',
+      whatsapp: 'WhatsApp',
+      website: 'Website',
+      iban: 'IBAN',
+      invoice_prefix: 'Prefixo Fatura',
+      proforma_prefix: 'Prefixo Proforma',
+    };
+    const fieldNames = Object.keys(errors)
+      .map((k) => fieldLabels[k] || k)
+      .join(', ');
+    toast.error(`Corrija os campos: ${fieldNames}`);
+  };
+
 
   if (isLoading) {
     return (
