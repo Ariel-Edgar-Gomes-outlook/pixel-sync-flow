@@ -109,9 +109,11 @@ export default function ContractSign() {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data: signed, error: signedError } = await supabase.storage
         .from('client-signatures')
-        .getPublicUrl(uploadData.path);
+        .createSignedUrl(uploadData.path, 60 * 60 * 24 * 365 * 10);
+      if (signedError || !signed?.signedUrl) throw signedError || new Error('Erro ao gerar URL da assinatura');
+      const publicUrl = signed.signedUrl;
       
       // Update contract with signature
       const { error: updateError } = await supabase
