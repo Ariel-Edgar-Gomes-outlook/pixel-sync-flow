@@ -287,20 +287,7 @@ export function BusinessSettingsForm() {
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="trade_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome Fantasia</FormLabel>
-                  <FormControl>
-                    <Input placeholder="JoFoto Studio" {...field} />
-                  </FormControl>
-                  <FormDescription>Nome pelo qual é conhecido no mercado</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
 
             <FormField
               control={form.control}
