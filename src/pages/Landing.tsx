@@ -220,8 +220,8 @@ const Landing = () => {
 
             <h1 className="mt-8 text-white text-5xl md:text-7xl lg:text-8xl leading-[0.95] tracking-tight">
               <span className="block font-serif-display italic text-white/95">A tua arte,</span>
-              <span className="block font-semibold">
-                geri<span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-cyan-200">da com precisão.</span>
+              <span className="block font-semibold text-transparent bg-clip-text bg-gradient-to-r from-white via-sky-100 to-cyan-200">
+                gerida com precisão.
               </span>
             </h1>
 
