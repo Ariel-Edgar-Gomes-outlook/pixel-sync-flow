@@ -32,6 +32,8 @@ import dashboardImg from "@/assets/dashboard-interface.png";
 import clientsImg from "@/assets/reports-screenshot.jpg";
 import calendarImg from "@/assets/calendar-screenshot.jpg";
 import galleryImg from "@/assets/gallery-screenshot.jpg";
+import heroStudio from "@/assets/hero-studio.jpg";
+import heroPhotographer from "@/assets/hero-photographer.jpg";
 
 const Landing = () => {
   const navigate = useNavigate();
