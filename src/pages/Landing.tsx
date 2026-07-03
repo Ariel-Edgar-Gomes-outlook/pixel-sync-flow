@@ -32,6 +32,8 @@ import dashboardImg from "@/assets/dashboard-interface.png";
 import clientsImg from "@/assets/reports-screenshot.jpg";
 import calendarImg from "@/assets/calendar-screenshot.jpg";
 import galleryImg from "@/assets/gallery-screenshot.jpg";
+import heroStudio from "@/assets/hero-studio.jpg";
+import heroPhotographer from "@/assets/hero-photographer.jpg";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -189,50 +191,79 @@ const Landing = () => {
         )}
       </header>
 
-      {/* Hero Section */}
-      <section id="inicio" className="relative py-20 md:py-32 overflow-hidden">
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 gradient-animate opacity-10" />
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20" />
-        
-        {/* Floating orbs for visual interest - contained within section */}
-        <div className="absolute top-20 left-10 w-64 h-64 md:w-72 md:h-72 bg-primary/20 rounded-full blur-3xl float-animation" />
-        <div className="absolute bottom-20 right-10 w-72 h-72 md:w-96 md:h-96 bg-accent/20 rounded-full blur-3xl float-animation" style={{ animationDelay: "3s" }} />
-        
-        <div className="container relative px-4 mx-auto max-w-7xl">
-          <div className="mx-auto max-w-4xl text-center space-y-8">
-            <Badge variant="secondary" className="text-sm px-4 py-2 shimmer pulse-glow">
-              🎉 Oferta de Lançamento - Poupa 47.5%
-            </Badge>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground">
-              Gestão <span className="text-gradient">Profissional</span> para o Teu Estúdio Fotográfico
-            </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Organiza clientes, jobs, contratos e faturas num único lugar. Concentra-te no que fazes de melhor: <span className="text-primary font-semibold">fotografar!</span>
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-              <Button
-                size="lg"
-                className="text-lg px-8 py-6 shadow-xl hover-lift pulse-glow gradient-primary border-0"
-                onClick={() => navigate("/auth?signup=true")}
-              >
-                Experimentar Agora <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-lg px-8 py-6 hover-scale border-2 hover:border-primary/50"
-                onClick={() => document.getElementById('funcionalidades')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                Ver Funcionalidades
-              </Button>
+      {/* Hero Section - Cinematic Split */}
+      <section id="inicio" className="relative min-h-[92vh] w-full overflow-hidden bg-[#0a0a0f]">
+        {/* Full-bleed background photo */}
+        <div className="absolute inset-0">
+          <img
+            src={heroStudio}
+            alt="Estúdio fotográfico profissional com câmara Canon e iluminação cinematográfica"
+            className="h-full w-full object-cover"
+            width={1920}
+            height={1280}
+          />
+          {/* Gradient overlays for legibility */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#05060a] via-[#05060a]/85 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(56,189,248,0.15),transparent_60%)]" />
+        </div>
+
+        <div className="relative z-10 container mx-auto max-w-7xl px-6 pt-24 pb-16 md:pt-32 md:pb-24">
+          <div className="max-w-2xl">
+            {/* Refined pill badge */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 backdrop-blur-md">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs font-medium tracking-wide text-white/80 uppercase">
+                Lançamento — 47.5% desconto
+              </span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              ✨ Sem cartão de crédito necessário • Configuração em 5 minutos
+
+            <h1 className="mt-8 text-white text-5xl md:text-7xl lg:text-8xl leading-[0.95] tracking-tight">
+              <span className="block font-serif-display italic text-white/95">A tua arte,</span>
+              <span className="block font-semibold text-transparent bg-clip-text bg-gradient-to-r from-white via-sky-100 to-cyan-200">
+                gerida com precisão.
+              </span>
+            </h1>
+
+            <p className="mt-8 max-w-xl text-lg md:text-xl text-white/70 leading-relaxed font-light">
+              O sistema completo para fotógrafos profissionais. Clientes, jobs, contratos,
+              galerias e finanças — num único lugar, com o requinte que o teu estúdio merece.
             </p>
+
+            <div className="mt-10 flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={() => navigate("/auth?signup=true")}
+                className="group relative inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-base font-medium text-[#0a0a0f] transition-all duration-300 hover:bg-white/90 hover:scale-[1.02]"
+                style={{ boxShadow: "0 20px 60px -15px rgba(255,255,255,0.35), 0 0 0 1px rgba(255,255,255,0.1)" }}
+              >
+                Experimentar Agora
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </button>
+              <button
+                onClick={() => document.getElementById('funcionalidades')?.scrollIntoView({ behavior: 'smooth' })}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 py-4 text-base font-medium text-white backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/30"
+              >
+                Descobrir Funcionalidades
+              </button>
+            </div>
+
+            <div className="mt-10 flex items-center gap-6 text-sm text-white/50">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-emerald-400" />
+                <span>Sem cartão de crédito</span>
+              </div>
+              <div className="hidden sm:flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-emerald-400" />
+                <span>Configuração em 5 min</span>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Bottom fade to next section */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
       </section>
+
 
       {/* Features Section */}
       <section id="funcionalidades" className="py-20 overflow-hidden">
