@@ -106,12 +106,12 @@ const Landing = () => {
     { name: "Márcio Andrade", role: "Fotógrafo", content: "Consigo gerir todos os projetos e faturas de forma organizada. Valeu cada kwanza." },
   ];
 
-  const plans = [
+  const plans: Array<{ key: keyof typeof paymentLinks; label: string; old: string; price: string; suffix: string; note: string | null; popular?: boolean }> = [
     { key: "mensal", label: "Mensal", old: "12.000", price: "6.300", suffix: "Kz/mês", note: null },
     { key: "trimestral", label: "Trimestral", old: "36.000", price: "18.900", suffix: "Kz", note: "6.300 Kz/mês" },
     { key: "semestral", label: "Semestral", old: "72.000", price: "37.800", suffix: "Kz", note: "6.300 Kz/mês" },
     { key: "anual", label: "Anual", old: "144.000", price: "75.600", suffix: "Kz", note: "6.300 Kz/mês", popular: true },
-  ] as const;
+  ];
 
   return (
     <div className="min-h-screen w-full bg-[#0a0a0f] text-white overflow-x-hidden">
