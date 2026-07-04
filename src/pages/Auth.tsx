@@ -82,9 +82,9 @@ export default function Auth() {
     'inline-flex items-center justify-center gap-2 w-full rounded-full border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-medium text-white backdrop-blur-md transition-all duration-300 hover:bg-white/10 hover:border-white/25';
 
   return (
-    <div className="min-h-screen w-full bg-[#0a0a0f] text-white grid lg:grid-cols-2 overflow-hidden">
+    <div className="min-h-screen w-full bg-[#0a0a0f] text-white grid lg:grid-cols-2">
       {/* Left: cinematic image panel */}
-      <div className="relative hidden lg:block overflow-hidden">
+      <div className="relative hidden lg:block overflow-hidden lg:sticky lg:top-0 lg:h-screen">
         <img src={authSide} alt="Espaço de trabalho profissional de fotografia" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#05060a] via-[#05060a]/40 to-[#05060a]/30" />
         <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0a0a0f]/60" />
@@ -112,7 +112,7 @@ export default function Auth() {
       </div>
 
       {/* Right: form panel */}
-      <div className="relative flex items-center justify-center p-6 sm:p-10 lg:p-16">
+      <div className="relative flex items-center justify-center p-6 sm:p-10 lg:p-16 min-h-screen">
         {/* Ambient glow */}
         <div className="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-sky-500/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
