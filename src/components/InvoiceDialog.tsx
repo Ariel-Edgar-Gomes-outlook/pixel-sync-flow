@@ -85,6 +85,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
   const { data: businessSettings } = useBusinessSettings(user?.id);
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
+  const queryClient = useQueryClient();
   const deleteInvoice = useDeleteInvoice();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
