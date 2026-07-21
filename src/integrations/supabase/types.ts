@@ -1587,6 +1587,17 @@ export type Database = {
         Args: { _payload: Json; _recipient_id: string; _type: string }
         Returns: string
       }
+      get_public_gallery: {
+        Args: { _token: string }
+        Returns: {
+          access_instructions: string
+          gallery_links: Json
+          id: string
+          name: string
+          password_protected: boolean
+          status: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
