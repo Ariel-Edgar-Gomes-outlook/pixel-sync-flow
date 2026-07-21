@@ -257,54 +257,82 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
         return;
       }
 
-      const invoiceNumber = invoice 
-        ? invoice.invoice_number 
-        : await getNextInvoiceNumber(data.is_proforma);
+      let newInvoice: any = null;
+      let usedNumber = 0;
+      let invoiceNumber = invoice ? invoice.invoice_number : '';
 
       // Clean up data - convert empty strings to null for optional fields
       const cleanedData = {
         ...data,
         due_date: data.due_date && data.due_date.trim() !== '' ? data.due_date : null,
         notes: data.notes && data.notes.trim() !== '' ? data.notes : null,
-        payment_instructions: data.payment_instructions && data.payment_instructions.trim() !== '' 
-          ? data.payment_instructions 
+        payment_instructions: data.payment_instructions && data.payment_instructions.trim() !== ''
+          ? data.payment_instructions
           : null,
-        quote_id: data.quote_id && data.quote_id.trim() !== '' && data.quote_id !== 'none' 
-          ? data.quote_id 
+        quote_id: data.quote_id && data.quote_id.trim() !== '' && data.quote_id !== 'none'
+          ? data.quote_id
           : null,
-      };
-
-      const invoiceData = {
-        ...cleanedData,
-        user_id: user.id,
-        invoice_number: invoiceNumber,
-        subtotal,
-        tax_amount: taxAmount,
-        total,
       };
 
       if (invoice) {
+        const invoiceData = {
+          ...cleanedData,
+          user_id: user.id,
+          invoice_number: invoiceNumber,
+          subtotal,
+          tax_amount: taxAmount,
+          total,
+        };
         await updateInvoice.mutateAsync({ id: invoice.id, ...invoiceData });
       } else {
-        const newInvoice = await createInvoice.mutateAsync(invoiceData);
-        
-        // Increment invoice number in business_settings
-        if (businessSettings) {
-          const nextNumber = data.is_proforma 
-            ? businessSettings.next_proforma_number + 1 
-            : businessSettings.next_invoice_number + 1;
-          
-          const updatePayload = data.is_proforma
-            ? { next_proforma_number: nextNumber }
-            : { next_invoice_number: nextNumber };
+        const prefix = data.is_proforma ? businessSettings.proforma_prefix : businessSettings.invoice_prefix;
+        const year = new Date().getFullYear();
+        let candidate = data.is_proforma
+          ? (businessSettings.next_proforma_number || 1)
+          : (businessSettings.next_invoice_number || 1);
 
-          await supabase
-            .from('business_settings')
-            .update(updatePayload)
-            .eq('user_id', user.id);
-
+        // Retry on duplicate invoice_number (unique constraint) by incrementing
+        let attempts = 0;
+        let lastError: any = null;
+        while (attempts < 20) {
+          invoiceNumber = `${prefix}${year}${String(candidate).padStart(3, '0')}`;
+          try {
+            newInvoice = await createInvoice.mutateAsync({
+              ...cleanedData,
+              user_id: user.id,
+              invoice_number: invoiceNumber,
+              subtotal,
+              tax_amount: taxAmount,
+              total,
+            });
+            usedNumber = candidate;
+            lastError = null;
+            break;
+          } catch (err: any) {
+            const msg = err?.message || '';
+            if (err?.code === '23505' || msg.includes('duplicate key') || msg.includes('invoices_invoice_number_key')) {
+              candidate += 1;
+              attempts += 1;
+              lastError = err;
+              continue;
+            }
+            throw err;
+          }
         }
+        if (!newInvoice) throw lastError || new Error('Não foi possível gerar número de fatura único');
+
+        // Increment invoice number in business_settings to just past the used one
+        const nextNumber = usedNumber + 1;
+        const updatePayload = data.is_proforma
+          ? { next_proforma_number: nextNumber }
+          : { next_invoice_number: nextNumber };
+
+        await supabase
+          .from('business_settings')
+          .update(updatePayload)
+          .eq('user_id', user.id);
       }
+
 
       onOpenChange(false);
       form.reset();
