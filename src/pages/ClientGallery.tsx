@@ -35,13 +35,12 @@ export default function ClientGallery() {
 
   const loadGallery = async () => {
     try {
-      const { data: galleryData, error } = await supabase
-        .from('client_galleries')
-        .select('id, name, password_protected, status, gallery_links, access_instructions')
-        .eq('share_token', token)
-        .single();
+      const { data: rows, error } = await supabase
+        .rpc('get_public_gallery', { _token: token });
 
       if (error) throw error;
+      const galleryData = Array.isArray(rows) ? rows[0] : rows;
+      if (!galleryData) throw new Error('Gallery not found');
 
       if (galleryData.status !== 'active') {
         toast({
