@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -84,6 +85,7 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
   const { data: businessSettings } = useBusinessSettings(user?.id);
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
+  const queryClient = useQueryClient();
   const deleteInvoice = useDeleteInvoice();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -291,35 +293,48 @@ export function InvoiceDialog({ invoice, open, onOpenChange }: InvoiceDialogProp
           ? (businessSettings.next_proforma_number || 1)
           : (businessSettings.next_invoice_number || 1);
 
-        // Retry on duplicate invoice_number (unique constraint) by incrementing
+        // Retry on duplicate invoice_number (unique constraint) by incrementing.
+        // Insert directly via supabase to avoid triggering the mutation's onError toast on each retry.
         let attempts = 0;
         let lastError: any = null;
         while (attempts < 20) {
           invoiceNumber = `${prefix}${year}${String(candidate).padStart(3, '0')}`;
-          try {
-            newInvoice = await createInvoice.mutateAsync({
+          const { data: inserted, error: insertError } = await supabase
+            .from('invoices')
+            .insert([{
               ...cleanedData,
               user_id: user.id,
               invoice_number: invoiceNumber,
               subtotal,
               tax_amount: taxAmount,
               total,
-            });
+            }])
+            .select()
+            .single();
+
+          if (!insertError) {
+            newInvoice = inserted;
             usedNumber = candidate;
             lastError = null;
             break;
-          } catch (err: any) {
-            const msg = err?.message || '';
-            if (err?.code === '23505' || msg.includes('duplicate key') || msg.includes('invoices_invoice_number_key')) {
-              candidate += 1;
-              attempts += 1;
-              lastError = err;
-              continue;
-            }
-            throw err;
           }
+
+          const msg = insertError.message || '';
+          if (insertError.code === '23505' || msg.includes('duplicate key') || msg.includes('invoices_invoice_number_key')) {
+            candidate += 1;
+            attempts += 1;
+            lastError = insertError;
+            continue;
+          }
+          lastError = insertError;
+          break;
         }
-        if (!newInvoice) throw lastError || new Error('Não foi possível gerar número de fatura único');
+        if (!newInvoice) {
+          toast.error('Erro ao criar fatura: ' + (lastError?.message || 'Não foi possível gerar número único'));
+          throw lastError || new Error('Não foi possível gerar número de fatura único');
+        }
+        queryClient.invalidateQueries({ queryKey: ['invoices'] });
+        toast.success('Fatura criada com sucesso!');
 
         // Increment invoice number in business_settings to just past the used one
         const nextNumber = usedNumber + 1;
